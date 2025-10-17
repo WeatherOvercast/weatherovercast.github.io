@@ -1219,3 +1219,70 @@ header {
         width: calc(100% + 10px);
     }
 }
+/* Стили для карты осадков */
+.precipitation-map {
+    position: relative;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 100;
+}
+
+/* Стиль для курсивного текста */
+.italic-text {
+    font-style: italic;
+    opacity: 0.8;
+    font-size: 13px;
+}
+
+/* Улучшенные стили для качества воздуха */
+.air-quality-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pollutant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pollutant-item:last-child {
+    border-bottom: none;
+}
+
+.pollutant-level {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.level-good { background: #4CAF50; color: white; }
+.level-moderate { background: #FFEB3B; color: #333; }
+.level-unhealthy-sensitive { background: #FF9800; color: white; }
+.level-unhealthy { background: #F44336; color: white; }
+.level-very-unhealthy { background: #9C27B0; color: white; }
+.level-hazardous { background: #795548; color: white; }
+
+/* Адаптивность для карты */
+@media (max-width: 768px) {
+    .precipitation-map {
+        height: 300px;
+    }
+    
+    .map-overlay {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+}

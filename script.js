@@ -10,6 +10,7 @@ let currentLang = localStorage.getItem('weatherLang') || 'ru';
 let currentUnits = localStorage.getItem('weatherUnits') || 'celsius';
 let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
 let currentCity = '';
+const TEMPERATURE_SHIFT = 0;
 
 // База данных для автодополнения
 const cityDatabase = [
@@ -48,7 +49,7 @@ const translations = {
         'find_me': 'Найти меня',
         'search_places': 'Поиск мест',
         'loading_weather': 'Загрузка данных о погоде...',
-        'loading_maps': 'Загрузка Яндекс.Карт...',
+        'loading_maps': 'Загрузка карты осадков...',
         'no_precipitation': 'Без осадков',
         'precipitation': 'Осадки',
         'theme': 'Тема',
@@ -79,7 +80,15 @@ const translations = {
         'gale': 'Штормовой ветер',
         'storm': 'Шторм',
         'additional_info': 'Дополнительная информация',
-        'accuracy_note': '*Точность прогноза снижается после 3-го дня'
+        'accuracy_note': '*Точность прогноза снижается после 3-го дня',
+        'precipitation_map': 'Карта осадков',
+        'good': 'Хорошо',
+        'moderate': 'Умеренно',
+        'unhealthy_sensitive': 'Вредно для чувствительных групп',
+        'unhealthy': 'Вредно',
+        'very_unhealthy': 'Очень вредно',
+        'hazardous': 'Опасно',
+        'air_quality_advice': 'Рекомендации по качеству воздуха'
     },
     en: {
         'feels_like': 'Feels like',
@@ -100,7 +109,7 @@ const translations = {
         'find_me': 'Find me',
         'search_places': 'Search places',
         'loading_weather': 'Loading weather data...',
-        'loading_maps': 'Loading Yandex.Maps...',
+        'loading_maps': 'Loading precipitation map...',
         'no_precipitation': 'No precipitation',
         'precipitation': 'Precipitation',
         'theme': 'Theme',
@@ -131,7 +140,15 @@ const translations = {
         'gale': 'Gale',
         'storm': 'Storm',
         'additional_info': 'Additional Information',
-        'accuracy_note': '*Forecast accuracy decreases after 3rd day'
+        'accuracy_note': '*Forecast accuracy decreases after 3rd day',
+        'precipitation_map': 'Precipitation Map',
+        'good': 'Good',
+        'moderate': 'Moderate',
+        'unhealthy_sensitive': 'Unhealthy for Sensitive Groups',
+        'unhealthy': 'Unhealthy',
+        'very_unhealthy': 'Very Unhealthy',
+        'hazardous': 'Hazardous',
+        'air_quality_advice': 'Air Quality Advice'
     }
 };
 
@@ -175,6 +192,11 @@ function getTranslation(key) {
 
 function translateWeather(description) {
     return weatherTranslations[currentLang][description] || description;
+}
+
+// Функция для применения сдвига температуры
+function applyTemperatureShift(temp) {
+    return Math.round(temp + TEMPERATURE_SHIFT);
 }
 
 // Функция для определения силы ветра
@@ -250,18 +272,39 @@ async function getAirQuality(lat, lon) {
     }
 }
 
-// Функция для получения AQI описания
-function getAQIDescription(aqi) {
-    const descriptions = {
-        1: { en: 'Good', ru: 'Хорошее' },
-        2: { en: 'Fair', ru: 'Удовлетворительное' },
-        3: { en: 'Moderate', ru: 'Умеренное' },
-        4: { en: 'Poor', ru: 'Плохое' },
-        5: { en: 'Very Poor', ru: 'Очень плохое' }
+// Функция для получения уровня загрязнения
+function getPollutionLevel(value, pollutant) {
+    const thresholds = {
+        'pm2_5': [12, 35.4, 55.4, 150.4, 250.4],
+        'pm10': [54, 154, 254, 354, 424],
+        'o3': [54, 70, 85, 105, 200],
+        'no2': [53, 100, 360, 649, 1249],
+        'so2': [35, 75, 185, 304, 604],
+        'co': [4.4, 9.4, 12.4, 15.4, 30.4]
     };
-    return descriptions[aqi] || descriptions[1];
+    
+    const levels = [1, 2, 3, 4, 5, 6];
+    const threshold = thresholds[pollutant] || thresholds.pm2_5;
+    
+    for (let i = 0; i < threshold.length; i++) {
+        if (value <= threshold[i]) return levels[i];
+    }
+    return 6;
 }
 
+// Функция для получения описания уровня AQI
+function getAQILevelDescription(aqi) {
+    const levels = {
+        1: { en: 'Good', ru: 'Хороший', class: 'level-good', advice: 'Идеальные условия для outdoor активности' },
+        2: { en: 'Fair', ru: 'Удовлетворительный', class: 'level-moderate', advice: 'Хорошие условия, подходят для большинства людей' },
+        3: { en: 'Moderate', ru: 'Умеренный', class: 'level-unhealthy-sensitive', advice: 'Чувствительным группам ограничить пребывание на улице' },
+        4: { en: 'Poor', ru: 'Плохой', class: 'level-unhealthy', advice: 'Ограничить физическую активность на открытом воздухе' },
+        5: { en: 'Very Poor', ru: 'Очень плохой', class: 'level-very-unhealthy', advice: 'Избегать длительного пребывания на улице' }
+    };
+    return levels[aqi] || levels[1];
+}
+
+// Получение погоды по координатам
 async function getWeatherByCoords(lat, lon) {
     try {
         showLoading();
@@ -285,6 +328,7 @@ async function getWeatherByCoords(lat, lon) {
     }
 }
 
+// Получение погоды по названию города
 async function getWeatherByCity(city) {
     try {
         showLoading();
@@ -313,6 +357,7 @@ async function getWeatherByCity(city) {
     }
 }
 
+// Получение прогноза
 async function getForecast(lat, lon) {
     try {
         const response = await fetch(
@@ -325,11 +370,14 @@ async function getForecast(lat, lon) {
     }
 }
 
+// Основное обновление данных о погоде
 function updateWeatherData(data, forecastData, airQualityData) {
-    // ОСНОВНЫЕ ДАННЫЕ
-    const temp = Math.round(data.main.temp);
-    const feelsLike = Math.round(data.main.feels_like);
+    // ОСНОВНЫЕ ДАННЫЕ С УЧЕТОМ СДВИГА ТЕМПЕРАТУРЫ
+    const temp = applyTemperatureShift(data.main.temp);
+    const feelsLike = applyTemperatureShift(data.main.feels_like);
     const weatherDesc = translateWeather(data.weather[0].description);
+
+    
 
     document.getElementById('current-temp').innerHTML = `
         <span class="temp-bullet">●</span>
@@ -338,7 +386,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
     document.getElementById('feels-like').textContent = `${getTranslation('feels_like')} ${feelsLike}°`;
     document.getElementById('weather-description').textContent = weatherDesc;
 
-    // ВЕТЕР - РЕАЛЬНЫЕ ДАННЫЕ С ОПРЕДЕЛЕНИЕМ СИЛЫ
+    // ВЕТЕР - РЕАЛЬНЫЕ ДАННЫЕ
     const windSpeed = Math.round(data.wind.speed * 3.6);
     const windGust = data.wind.gust ? Math.round(data.wind.gust * 3.6) : windSpeed + 5;
     const windDir = getWindDirection(data.wind.deg);
@@ -359,7 +407,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
         </div>
     `;
 
-    // ДАВЛЕНИЕ - РЕАЛЬНЫЕ ДАННЫЕ
+    // ДАВЛЕНИЕ
     const pressure = Math.round(data.main.pressure * 0.750062);
     const pressureStatus = pressure >= 745 && pressure <= 755 ? getTranslation('normal') : 
                              pressure > 755 ? 'Высокое' : 'Низкое';
@@ -375,7 +423,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
         </div>
     `;
 
-    // ВЛАЖНОСТЬ - РЕАЛЬНЫЕ ДАННЫЕ
+    // ВЛАЖНОСТЬ
     const humidity = data.main.humidity;
     const humidityStatus = humidity < 30 ? 'Сухо' : 
                              humidity < 60 ? getTranslation('comfortable') : 
@@ -392,7 +440,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
         </div>
     `;
 
-    // ВИДИМОСТЬ - РЕАЛЬНЫЕ ДАННЫЕ
+    // ВИДИМОСТЬ
     const visibility = (data.visibility / 1000).toFixed(1);
     const visibilityStatus = visibility > 20 ? 'Отличная' : 
                                visibility > 10 ? 'Хорошая' : 
@@ -409,49 +457,49 @@ function updateWeatherData(data, forecastData, airQualityData) {
         </div>
     `;
 
-    // ТОЧКА РОСЫ - ТОЧНЫЙ РАСЧЕТ С ДОПОЛНИТЕЛЬНОЙ ИНФОРМАЦИЕЙ
-const dewPoint = calculateDewPoint(data.main.temp, data.main.humidity);
-let comfortLevel, comfortDescription;
+    // ТОЧКА РОСЫ
+    const dewPoint = calculateDewPoint(data.main.temp, data.main.humidity);
+    let comfortLevel, comfortDescription;
 
-if (dewPoint < 10) {
-    comfortLevel = 'Очень комфортно';
-    comfortDescription = 'Сухой и приятный воздух';
-} else if (dewPoint < 13) {
-    comfortLevel = 'Комфортно';
-    comfortDescription = 'Приятные условия';
-} else if (dewPoint < 16) {
-    comfortLevel = 'Умеренно';
-    comfortDescription = 'Нормальные условия';
-} else if (dewPoint < 18) {
-    comfortLevel = 'Немного влажно';
-    comfortDescription = 'Чувствуется влажность';
-} else if (dewPoint < 21) {
-    comfortLevel = 'Влажно';
-    comfortDescription = 'Не очень комфортно';
-} else if (dewPoint < 24) {
-    comfortLevel = 'Очень влажно';
-    comfortDescription = 'Ощущается тяжело';
-} else {
-    comfortLevel = 'Крайне влажно';
-    comfortDescription = 'Очень некомфортно';
-}
+    if (dewPoint < 10) {
+        comfortLevel = 'Очень комфортно';
+        comfortDescription = 'Сухой и приятный воздух';
+    } else if (dewPoint < 13) {
+        comfortLevel = 'Комфортно';
+        comfortDescription = 'Приятные условия';
+    } else if (dewPoint < 16) {
+        comfortLevel = 'Умеренно';
+        comfortDescription = 'Нормальные условия';
+    } else if (dewPoint < 18) {
+        comfortLevel = 'Немного влажно';
+        comfortDescription = 'Чувствуется влажность';
+    } else if (dewPoint < 21) {
+        comfortLevel = 'Влажно';
+        comfortDescription = 'Не очень комфортно';
+    } else if (dewPoint < 24) {
+        comfortLevel = 'Очень влажно';
+        comfortDescription = 'Ощущается тяжело';
+    } else {
+        comfortLevel = 'Крайне влажно';
+        comfortDescription = 'Очень некомфортно';
+    }
 
-document.getElementById('dew-point-details').innerHTML = `
-    <div class="dew-point-value">${dewPoint.toFixed(1)}°C</div>
-    <div class="dew-point-comfort">${comfortLevel}</div>
-    <div class="dew-point-info">${comfortDescription}</div>
-    <div class="dew-point-info">Влажность: ${data.main.humidity}%</div>
-    <div class="dew-point-info">Температура: ${Math.round(data.main.temp)}°C</div>
-`;
+    document.getElementById('dew-point-details').innerHTML = `
+        <div class="dew-point-value">${dewPoint.toFixed(1)}°C</div>
+        <div class="dew-point-comfort">${comfortLevel}</div>
+        <div class="dew-point-info">${comfortDescription}</div>
+        <div class="dew-point-info">Влажность: ${data.main.humidity}%</div>
+        <div class="dew-point-info">Температура: ${Math.round(data.main.temp)}°C</div>
+    `;
 
-    // РАССВЕТ И ЗАКАТ С МИНИАТЮРНЫМИ СОЛНЦАМИ
+    // РАССВЕТ И ЗАКАТ
     const sunrise = new Date(data.sys.sunrise * 1000);
     const sunset = new Date(data.sys.sunset * 1000);
     document.getElementById('sunrise-time').textContent = formatTime(sunrise);
     document.getElementById('sunset-time').textContent = formatTime(sunset);
     document.getElementById('sun-times-city').textContent = data.name;
 
-    // ОСАДКИ В ОСНОВНОМ БЛОКЕ - РЕАЛЬНЫЕ ДАННЫЕ
+    // ОСАДКИ В ОСНОВНОМ БЛОКЕ
     if (data.rain) {
         const rainVolume = data.rain['1h'] || data.rain['3h'] || 0;
         document.getElementById('rain-info').innerHTML = `
@@ -484,7 +532,7 @@ document.getElementById('dew-point-details').innerHTML = `
     updateThemeByWeather(data.weather[0].main, data.sys);
 }
 
-// ТОЧНЫЙ РАСЧЕТ ТОЧКИ РОСЫ (формула Магнуса)
+// Расчет точки росы
 function calculateDewPoint(temp, humidity) {
     if (humidity === 0) return -273.15;
     
@@ -494,28 +542,51 @@ function calculateDewPoint(temp, humidity) {
     return (b * alpha) / (a - alpha);
 }
 
-function updateAdditionalInfo(data, airQualityData) {
-    // КАЧЕСТВО ВОЗДУХА - РЕАЛЬНЫЕ ДАННЫЕ ИЗ API
+// Обновление информации о качестве воздуха
+function updateAirQualityInfo(airQualityData) {
     if (airQualityData && airQualityData.list && airQualityData.list.length > 0) {
         const airData = airQualityData.list[0];
         const aqi = airData.main.aqi;
         const components = airData.components;
-        const aqiDesc = getAQIDescription(aqi);
+        const aqiDesc = getAQILevelDescription(aqi);
         
-        document.getElementById('air-quality').innerHTML = `
+        const pollutants = [
+            { key: 'pm2_5', name: 'PM2.5', value: components.pm2_5, unit: 'мкг/м³' },
+            { key: 'pm10', name: 'PM10', value: components.pm10, unit: 'мкг/м³' },
+            { key: 'o3', name: 'O₃', value: components.o3, unit: 'мкг/м³' },
+            { key: 'no2', name: 'NO₂', value: components.no2, unit: 'мкг/м³' },
+            { key: 'so2', name: 'SO₂', value: components.so2, unit: 'мкг/м³' },
+            { key: 'co', name: 'CO', value: components.co, unit: 'мг/м³' }
+        ];
+
+        let airQualityHTML = `
             <div class="tile-content-item">
                 <span>●</span>
-                <span>AQI: ${aqi} (${aqiDesc[currentLang === 'ru' ? 'ru' : 'en']})</span>
+                <span><strong>Индекс AQI: ${aqi} (${aqiDesc[currentLang === 'ru' ? 'ru' : 'en']})</strong></span>
             </div>
             <div class="tile-content-item">
                 <span>●</span>
-                <span>PM2.5: ${components.pm2_5.toFixed(1)} мкг/м³</span>
+                <span><em>${aqiDesc.advice}</em></span>
             </div>
-            <div class="tile-content-item">
-                <span>●</span>
-                <span>PM10: ${components.pm10.toFixed(1)} мкг/м³</span>
-            </div>
+            <div class="air-quality-details">
         `;
+
+        pollutants.forEach(pollutant => {
+            const level = getPollutionLevel(pollutant.value, pollutant.key);
+            const levelDesc = getAQILevelDescription(level);
+            
+            airQualityHTML += `
+                <div class="pollutant-item">
+                    <span>${pollutant.name}: ${pollutant.value.toFixed(1)} ${pollutant.unit}</span>
+                    <span class="pollutant-level ${levelDesc.class}">
+                        ${getTranslation(levelDesc[currentLang === 'ru' ? 'ru' : 'en'].toLowerCase().replace(' ', '_'))}
+                    </span>
+                </div>
+            `;
+        });
+
+        airQualityHTML += '</div>';
+        document.getElementById('air-quality').innerHTML = airQualityHTML;
     } else {
         document.getElementById('air-quality').innerHTML = `
             <div class="tile-content-item">
@@ -524,26 +595,29 @@ function updateAdditionalInfo(data, airQualityData) {
             </div>
         `;
     }
+}
 
-    // ТОЧНЫЙ РАСЧЕТ ФАЗ ЛУНЫ
+// Обновление дополнительной информации
+function updateAdditionalInfo(data, airQualityData) {
+    updateAirQualityInfo(airQualityData);
+    
+    // ФАЗЫ ЛУНЫ
     const moonInfo = calculateMoonInfo();
     document.getElementById('moon-phase-text').textContent = `${getTranslation('phase')}: ${moonInfo.phase}`;
     document.getElementById('moon-illumination').textContent = `${getTranslation('illumination')}: ${moonInfo.illumination}%`;
     document.getElementById('moon-age').textContent = `Возраст: ${moonInfo.age} дней`;
     document.getElementById('moon-next').textContent = `Следующая фаза: ${moonInfo.nextPhase} (${moonInfo.daysToNext} дней)`;
     
-    // Обновляем визуализацию луны
     updateMoonVisualization(moonInfo.phasePercent);
 }
 
-// ТОЧНЫЙ РАСЧЕТ ФАЗ ЛУНЫ (улучшенный алгоритм)
+// Расчет фаз луны
 function calculateMoonInfo() {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const day = now.getDate();
     
-    // Более точный алгоритм расчета фазы луны
     let age = 0;
     if (month <= 2) {
         age = Math.floor(365.25 * (year - 1)) + Math.floor(30.6 * (month + 12 - 3)) + day - 694039.09;
@@ -558,7 +632,6 @@ function calculateMoonInfo() {
     const moonAge = age * 29.5305882;
     const illumination = Math.round((1 - Math.cos(Math.PI * moonAge / 14.7652941)) * 50);
     
-    // Определение фазы луны
     let phase, phasePercent, nextPhase, daysToNext;
 
     if (moonAge < 1.84566) {
@@ -603,7 +676,6 @@ function calculateMoonInfo() {
         daysToNext = Math.round(29.5305882 - moonAge);
     }
     
-    // Обеспечиваем корректные границы
     phasePercent = Math.max(0, Math.min(100, phasePercent));
     
     return {
@@ -616,33 +688,28 @@ function calculateMoonInfo() {
     };
 }
 
-// Обновление визуализации луны
+// Визуализация луны
 function updateMoonVisualization(phasePercent) {
     const moonPhase = document.getElementById('moon-phase');
     
-    // Очищаем предыдущие стили
     moonPhase.style.transform = '';
     moonPhase.style.background = '';
     moonPhase.style.clipPath = '';
     
     if (phasePercent === 0) {
-        // Новолуние
         moonPhase.style.clipPath = 'inset(0 0 0 100%)';
     } else if (phasePercent === 100) {
-        // Полнолуние
         moonPhase.style.clipPath = 'inset(0 0 0 0%)';
     } else if (phasePercent <= 50) {
-        // Растущая луна - освещена справа
         const clipPercent = 100 - (phasePercent * 2);
         moonPhase.style.clipPath = `inset(0 0 0 ${clipPercent}%)`;
     } else {
-        // Убывающая луна - освещена слева
         const clipPercent = (phasePercent - 50) * 2;
         moonPhase.style.clipPath = `inset(0 ${clipPercent}% 0 0)`;
     }
 }
 
-// ОБНОВЛЕНИЕ ПОЧАСОВОГО ПРОГНОЗА
+// Обновление почасового прогноза
 function updateHourlyForecast(forecastData) {
     const container = document.getElementById('hourly-forecast');
     container.innerHTML = '';
@@ -655,7 +722,7 @@ function updateHourlyForecast(forecastData) {
         
         const forecastTime = new Date(forecast.dt * 1000);
         const timeString = formatHour(forecastTime);
-        const temp = Math.round(forecast.main.temp);
+        const temp = applyTemperatureShift(forecast.main.temp);
         const weatherIcon = getWeatherIcon(forecast.weather[0].main, forecast.main.temp);
         const weatherDesc = translateWeather(forecast.weather[0].description);
         
@@ -672,6 +739,7 @@ function updateHourlyForecast(forecastData) {
     });
 }
 
+// Обновление недельного прогноза
 function updateWeeklyForecast(forecastData) {
     const container = document.getElementById('forecast-week');
     container.innerHTML = '';
@@ -699,8 +767,8 @@ function updateWeeklyForecast(forecastData) {
             ? (currentLang === 'ru' ? 'СЕГОДНЯ' : 'TODAY') 
             : dayNames[dayIndex];
 
-        const tempMax = Math.round(forecast.main.temp_max);
-        const tempMin = Math.round(forecast.main.temp_min);
+        const tempMax = applyTemperatureShift(forecast.main.temp_max);
+        const tempMin = applyTemperatureShift(forecast.main.temp_min);
         
         dayCard.innerHTML = `
             <div class="day-name">${dayName}</div>
@@ -713,6 +781,7 @@ function updateWeeklyForecast(forecastData) {
     });
 }
 
+// Иконки погоды
 function getWeatherIcon(weatherMain, temperature) {
     const main = weatherMain.toLowerCase();
     const isNight = isCurrentlyNight();
@@ -789,6 +858,34 @@ function updateThemeByWeather(weatherMain, sys) {
     document.body.className = themeClass;
 }
 
+// Инициализация карты осадков
+function initMap() {
+    ymaps.ready(function() {
+        map = new ymaps.Map('map', {
+            center: [55.7558, 37.6173],
+            zoom: 10
+        });
+
+        // Упрощенные контролы
+        map.controls.remove('zoomControl');
+        map.controls.remove('geolocationControl');
+        map.controls.remove('searchControl');
+        map.controls.remove('trafficControl');
+        map.controls.remove('typeSelector');
+        map.controls.remove('fullscreenControl');
+        map.controls.remove('rulerControl');
+
+        // Добавляем информационную панель для карты осадков
+        const overlay = document.createElement('div');
+        overlay.className = 'map-overlay';
+        overlay.innerHTML = 'Карта';
+        document.querySelector('.precipitation-map').appendChild(overlay);
+
+        document.querySelector('.map-loading').style.display = 'none';
+        getUserLocation();
+    });
+}
+
 function updateMapLocation(lat, lon) {
     if (map) {
         map.setCenter([lat, lon], 13);
@@ -804,26 +901,6 @@ function showLoading() {
 
 function hideLoading() {
     document.getElementById('loading').style.display = 'none';
-}
-
-function initMap() {
-    ymaps.ready(function() {
-        map = new ymaps.Map('map', {
-            center: [55.7558, 37.6173],
-            zoom: 10
-        });
-
-        map.controls.remove('zoomControl');
-        map.controls.remove('geolocationControl');
-        map.controls.remove('searchControl');
-        map.controls.remove('trafficControl');
-        map.controls.remove('typeSelector');
-        map.controls.remove('fullscreenControl');
-        map.controls.remove('rulerControl');
-
-        document.querySelector('.map-loading').style.display = 'none';
-        getUserLocation();
-    });
 }
 
 function getUserLocation() {
@@ -974,95 +1051,6 @@ function updateUITexts() {
     });
 }
 
-// Обработчики событий
-document.getElementById('locate-btn').addEventListener('click', getUserLocation);
-
-document.getElementById('city-search').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const city = e.target.value.trim();
-        if (city) {
-            getWeatherByCity(city);
-        }
-    }
-});
-
-const settingsBtn = document.getElementById('settings-btn');
-const settingsOverlay = document.getElementById('settings-overlay');
-const languageBtn = document.getElementById('language-btn');
-const languageDropdown = document.getElementById('language-dropdown');
-const unitsBtn = document.getElementById('units-btn');
-const unitsDropdown = document.getElementById('units-dropdown');
-const themeOptions = document.querySelectorAll('.theme-option');
-
-settingsBtn.addEventListener('click', () => {
-    settingsOverlay.style.display = 'flex';
-    document.body.classList.add('settings-open');
-});
-
-settingsOverlay.addEventListener('click', (e) => {
-    if (e.target === settingsOverlay) {
-        settingsOverlay.style.display = 'none';
-        document.body.classList.remove('settings-open');
-    }
-});
-
-languageBtn.addEventListener('click', () => {
-    languageDropdown.style.display = languageDropdown.style.display === 'block' ? 'none' : 'block';
-    unitsDropdown.style.display = 'none';
-});
-
-unitsBtn.addEventListener('click', () => {
-    unitsDropdown.style.display = unitsDropdown.style.display === 'block' ? 'none' : 'block';
-    languageDropdown.style.display = 'none';
-});
-
-document.querySelectorAll('#language-dropdown .selector-option').forEach(option => {
-    option.addEventListener('click', () => {
-        currentLang = option.getAttribute('data-lang');
-        document.getElementById('current-lang').textContent = 
-            currentLang === 'ru' ? 'Русский' : 'English';
-        languageDropdown.style.display = 'none';
-        
-        saveSettings();
-        updateUITexts();
-        
-        if (userPlacemark) {
-            const coords = userPlacemark.geometry.getCoordinates();
-            getWeatherByCoords(coords[0], coords[1]);
-        }
-    });
-});
-
-document.querySelectorAll('#units-dropdown .selector-option').forEach(option => {
-    option.addEventListener('click', () => {
-        currentUnits = option.getAttribute('data-units');
-        document.getElementById('current-units').textContent = option.textContent;
-        unitsDropdown.style.display = 'none';
-        saveSettings();
-    });
-});
-
-themeOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        themeOptions.forEach(opt => opt.classList.remove('active'));
-        option.classList.add('active');
-        currentTheme = option.getAttribute('data-theme');
-        
-        if (currentTheme === 'light') {
-            document.body.style.background = 'linear-gradient(135deg, #87CEEB, #E0F7FA)';
-            document.body.style.color = '#333';
-        } else if (currentTheme === 'dark') {
-            document.body.style.background = 'linear-gradient(135deg, #2C3E50, #34495E)';
-            document.body.style.color = '#FFFFFF';
-        } else {
-            document.body.style.background = '';
-            document.body.style.color = '';
-        }
-        
-        saveSettings();
-    });
-});
-
 // Функция автодополнения
 function showSuggestions(query) {
     const suggestionsContainer = document.getElementById('search-suggestions');
@@ -1101,19 +1089,108 @@ function showSuggestions(query) {
     suggestionsContainer.style.display = 'block';
 }
 
-// Инициализация
+// Обработчики событий
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initMap();
     updateUITexts();
     
+    document.getElementById('locate-btn').addEventListener('click', getUserLocation);
+    
     document.getElementById('city-search').addEventListener('input', (e) => {
         showSuggestions(e.target.value);
+    });
+    
+    document.getElementById('city-search').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const city = e.target.value.trim();
+            if (city) {
+                getWeatherByCity(city);
+            }
+        }
     });
     
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-container')) {
             document.getElementById('search-suggestions').style.display = 'none';
         }
+    });
+
+    // Настройки
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const languageBtn = document.getElementById('language-btn');
+    const languageDropdown = document.getElementById('language-dropdown');
+    const unitsBtn = document.getElementById('units-btn');
+    const unitsDropdown = document.getElementById('units-dropdown');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    settingsBtn.addEventListener('click', () => {
+        settingsOverlay.style.display = 'flex';
+        document.body.classList.add('settings-open');
+    });
+
+    settingsOverlay.addEventListener('click', (e) => {
+        if (e.target === settingsOverlay) {
+            settingsOverlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }
+    });
+
+    languageBtn.addEventListener('click', () => {
+        languageDropdown.style.display = languageDropdown.style.display === 'block' ? 'none' : 'block';
+        unitsDropdown.style.display = 'none';
+    });
+
+    unitsBtn.addEventListener('click', () => {
+        unitsDropdown.style.display = unitsDropdown.style.display === 'block' ? 'none' : 'block';
+        languageDropdown.style.display = 'none';
+    });
+
+    document.querySelectorAll('#language-dropdown .selector-option').forEach(option => {
+        option.addEventListener('click', () => {
+            currentLang = option.getAttribute('data-lang');
+            document.getElementById('current-lang').textContent = 
+                currentLang === 'ru' ? 'Русский' : 'English';
+            languageDropdown.style.display = 'none';
+            
+            saveSettings();
+            updateUITexts();
+            
+            if (userPlacemark) {
+                const coords = userPlacemark.geometry.getCoordinates();
+                getWeatherByCoords(coords[0], coords[1]);
+            }
+        });
+    });
+
+    document.querySelectorAll('#units-dropdown .selector-option').forEach(option => {
+        option.addEventListener('click', () => {
+            currentUnits = option.getAttribute('data-units');
+            document.getElementById('current-units').textContent = option.textContent;
+            unitsDropdown.style.display = 'none';
+            saveSettings();
+        });
+    });
+
+    themeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            themeOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+            currentTheme = option.getAttribute('data-theme');
+            
+            if (currentTheme === 'light') {
+                document.body.style.background = 'linear-gradient(135deg, #87CEEB, #E0F7FA)';
+                document.body.style.color = '#333';
+            } else if (currentTheme === 'dark') {
+                document.body.style.background = 'linear-gradient(135deg, #2C3E50, #34495E)';
+                document.body.style.color = '#FFFFFF';
+            } else {
+                document.body.style.background = '';
+                document.body.style.color = '';
+            }
+            
+            saveSettings();
+        });
     });
 });
