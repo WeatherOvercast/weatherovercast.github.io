@@ -21,6 +21,21 @@
                 <input type="text" class="search-bar" id="city-search" placeholder="Поиск мест">
                 <div class="search-suggestions" id="search-suggestions"></div>
             </div>
+            <!-- НОВАЯ КНОПКА В ИЗБРАННОЕ -->
+            <button class="favorite-btn" id="favorite-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" fill="currentColor"/>
+                </svg>
+                <span class="favorite-text">В Избранное</span>
+            </button>
+                <button class="favorites-list-btn" id="favorites-list-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" 
+              stroke="currentColor" stroke-width="2"/>
+        <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
+    </svg>
+</button>
+
         </div>
         <div class="logo">Weather Overcast</div>
         <div class="header-controls">
@@ -33,6 +48,27 @@
             </button>
         </div>
     </header>
+
+    <!-- ОКОШКО ИЗБРАННОГО -->
+    <div class="favorites-overlay" id="favorites-overlay">
+        <div class="favorites-panel">
+            <div class="favorites-header">
+                <span>Избранные города</span>
+                <button class="close-favorites" id="close-favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="favorites-list" id="favorites-list">
+                <!-- Избранные города будут добавляться сюда -->
+            </div>
+            <div class="favorites-empty" id="favorites-empty">
+                Пока нет избранных городов
+            </div>
+        </div>
+    </div>
+
 
     <div class="settings-overlay" id="settings-overlay">
         <div class="settings-panel">
@@ -285,6 +321,7 @@
                         <div class="info-title">
                             <span>●</span>
                             <span>Качество воздуха</span>
+                            <span class="hint-question" id="air-quality-question">Что это?</span>
                         </div>
                         <div class="info-content" id="air-quality">
                             <div class="tile-content-item">
@@ -317,6 +354,77 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Окошко подсказки качества воздуха -->
+<div class="settings-overlay" id="air-quality-overlay">
+    <div class="settings-panel air-quality-panel">
+        <div class="settings-header">Качество воздуха</div>
+        
+        <div class="settings-item">
+            <div class="settings-title">Индекс AQI</div>
+            <div class="aqi-levels">
+                <div class="aqi-level">
+                    <span class="aqi-badge aqi-good">1</span>
+                    <span class="aqi-text">Хороший - идеальные условия</span>
+                </div>
+                <div class="aqi-level">
+                    <span class="aqi-badge aqi-moderate">2</span>
+                    <span class="aqi-text">Удовлетворительный - нормально для большинства</span>
+                </div>
+                <div class="aqi-level">
+                    <span class="aqi-badge aqi-unhealthy-sensitive">3</span>
+                    <span class="aqi-text">Умеренный - чувствительным группам быть осторожнее</span>
+                </div>
+                <div class="aqi-level">
+                    <span class="aqi-badge aqi-unhealthy">4</span>
+                    <span class="aqi-text">Плохой - ограничить активность на улице</span>
+                </div>
+                <div class="aqi-level">
+                    <span class="aqi-badge aqi-very-unhealthy">5</span>
+                    <span class="aqi-text">Очень плохой - опасно для здоровья</span>
+                </div>
+            </div>
+        </div>
+          
+        <div class="settings-item">
+            <div class="settings-title">Ваши показатели</div>
+            <div class="current-readings">
+                <div class="reading-item">
+                    <span>AQI:</span>
+                    <span class="reading-value">1 (Хороший)</span>
+                </div>
+                <div class="reading-item">
+                    <span>PM2.5:</span>
+                    <span class="reading-value">0,7 мкг/м³</span>
+                </div>
+                <div class="reading-item">
+                    <span>PM10:</span>
+                    <span class="reading-value">1,3 мкг/м³</span>
+                </div>
+                <div class="reading-item">
+                    <span>O₃:</span>
+                    <span class="reading-value">43,5 мкг/м³</span>
+                </div>
+                <div class="reading-item">
+                    <span>NO₂:</span>
+                    <span class="reading-value">5,1 мкг/м³</span>
+                </div>
+                <div class="reading-item">
+                    <span>SO₂:</span>
+                    <span class="reading-value">0,5 мкг/м³</span>
+                </div>
+                <div class="reading-item">
+                    <span>CO:</span>
+                    <span class="reading-value warning">128,5 мг/м³</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-item">
+            <button class="hint-close-btn" id="close-air-quality-hint">Понятно</button>
+        </div>
+    </div>
+</div>
+                    
                     <div class="info-card">
                         <div class="info-title">
                             <span>●</span>

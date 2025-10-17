@@ -10,6 +10,7 @@ let currentLang = localStorage.getItem('weatherLang') || 'ru';
 let currentUnits = localStorage.getItem('weatherUnits') || 'celsius';
 let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
 let currentCity = '';
+let currentCityData = null;
 const TEMPERATURE_SHIFT = 0;
 
 // База данных для автодополнения
@@ -27,6 +28,9 @@ const cityDatabase = [
     { name: "Гатчина", region: "Ленинградская область", type: "город", distance: "45 км" },
     { name: "Кронштадт", region: "Санкт-Петербург", type: "город", distance: "30 км" }
 ];
+
+// Избранные города
+let favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
 
 // Переводы
 const translations = {
@@ -65,7 +69,7 @@ const translations = {
         'dont_miss_sun': 'Не пропустите рассвет в --:-- и закат в --:--',
         'take_umbrella': 'Не забудьте зонт',
         'rain_expected': 'Возможен дождь в --:--',
-        'air_quality': 'Качество воздуха',
+        'air_quality': '?',
         'moon': 'Луна',
         'phase': 'Фаза',
         'illumination': 'Освещенность',
@@ -88,7 +92,13 @@ const translations = {
         'unhealthy': 'Вредно',
         'very_unhealthy': 'Очень вредно',
         'hazardous': 'Опасно',
-        'air_quality_advice': 'Рекомендации по качеству воздуха'
+        'air_quality_advice': 'Рекомендации по качеству воздуха',
+        'add_to_favorites': 'В Избранное',
+        'favorites': 'Избранные города',
+        'no_favorites': 'Пока нет избранных городов',
+        'city_added': 'Город добавлен в избранное',
+        'city_removed': 'Город удален из избранного',
+        'remove': 'Удалить'
     },
     en: {
         'feels_like': 'Feels like',
@@ -125,7 +135,7 @@ const translations = {
         'dont_miss_sun': "Don't miss sunrise at --:-- and sunset at --:--",
         'take_umbrella': "Don't forget umbrella",
         'rain_expected': 'Possible rain at --:--',
-        'air_quality': 'Air Quality',
+        'air_quality': '?',
         'moon': 'Moon',
         'phase': 'Phase',
         'illumination': 'Illumination',
@@ -148,7 +158,13 @@ const translations = {
         'unhealthy': 'Unhealthy',
         'very_unhealthy': 'Very Unhealthy',
         'hazardous': 'Hazardous',
-        'air_quality_advice': 'Air Quality Advice'
+        'air_quality_advice': 'Air Quality Advice',
+        'add_to_favorites': 'Add to Favorites',
+        'favorites': 'Favorite Cities',
+        'no_favorites': 'No favorite cities yet',
+        'city_added': 'City added to favorites',
+        'city_removed': 'City removed from favorites',
+        'remove': 'Remove'
     }
 };
 
@@ -192,6 +208,114 @@ function getTranslation(key) {
 
 function translateWeather(description) {
     return weatherTranslations[currentLang][description] || description;
+}
+
+// Функции для работы с избранным
+function addToFavorites(cityData) {
+    if (!isCityInFavorites(cityData.name)) {
+        const favoriteCity = {
+            name: cityData.name,
+            country: cityData.sys.country,
+            lat: cityData.coord.lat,
+            lon: cityData.coord.lon,
+            timestamp: Date.now()
+        };
+        favorites.push(favoriteCity);
+        saveFavorites();
+        updateFavoriteButton(true);
+        showFavoritesNotification(getTranslation('city_added'));
+    }
+}
+
+function removeFromFavorites(cityName) {
+    favorites = favorites.filter(fav => fav.name !== cityName);
+    saveFavorites();
+    if (currentCity === cityName) {
+        updateFavoriteButton(false);
+    }
+    showFavoritesNotification(getTranslation('city_removed'));
+}
+
+function saveFavorites() {
+    localStorage.setItem('weatherFavorites', JSON.stringify(favorites));
+}
+
+function isCityInFavorites(cityName) {
+    return favorites.some(fav => fav.name === cityName);
+}
+
+function updateFavoriteButton(isFavorite) {
+    const favoriteBtn = document.getElementById('favorite-btn');
+    if (isFavorite) {
+        favoriteBtn.classList.add('active');
+        favoriteBtn.querySelector('svg').style.fill = 'currentColor';
+    } else {
+        favoriteBtn.classList.remove('active');
+        favoriteBtn.querySelector('svg').style.fill = 'none';
+    }
+}
+
+function showFavoritesNotification(message) {
+    // Простая нотификация - можно заменить на красивый toast
+    console.log(message); // Временное решение
+}
+
+function showFavoritesPanel() {
+    const overlay = document.getElementById('favorites-overlay');
+    const list = document.getElementById('favorites-list');
+    const empty = document.getElementById('favorites-empty');
+    
+    list.innerHTML = '';
+    
+    if (favorites.length === 0) {
+        empty.style.display = 'block';
+        list.style.display = 'none';
+    } else {
+        empty.style.display = 'none';
+        list.style.display = 'block';
+        
+        favorites.forEach(city => {
+            const item = document.createElement('div');
+            item.className = 'favorite-item';
+            item.innerHTML = `
+                <div class="favorite-info" onclick="selectFavoriteCity('${city.name}', ${city.lat}, ${city.lon})">
+                    <div class="favorite-city">${city.name}</div>
+                    <div class="favorite-region">${city.country}</div>
+                </div>
+                <button class="remove-favorite" onclick="event.stopPropagation(); removeFromFavorites('${city.name}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `;
+            list.appendChild(item);
+        });
+    }
+    
+    overlay.style.display = 'flex';
+    document.body.classList.add('settings-open');
+}
+
+function selectFavoriteCity(cityName, lat, lon) {
+    getWeatherByCoords(lat, lon);
+    closeFavoritesPanel();
+}
+
+function closeFavoritesPanel() {
+    document.getElementById('favorites-overlay').style.display = 'none';
+    document.body.classList.remove('settings-open');
+}
+
+function toggleFavorite() {
+    if (currentCityData) {
+        if (isCityInFavorites(currentCity)) {
+            removeFromFavorites(currentCity);
+        } else {
+            addToFavorites(currentCityData);
+        }
+    } else {
+        showFavoritesPanel();
+    }
 }
 
 // Функция для применения сдвига температуры
@@ -315,6 +439,7 @@ async function getWeatherByCoords(lat, lon) {
         ]);
         
         if (weatherData.cod === 200) {
+            currentCityData = weatherData;
             updateWeatherData(weatherData, forecastData, airQualityData);
             updateMapLocation(lat, lon);
         } else {
@@ -338,6 +463,7 @@ async function getWeatherByCity(city) {
         const weatherData = await weatherResponse.json();
         
         if (weatherData.cod === 200) {
+            currentCityData = weatherData;
             currentCity = weatherData.name;
             const [forecastData, airQualityData] = await Promise.all([
                 getForecast(weatherData.coord.lat, weatherData.coord.lon),
@@ -376,8 +502,6 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const temp = applyTemperatureShift(data.main.temp);
     const feelsLike = applyTemperatureShift(data.main.feels_like);
     const weatherDesc = translateWeather(data.weather[0].description);
-
-    
 
     document.getElementById('current-temp').innerHTML = `
         <span class="temp-bullet">●</span>
@@ -528,6 +652,9 @@ function updateWeatherData(data, forecastData, airQualityData) {
         updateWeeklyForecast(forecastData);
         updateWeatherTip(data, forecastData);
     }
+
+    // ОБНОВЛЯЕМ КНОПКУ ИЗБРАННОГО
+    updateFavoriteButton(isCityInFavorites(data.name));
 
     updateThemeByWeather(data.weather[0].main, data.sys);
 }
@@ -857,7 +984,85 @@ function updateThemeByWeather(weatherMain, sys) {
     
     document.body.className = themeClass;
 }
+document.getElementById('favorites-list-btn').addEventListener('click', showFavoritesPanel);
 
+// Обработчики для подсказки качества воздуха
+function initAirQualityHint() {
+    const questionBtn = document.getElementById('air-quality-question');
+    const overlay = document.getElementById('air-quality-overlay');
+    const closeBtn = document.getElementById('close-air-quality-hint');
+    
+    questionBtn.addEventListener('click', function() {
+        overlay.style.display = 'flex';
+        document.body.classList.add('settings-open');
+    });
+    
+    closeBtn.addEventListener('click', function() {
+        overlay.style.display = 'none';
+        document.body.classList.remove('settings-open');
+    });
+    
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }
+    });
+    
+    // Закрытие на Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.style.display === 'flex') {
+            overlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }
+    });
+}
+
+// Вызовите эту функцию в DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+
+    initAirQualityHint();
+});
+function initAirQualityHint() {
+    const questionBtn = document.getElementById('air-quality-question');
+    const overlay = document.getElementById('air-quality-overlay');
+    const closeBtn = document.getElementById('close-air-quality-hint');
+    const panel = document.querySelector('.air-quality-panel');
+    
+    questionBtn.addEventListener('click', function() {
+        overlay.style.display = 'flex';
+        document.body.classList.add('settings-open');
+        
+        // На мобильных добавляем плавный скролл к верху
+        if (window.innerWidth <= 768) {
+            setTimeout(() => {
+                panel.scrollTop = 0;
+            }, 100);
+        }
+    });
+    
+    closeBtn.addEventListener('click', function() {
+        closeAirQualityHint();
+    });
+    
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeAirQualityHint();
+        }
+    });
+    
+    // Закрытие на Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.style.display === 'flex') {
+            closeAirQualityHint();
+        }
+    });
+    
+    function closeAirQualityHint() {
+        overlay.style.display = 'none';
+        document.body.classList.remove('settings-open');
+    }
+}
 // Инициализация карты осадков
 function initMap() {
     ymaps.ready(function() {
@@ -1049,6 +1254,11 @@ function updateUITexts() {
             title.textContent = titles[index];
         }
     });
+
+    // Обновляем тексты для избранного
+    document.querySelector('.favorite-text').textContent = getTranslation('add_to_favorites');
+    document.querySelector('.favorites-header span').textContent = getTranslation('favorites');
+    document.getElementById('favorites-empty').textContent = getTranslation('no_favorites');
 }
 
 // Функция автодополнения
@@ -1192,5 +1402,25 @@ document.addEventListener('DOMContentLoaded', () => {
             
             saveSettings();
         });
+    });
+
+    // Обработчики для избранного
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const closeFavoritesBtn = document.getElementById('close-favorites');
+    const favoritesOverlay = document.getElementById('favorites-overlay');
+
+    favoriteBtn.addEventListener('click', toggleFavorite);
+
+    favoriteBtn.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        showFavoritesPanel();
+    });
+
+    closeFavoritesBtn.addEventListener('click', closeFavoritesPanel);
+
+    favoritesOverlay.addEventListener('click', (e) => {
+        if (e.target === favoritesOverlay) {
+            closeFavoritesPanel();
+        }
     });
 });
