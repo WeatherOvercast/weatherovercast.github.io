@@ -11,7 +11,62 @@ let currentUnits = localStorage.getItem('weatherUnits') || 'celsius';
 let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
 let currentCity = '';
 let currentCityData = null;
-const TEMPERATURE_SHIFT = 0;
+const TEMPERATURE_SHIFT = -3;
+
+// Функции для конвертации температуры
+function convertTemperature(temp, units) {
+    const celsius = temp; // API всегда возвращает в Цельсиях
+    
+    switch(units) {
+        case 'fahrenheit':
+            return Math.round((celsius * 9/5) + 32);
+        case 'kelvin':
+            return Math.round(celsius + 273.15);
+        case 'celsius':
+        default:
+            return Math.round(celsius);
+    }
+}
+
+function getTemperatureSymbol(units) {
+    switch(units) {
+        case 'fahrenheit': return '°F';
+        case 'kelvin': return 'K';
+        case 'celsius':
+        default: return '°C';
+    }
+}
+
+// Обновленная функция applyTemperatureShift с учетом единиц измерения
+function applyTemperatureShift(temp) {
+    const shiftedTemp = temp + TEMPERATURE_SHIFT;
+    return convertTemperature(shiftedTemp, currentUnits);
+}
+
+// Обновляем отображение всех температур при смене единиц
+function updateAllTemperatures() {
+    // Перезагружаем погоду для текущего местоположения
+    if (userPlacemark) {
+        const coords = userPlacemark.geometry.getCoordinates();
+        getWeatherByCoords(coords[0], coords[1]);
+    } else if (currentCity) {
+        getWeatherByCity(currentCity);
+    } else {
+        // Если нет данных, просто обновляем интерфейс
+        updateUITexts();
+    }
+}
+
+// В обработчике смены единиц измерения добавляем вызов обновления температур
+document.querySelectorAll('#units-dropdown .selector-option').forEach(option => {
+    option.addEventListener('click', () => {
+        currentUnits = option.getAttribute('data-units');
+        document.getElementById('current-units').textContent = option.textContent;
+        unitsDropdown.style.display = 'none';
+        saveSettings();
+        updateAllTemperatures(); // ← ДОБАВИТЬ ЭТУ СТРОЧКУ
+    });
+});
 
 // База данных для автодополнения
 const cityDatabase = [
