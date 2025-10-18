@@ -455,6 +455,40 @@
     <button class="install-btn" id="install-btn">Установить</button>
   </div>
 </div>
+<!-- Плашка с вопросом о текущей погоде -->
+<div id="weather-question" class="weather-question">
+  <div class="question-panel">
+    <div class="question-content">
+      <div class="question-icon">🌤️</div>
+      <div class="question-text">
+        <div class="question-title" id="question-title">Сейчас Ясно?</div>
+        <div class="question-desc">Помогите улучшить точность прогноза</div>
+      </div>
+    </div>
+    <div class="question-buttons">
+      <button class="question-btn question-no" id="question-no">Нет</button>
+      <button class="question-btn question-yes" id="question-yes">Да</button>
+    </div>
+  </div>
+</div>
+
+<!-- Окошко благодарности за установку -->
+<div id="install-thanks" class="install-thanks">
+  <div class="thanks-panel">
+    <button class="thanks-close" id="thanks-close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="thanks-content">
+      <div class="thanks-icon">🎉</div>
+      <div class="thanks-text">
+        <div class="thanks-title">Спасибо за установку!</div>
+        <div class="thanks-desc">Приложение готово к работе</div>
+      </div>
+    </div>
+  </div>
+</div>
     <script src="script.js"></script>
 </body>
 </html>

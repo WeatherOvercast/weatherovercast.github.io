@@ -479,6 +479,8 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const temp = applyTemperatureShift(data.main.temp);
     const feelsLike = applyTemperatureShift(data.main.feels_like);
     const weatherDesc = translateWeather(data.weather[0].description);
+    updateWeatherQuestion(data.weather[0].description);
+    showWeatherQuestion();
 
     document.getElementById('current-temp').innerHTML = `
         <span class="temp-bullet">●</span>
@@ -1495,3 +1497,203 @@ if (localStorage.getItem('installPromptClosed') === 'true') {
 if (isAppInstalled()) {
   installPrompt.style.display = 'none';
 }
+// Плашка с вопросом о погоде и благодарность за установку
+const weatherQuestion = document.getElementById('weather-question');
+const questionTitle = document.getElementById('question-title');
+const questionYes = document.getElementById('question-yes');
+const questionNo = document.getElementById('question-no');
+const installThanks = document.getElementById('install-thanks');
+const thanksClose = document.getElementById('thanks-close');
+
+// Обновляем вопрос в зависимости от текущей погоды
+function updateWeatherQuestion(weatherDescription) {
+    const questions = {
+        'ясно': 'Сейчас Ясно?',
+        'дождь': 'Сейчас Идёт Дождь?',
+        'снег': 'Сейчас Идёт Снег?',
+        'облачно': 'Сейчас Облачно?',
+        'туман': 'Сейчас Туман?',
+        'гроза': 'Сейчас Гроза?'
+    };
+    
+    const desc = weatherDescription.toLowerCase();
+    let question = 'Сейчас ' + weatherDescription + '?';
+    
+    // Ищем подходящий вопрос
+    for (const [key, value] of Object.entries(questions)) {
+        if (desc.includes(key)) {
+            question = value;
+            break;
+        }
+    }
+    
+    questionTitle.textContent = question;
+}
+
+// Показываем вопрос через 10 секунд после загрузки погоды
+function showWeatherQuestion() {
+    setTimeout(() => {
+        if (!isAppInstalled()) { // Не показываем если приложение установлено
+            weatherQuestion.style.display = 'block';
+        }
+    }, 10000);
+}
+
+// Обработчики ответов
+questionYes.addEventListener('click', () => {
+    weatherQuestion.style.display = 'none';
+    console.log('Пользователь подтвердил погоду: ' + questionTitle.textContent);
+    localStorage.setItem('weatherFeedback', 'confirmed');
+});
+
+questionNo.addEventListener('click', () => {
+    weatherQuestion.style.display = 'none';
+    console.log('Пользователь опроверг погоду: ' + questionTitle.textContent);
+    localStorage.setItem('weatherFeedback', 'denied');
+    
+    // Можно добавить логику для улучшения точности
+});
+
+// Благодарность за установку
+function showInstallThanks() {
+    setTimeout(() => {
+        installThanks.style.display = 'block';
+    }, 2000);
+}
+
+thanksClose.addEventListener('click', () => {
+    installThanks.style.display = 'none';
+});
+
+// Обновляем функцию проверки установки приложения
+function isAppInstalled() {
+    const installed = window.matchMedia('(display-mode: standalone)').matches || 
+                     window.navigator.standalone ||
+                     document.referrer.includes('android-app://');
+    
+    // Если приложение установлено, показываем благодарность
+    if (installed && !localStorage.getItem('installThanksShown')) {
+        showInstallThanks();
+        localStorage.setItem('installThanksShown', 'true');
+    }
+    
+    return installed;
+}
+// Показываем вопрос с анимацией
+function showWeatherQuestion() {
+    setTimeout(() => {
+        if (!isAppInstalled()) {
+            weatherQuestion.style.display = 'block';
+            // Запускаем анимацию появления
+            setTimeout(() => {
+                weatherQuestion.classList.add('show');
+            }, 10);
+        }
+    }, 10000);
+}
+
+// Скрываем вопрос с анимацией
+function hideWeatherQuestion() {
+    weatherQuestion.classList.remove('show');
+    weatherQuestion.classList.add('hide');
+    
+    setTimeout(() => {
+        weatherQuestion.style.display = 'none';
+        weatherQuestion.classList.remove('hide');
+    }, 500); // Должно совпадать с длительностью анимации
+}
+
+// Обработчики ответов с анимацией
+questionYes.addEventListener('click', () => {
+    // Анимация нажатия
+    questionYes.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        questionYes.style.transform = 'scale(1)';
+    }, 150);
+    
+    setTimeout(() => {
+        hideWeatherQuestion();
+    }, 300);
+    
+    console.log('Пользователь подтвердил погоду: ' + questionTitle.textContent);
+    localStorage.setItem('weatherFeedback', 'confirmed');
+});
+
+questionNo.addEventListener('click', () => {
+    // Анимация нажатия
+    questionNo.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        questionNo.style.transform = 'scale(1)';
+    }, 150);
+    
+    setTimeout(() => {
+        hideWeatherQuestion();
+    }, 300);
+    
+    console.log('Пользователь опроверг погоду: ' + questionTitle.textContent);
+    localStorage.setItem('weatherFeedback', 'denied');
+});
+
+// Благодарность за установку с анимацией
+function showInstallThanks() {
+    setTimeout(() => {
+        installThanks.style.display = 'block';
+        setTimeout(() => {
+            installThanks.classList.add('show');
+        }, 10);
+    }, 2000);
+}
+
+function hideInstallThanks() {
+    installThanks.classList.remove('show');
+    installThanks.classList.add('hide');
+    
+    setTimeout(() => {
+        installThanks.style.display = 'none';
+        installThanks.classList.remove('hide');
+    }, 500);
+}
+
+thanksClose.addEventListener('click', () => {
+    // Анимация закрытия
+    thanksClose.style.transform = 'rotate(180deg)';
+    setTimeout(() => {
+        hideInstallThanks();
+    }, 300);
+});
+
+// Обновите также кнопку установки (если она у вас есть)
+function showInstallPrompt() {
+    installPrompt.style.display = 'block';
+    setTimeout(() => {
+        installPrompt.classList.add('show');
+    }, 10);
+}
+
+function hideInstallPrompt() {
+    installPrompt.classList.remove('show');
+    installPrompt.classList.add('hide');
+    
+    setTimeout(() => {
+        installPrompt.style.display = 'none';
+        installPrompt.classList.remove('hide');
+    }, 500);
+}
+
+// В обработчиках кнопки установки замените:
+installClose.addEventListener('click', () => {
+    hideInstallPrompt();
+    localStorage.setItem('installPromptClosed', 'true');
+});
+
+// В beforeinstallprompt:
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    setTimeout(() => {
+        if (deferredPrompt && !isAppInstalled()) {
+            showInstallPrompt();
+        }
+    }, 3000);
+});
