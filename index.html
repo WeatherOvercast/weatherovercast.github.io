@@ -7,80 +7,11 @@
     <script src="https://api-maps.yandex.ru/2.1/?apikey=demokey&lang=ru_RU" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-<!-- PWA мета-теги -->
-<meta name="theme-color" content="#5D8AA8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#2C3E50" media="(prefers-color-scheme: dark)">
-<meta name="msapplication-TileColor" content="#5D8AA8">
-
-<!-- iOS мета-теги -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Weather Overcast">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="apple-touch-icon" href="icons/icon-180x180.png">
-<link rel="apple-touch-startup-image" href="icons/icon-512x512.png">
-
-<!-- Android мета-теги -->
-<meta name="mobile-web-app-capable" content="yes">
-
-<!-- Manifest -->
+<!-- ВСЕГО 4 СТРОКИ ДЛЯ PWA -->
 <link rel="manifest" href="manifest.json">
-
-<!-- Регистрация Service Worker -->
-<script>
-  // Регистрация Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js')
-        .then(function(registration) {
-          console.log('ServiceWorker успешно зарегистрирован: ', registration.scope);
-        })
-        .catch(function(error) {
-          console.log('Ошибка регистрации ServiceWorker: ', error);
-        });
-    });
-  }
-
-  // Обработчик для кнопки "Установить"
-  let deferredPrompt;
-  const installBtn = document.createElement('button');
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    // Показываем кнопку установки (опционально)
-    installBtn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 15px;
-      background: #5D8AA8;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      z-index: 10000;
-      font-size: 14px;
-    `;
-    installBtn.textContent = '📱 Установить приложение';
-    installBtn.addEventListener('click', installApp);
-    document.body.appendChild(installBtn);
-  });
-
-  function installApp() {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('Пользователь установил приложение');
-          installBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      });
-    }
-  }
-</script>
+<meta name="theme-color" content="#5D8AA8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
     <!-- Экран загрузки -->
