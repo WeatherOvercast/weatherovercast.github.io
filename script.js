@@ -101,11 +101,7 @@ function addToFavorites(cityData) {
         saveFavorites();
         updateFavoriteButton(true);
         // Функция уведомлений (добавьте в начало файла с другими функциями)
-function showNotification(message) {
-    // Простое уведомление в консоли
-    console.log('📢 ' + message);
 
-}
         //showNotification('Город добавлен в избранное');
     }
 }
