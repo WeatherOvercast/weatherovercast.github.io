@@ -1,3 +1,292 @@
+/* ОБНОВЛЕННЫЙ ЭКРАН ЗАГРУЗКИ С РАБОЧИМ БЛЮРОМ */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(91, 141, 191, 0); /* Полупрозрачный цвет фона */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;
+    padding-bottom: 100px;
+}
+
+/* Псевдо-элемент для блюра */
+.loading-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: -1;
+}
+
+.loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.loading-logo {
+    font-size: 28px;
+    font-weight: 700;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+    order: 2;
+}
+
+.loading-text {
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.9;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+    order: 1;
+}
+
+.loading-time-text {
+    font-size: 13px;
+    opacity: 0.7;
+    font-style: italic;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    order: 3;
+}
+
+/* Альтернативный вариант - градиент с блюром */
+.loading-screen.glass-effect {
+    background: linear-gradient(
+        135deg,
+        rgba(91, 141, 191, 0.7) 0%,
+        rgba(135, 206, 235, 0.5) 100%
+    );
+}
+
+.loading-screen.glass-effect::before {
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .loading-screen {
+        padding-bottom: 80px;
+    }
+    
+    .loading-screen::before {
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+    
+    .loading-logo {
+        font-size: 22px;
+    }
+    
+    .loading-text {
+        font-size: 15px;
+    }
+    
+    .loading-time-text {
+        font-size: 12px;
+    }
+    
+    .loading-content {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-screen {
+        padding-bottom: 60px;
+    }
+    
+    .loading-screen::before {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .loading-logo {
+        font-size: 20px;
+    }
+    
+    .loading-text {
+        font-size: 14px;
+    }
+    
+    .loading-time-text {
+        font-size: 11px;
+    }
+    
+    .loading-content {
+        gap: 8px;
+    }
+}
+@keyframes textPulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+}
+
+/* Анимации для появления контента */
+.container {
+    opacity: 0.1;
+    transform: translateY(20px);
+    transition: all 0.8s ease-out;
+}
+
+.container.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+header {
+    transform: translateY(-100%);
+    transition: transform 0.6s ease-out;
+}
+
+header.show {
+    transform: translateY(0);
+}
+
+/* Обновленный блок советов с каруселью */
+.weather-tip-carousel {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: var(--card-radius);
+    padding: 18px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+}
+
+.tip-slide {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.tip-slide.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.tip-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tip-content {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.2);
+}
+
+/* Плавные анимации для всех элементов */
+.weather-main, .tile, .info-card, .hour-card, .forecast-day {
+    transition: all 0.4s ease;
+}
+
+.weather-main:hover, .tile:hover, .info-card:hover, .hour-card:hover, .forecast-day:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Анимация появления для плиток */
+.tile {
+    animation: slideUp 0.6s ease-out;
+}
+
+.tile:nth-child(1) { animation-delay: 0.1s; }
+.tile:nth-child(2) { animation-delay: 0.2s; }
+.tile:nth-child(3) { animation-delay: 0.3s; }
+.tile:nth-child(4) { animation-delay: 0.4s; }
+.tile:nth-child(5) { animation-delay: 0.5s; }
+.tile:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .loading-logo {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .loading-text {
+        font-size: 16px;
+    }
+    
+    .loading-time-text {
+        font-size: 12px;
+    }
+    
+    .weather-tip-carousel {
+        padding: 15px;
+        min-height: 90px;
+    }
+    
+    .tip-title {
+        font-size: 15px;
+    }
+    
+    .tip-content {
+        font-size: 13px;
+    }
+}
+
 :root {
     --primary-color: #5D8AA8;
     --secondary-color: #87CEEB;
@@ -1293,6 +1582,11 @@ header {
 .level-unhealthy { background: #F44336; color: white; }
 .level-very-unhealthy { background: #9C27B0; color: white; }
 .level-hazardous { background: #795548; color: white; }
+
+.level-hazardous { 
+    background: #795548; 
+    color: white; 
+}
 
 /* Адаптивность для карты */
 @media (max-width: 768px) {

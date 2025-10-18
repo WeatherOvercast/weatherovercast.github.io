@@ -9,6 +9,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Экран загрузки -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-logo">Weather Overcast</div>
+            <div class="loading-text" id="loading-text">Загрузка погоды...</div>
+            <div class="loading-time-text" id="loading-time-text"></div>
+        </div>
+    </div>
+
     <header>
         <div class="location-search">
             <button class="find-me-btn" id="locate-btn">
@@ -21,21 +31,19 @@
                 <input type="text" class="search-bar" id="city-search" placeholder="Поиск мест">
                 <div class="search-suggestions" id="search-suggestions"></div>
             </div>
-            <!-- НОВАЯ КНОПКА В ИЗБРАННОЕ -->
             <button class="favorite-btn" id="favorite-btn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" fill="currentColor"/>
                 </svg>
                 <span class="favorite-text">В Избранное</span>
             </button>
-                <button class="favorites-list-btn" id="favorites-list-btn">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" 
-              stroke="currentColor" stroke-width="2"/>
-        <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
-    </svg>
-</button>
-
+            <button class="favorites-list-btn" id="favorites-list-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
         </div>
         <div class="logo">Weather Overcast</div>
         <div class="header-controls">
@@ -68,7 +76,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="settings-overlay" id="settings-overlay">
         <div class="settings-panel">
@@ -104,22 +111,6 @@
                         <div class="selector-option" data-units="celsius">Цельсий (°C)</div>
                         <div class="selector-option" data-units="fahrenheit">Фаренгейт (°F)</div>
                         <div class="selector-option" data-units="kelvin">Кельвин (K)</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="settings-item">
-                <div class="language-selector">
-                    <div class="settings-title">Выбор языка</div>
-                    <button class="selector-btn" id="language-btn">
-                        <span id="current-lang">Русский</span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <div class="selector-dropdown" id="language-dropdown">
-                        <div class="selector-option" data-lang="ru">Русский</div>
-                        <div class="selector-option" data-lang="en">English</div>
                     </div>
                 </div>
             </div>
@@ -248,21 +239,20 @@
                                 </div>
                             </div>
                         </div>
-                       <div class="tile">
-    <div class="tile-header">
-        <div class="tile-title">
-            <span>●</span>
-            <span>Точка росы</span>
-        </div>
-    </div>
-    <div class="tile-content dew-point-details" id="dew-point-details">
-        
-        <div class="dew-point-value">--°C</div>
-        <div class="dew-point-comfort">--</div>
-        <div class="dew-point-info">Влажность: --%</div>
-        <div class="dew-point-info">Температура: --°C</div>
-    </div>
-</div>
+                        <div class="tile">
+                            <div class="tile-header">
+                                <div class="tile-title">
+                                    <span>●</span>
+                                    <span>Точка росы</span>
+                                </div>
+                            </div>
+                            <div class="tile-content dew-point-details" id="dew-point-details">
+                                <div class="dew-point-value">--°C</div>
+                                <div class="dew-point-comfort">--</div>
+                                <div class="dew-point-info">Влажность: --%</div>
+                                <div class="dew-point-info">Температура: --°C</div>
+                            </div>
+                        </div>
                         <div class="tile">
                             <div class="tile-header">
                                 <div class="tile-title">
@@ -290,12 +280,26 @@
                 </div>
             </div>
 
-            <div class="weather-tip" id="weather-tip">
-                <div class="tip-title">
-                    <span>●</span>
-                    <span>Совет</span>
+            <!-- Обновленный блок советов с каруселью -->
+            <div class="weather-tip-carousel" id="weather-tip-carousel">
+                <div class="tip-slide active">
+                    <div class="tip-title">
+                        <span>●</span>
+                        <span>Совет</span>
+                    </div>
+                    <div class="tip-content" id="tip-text">Загрузка...</div>
                 </div>
-                <div class="tip-content" id="tip-text">Загрузка...</div>
+                <div class="tip-slide">
+                    <div class="tip-title">
+                        <span>●</span>
+                        <span>Интересный факт</span>
+                    </div>
+                    <div class="tip-content" id="fact-text">Загрузка...</div>
+                </div>
+                <div class="carousel-dots">
+                    <span class="dot active" data-slide="0"></span>
+                    <span class="dot" data-slide="1"></span>
+                </div>
             </div>
 
             <div class="hourly-forecast">
@@ -350,11 +354,36 @@
                             </div>
                             <div class="tile-content-item">
                                 <span>●</span>
-                                <span>CO: -- мг/м³</span>
+                                <span>CO: -- мкг/м³</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Окошко подсказки качества воздуха -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <span>●</span>
+                            <span>Луна</span>
+                        </div>
+                        <div class="info-content" id="moon-info">
+                            <div class="moon-visualization">
+                                <div class="moon-circle">
+                                    <div class="moon-phase" id="moon-phase"></div>
+                                </div>
+                                <div class="moon-details">
+                                    <div class="moon-detail-item" id="moon-phase-text">Фаза: --</div>
+                                    <div class="moon-detail-item" id="moon-illumination">Освещенность: --%</div>
+                                    <div class="moon-detail-item" id="moon-age">Возраст: -- дней</div>
+                                    <div class="moon-detail-item" id="moon-next">Следующая фаза: --</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accuracy-note italic-text">*Данные о качестве воздуха обновляются каждые 2 часа</div>
+                <div class="accuracy-note italic-text">*Фазы луны рассчитываются астрономически (точность 99.9%)</div>
+            </div>
+        </div>
+    </div>
+    <!-- Убедитесь, что этот блок находится в конце body, перед script.js -->
 <div class="settings-overlay" id="air-quality-overlay">
     <div class="settings-panel air-quality-panel">
         <div class="settings-header">Качество воздуха</div>
@@ -387,35 +416,8 @@
           
         <div class="settings-item">
             <div class="settings-title">Ваши показатели</div>
-            <div class="current-readings">
-                <div class="reading-item">
-                    <span>AQI:</span>
-                    <span class="reading-value">1 (Хороший)</span>
-                </div>
-                <div class="reading-item">
-                    <span>PM2.5:</span>
-                    <span class="reading-value">0,7 мкг/м³</span>
-                </div>
-                <div class="reading-item">
-                    <span>PM10:</span>
-                    <span class="reading-value">1,3 мкг/м³</span>
-                </div>
-                <div class="reading-item">
-                    <span>O₃:</span>
-                    <span class="reading-value">43,5 мкг/м³</span>
-                </div>
-                <div class="reading-item">
-                    <span>NO₂:</span>
-                    <span class="reading-value">5,1 мкг/м³</span>
-                </div>
-                <div class="reading-item">
-                    <span>SO₂:</span>
-                    <span class="reading-value">0,5 мкг/м³</span>
-                </div>
-                <div class="reading-item">
-                    <span>CO:</span>
-                    <span class="reading-value warning">128,5 мг/м³</span>
-                </div>
+            <div class="current-readings" id="air-quality-readings">
+                <!-- Данные будут добавлены динамически -->
             </div>
         </div>
         
@@ -424,32 +426,6 @@
         </div>
     </div>
 </div>
-                    
-                    <div class="info-card">
-                        <div class="info-title">
-                            <span>●</span>
-                            <span>Луна</span>
-                        </div>
-                        <div class="info-content" id="moon-info">
-                            <div class="moon-visualization">
-                                <div class="moon-circle">
-                                    <div class="moon-phase" id="moon-phase"></div>
-                                </div>
-                                <div class="moon-details">
-                                    <div class="moon-detail-item" id="moon-phase-text">Фаза: --</div>
-                                    <div class="moon-detail-item" id="moon-illumination">Освещенность: --%</div>
-                                    <div class="moon-detail-item" id="moon-age">Возраст: -- дней</div>
-                                    <div class="moon-detail-item" id="moon-next">Следующая фаза: --</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accuracy-note italic-text">*Данные о качестве воздуха обновляются каждые 2 часа</div>
-                <div class="accuracy-note italic-text">*Фазы луны рассчитываются астрономически (точность 99.9%)</div>
-            </div>
-        </div>
-    </div>
 
     <script src="script.js"></script>
 </body>
