@@ -1,11 +1,14 @@
 const CACHE_NAME = 'weather-overcast-v1.2.0';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  './',
+  './index.html',
+  './style.css', 
+  './script.js',
+  './manifest.json',
+  './icons/maskable-icon.png',
+  './icons/maskable-icon-512.png',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
 // Установка Service Worker
