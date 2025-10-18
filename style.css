@@ -37,19 +37,30 @@ body.settings-open {
 }
 
 /* Погодные темы */
+/* Темные и насыщенные градиенты */
 body.clear {
-    background: linear-gradient(135deg, #4A7FA6, #6B9AC2, #8CB8DE);
+    background: linear-gradient(135deg, #3A6B95, #5A8BBF, #7AABE9);
 }
 
-body.clouds {
-    background: linear-gradient(135deg, #a8d1f0, #c6e2ff, #e8f4ff);
-}
 body.broken\ clouds {
-    background: linear-gradient(135deg, #5A7A95, #7B98B3, #9CB6D1);
+    background: linear-gradient(135deg, #4A5E7A, #6A7E9A, #8A9EBA);
+}
+
+body.overcast\ clouds {
+    background: linear-gradient(135deg, #3A4A5E, #5A6A7E, #7A8A9E);
+}
+
+body.mist, body.fog, body.haze {
+    background: linear-gradient(135deg, #5A6B7C, #7A8B9C, #9AABBC);
+    color: #2D3748;
 }
 
 body.rain {
-    background: linear-gradient(135deg, #5D6D7E, #7F8C8D, #A6B2B3);
+    background: linear-gradient(135deg, #2C3E50, #4C5E70, #6C7E90);
+}
+
+body.night {
+    background: linear-gradient(135deg, #1E2A3A, #3E4A5A, #5E6A7A);
 }
 
 body.snow {
@@ -1985,13 +1996,3 @@ body[class*="broken"] {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* Для английской версии можно добавить */
-body[lang="en"] {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Убедимся, что длинные английские тексты не ломают верстку */
-.hour-weather, .tip-content, .tile-content-item {
-    word-wrap: break-word;
-    hyphens: auto;
-}
