@@ -1957,3 +1957,41 @@ header {
 body[class*="broken"] {
     background: linear-gradient(135deg, #5A7A95, #7B98B3, #9CB6D1) !important;
 }
+
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.settings-panel {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--card-radius);
+    padding: 25px;
+    border: 1px solid var(--card-border);
+    width: 320px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Для английской версии можно добавить */
+body[lang="en"] {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Убедимся, что длинные английские тексты не ломают верстку */
+.hour-weather, .tip-content, .tile-content-item {
+    word-wrap: break-word;
+    hyphens: auto;
+}
