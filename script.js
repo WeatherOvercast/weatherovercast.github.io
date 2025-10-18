@@ -100,8 +100,13 @@ function addToFavorites(cityData) {
         favorites.push(favoriteCity);
         saveFavorites();
         updateFavoriteButton(true);
+        showNotification('Город добавлен в избранное');
         // Функция уведомлений (добавьте в начало файла с другими функциями)
+function showNotification(message) {
+    // Простое уведомление в консоли
+    console.log('📢 ' + message);
 
+}
         //showNotification('Город добавлен в избранное');
     }
 }
@@ -112,6 +117,7 @@ function removeFromFavorites(cityName) {
     if (currentCity === cityName) {
         updateFavoriteButton(false);
     }
+    showNotification('Город удален из избранного');
     //showNotification('Город удален из избранного');
 }
 
@@ -126,7 +132,7 @@ function isCityInFavorites(cityName) {
 function updateFavoriteButton(isFavorite) {
     const favoriteBtn = document.getElementById('favorite-btn');
     if (!favoriteBtn) return;
-    
+
     if (isFavorite) {
         favoriteBtn.classList.add('active');
         favoriteBtn.querySelector('svg').style.fill = 'currentColor';
@@ -140,18 +146,18 @@ function showFavoritesPanel() {
     const overlay = document.getElementById('favorites-overlay');
     const list = document.getElementById('favorites-list');
     const empty = document.getElementById('favorites-empty');
-    
+
     if (!overlay || !list || !empty) return;
-    
+
     list.innerHTML = '';
-    
+
     if (favorites.length === 0) {
         empty.style.display = 'block';
         list.style.display = 'none';
     } else {
         empty.style.display = 'none';
         list.style.display = 'block';
-        
+
         favorites.forEach(city => {
             const item = document.createElement('div');
             item.className = 'favorite-item';
@@ -169,7 +175,7 @@ function showFavoritesPanel() {
             list.appendChild(item);
         });
     }
-    
+
     overlay.style.display = 'flex';
     document.body.classList.add('settings-open');
 }
@@ -204,9 +210,9 @@ function updateLoadingText() {
     const now = new Date();
     const hour = now.getHours();
     const loadingText = document.getElementById('loading-time-text');
-    
+
     if (!loadingText) return;
-    
+
     if (hour >= 5 && hour < 8) {
         loadingText.textContent = "Загружаем сайт, пока вы готовите утренний кофе";
     } else if (hour >= 8 && hour < 15) {
@@ -236,16 +242,16 @@ function showLoadingScreen() {
 function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loading-screen');
     if (!loadingScreen) return;
-    
+
     loadingScreen.classList.add('fade-out');
-    
+
     setTimeout(() => {
         loadingScreen.style.display = 'none';
-        
+
         // Показываем основной контент с анимацией
         const container = document.querySelector('.container');
         const header = document.querySelector('header');
-        
+
         if (container) container.classList.add('show');
         if (header) header.classList.add('show');
     }, 500);
@@ -255,31 +261,31 @@ function hideLoadingScreen() {
 function initTipCarousel() {
     const dots = document.querySelectorAll('.dot');
     const slides = document.querySelectorAll('.tip-slide');
-    
+
     dots.forEach(dot => {
         dot.addEventListener('click', function() {
             const slideIndex = parseInt(this.getAttribute('data-slide'));
-            
+
             // Убираем активный класс у всех
             dots.forEach(d => d.classList.remove('active'));
             slides.forEach(s => s.classList.remove('active'));
-            
+
             // Добавляем активный класс выбранному
             this.classList.add('active');
             slides[slideIndex].classList.add('active');
         });
     });
-    
+
     // Автопереключение каждые 8 секунд
     setInterval(() => {
         const activeDot = document.querySelector('.dot.active');
         if (!activeDot) return;
-        
+
         const nextIndex = (parseInt(activeDot.getAttribute('data-slide')) + 1) % dots.length;
-        
+
         dots.forEach(d => d.classList.remove('active'));
         slides.forEach(s => s.classList.remove('active'));
-        
+
         dots[nextIndex].classList.add('active');
         slides[nextIndex].classList.add('active');
     }, 8000);
@@ -288,11 +294,11 @@ function initTipCarousel() {
 function updateWeatherTip(data, forecastData) {
     const tipText = document.getElementById('tip-text');
     const factText = document.getElementById('fact-text');
-    
+
     if (!tipText || !factText) return;
-    
+
     const hasRainToday = checkRainToday(forecastData);
-    
+
     if (hasRainToday.found) {
         tipText.textContent = `Не забудьте зонт. Возможен дождь в ${hasRainToday.time}`;
     } else {
@@ -300,10 +306,10 @@ function updateWeatherTip(data, forecastData) {
         const sunset = new Date(data.sys.sunset * 1000);
         const sunriseTime = formatTime(sunrise);
         const sunsetTime = formatTime(sunset);
-        
+
         tipText.textContent = `Не пропустите рассвет в ${sunriseTime} и закат в ${sunsetTime}`;
     }
-    
+
     // Интересные факты о погоде
     const facts = [
         "Знаете ли вы, что самая высокая температура на Земле была зафиксирована в Долине Смерти: 56.7°C!",
@@ -314,17 +320,17 @@ function updateWeatherTip(data, forecastData) {
         "Самый большой град весил около 1 кг и выпал в Бангладеш в 1986 году.",
         "Радуга появляется, когда солнечный свет преломляется в каплях воды под определенным углом."
     ];
-    
+
     factText.textContent = facts[Math.floor(Math.random() * facts.length)];
 }
 
 function checkRainToday(forecastData) {
     if (!forecastData || !forecastData.list) return { found: false };
-    
+
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrow = new Date(today.getTime() + 86400000);
-    
+
     for (let item of forecastData.list) {
         const itemTime = new Date(item.dt * 1000);
         if (itemTime >= today && itemTime < tomorrow) {
@@ -337,14 +343,14 @@ function checkRainToday(forecastData) {
             }
         }
     }
-    
+
     return { found: false };
 }
 
 // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 function getWindStrength(speedMps) {
     const speedKmh = speedMps * 3.6;
-    
+
     if (speedKmh < 1) return 'Штиль';
     else if (speedKmh < 11) return 'Легкий ветер';
     else if (speedKmh < 19) return 'Умеренный ветер';
@@ -382,7 +388,7 @@ function formatHour(date) {
 
 function calculateDewPoint(temp, humidity) {
     if (humidity === 0) return -273.15;
-    
+
     const a = 17.27;
     const b = 237.7;
     const alpha = ((a * temp) / (b + temp)) + Math.log(humidity / 100.0);
@@ -411,7 +417,7 @@ async function getWeatherByCoords(lat, lon) {
             fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
             getAirQuality(lat, lon)
         ]);
-        
+
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
@@ -435,7 +441,7 @@ async function getWeatherByCity(city) {
             `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`
         );
         const weatherData = await weatherResponse.json();
-        
+
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
@@ -443,7 +449,7 @@ async function getWeatherByCity(city) {
                 getForecast(weatherData.coord.lat, weatherData.coord.lon),
                 getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
             ]);
-            
+
             updateWeatherData(weatherData, forecastData, airQualityData);
             updateMapLocation(weatherData.coord.lat, weatherData.coord.lon);
         } else {
@@ -475,8 +481,6 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const temp = applyTemperatureShift(data.main.temp);
     const feelsLike = applyTemperatureShift(data.main.feels_like);
     const weatherDesc = translateWeather(data.weather[0].description);
-    updateWeatherQuestion(data.weather[0].description);
-    showWeatherQuestion();
 
     document.getElementById('current-temp').innerHTML = `
         <span class="temp-bullet">●</span>
@@ -510,7 +514,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const pressure = Math.round(data.main.pressure * 0.750062);
     const pressureStatus = pressure >= 745 && pressure <= 755 ? 'Нормальное' : 
                              pressure > 755 ? 'Высокое' : 'Низкое';
-    
+
     document.getElementById('pressure-details').innerHTML = `
         <div class="tile-content-item">
             <span>●</span>
@@ -527,7 +531,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const humidityStatus = humidity < 30 ? 'Сухо' : 
                              humidity < 60 ? 'Комфортно' : 
                              humidity < 80 ? 'Влажно' : 'Очень высокая';
-    
+
     document.getElementById('humidity-details').innerHTML = `
         <div class="tile-content-item">
             <span>●</span>
@@ -544,7 +548,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
     const visibilityStatus = visibility > 20 ? 'Отличная' : 
                                visibility > 10 ? 'Хорошая' : 
                                visibility > 5 ? 'Умеренная' : 'Ограниченная';
-    
+
     document.getElementById('visibility-details').innerHTML = `
         <div class="tile-content-item">
             <span>●</span>
@@ -620,7 +624,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
 
     // ОБНОВЛЯЕМ ДОПОЛНИТЕЛЬНУЮ ИНФОРМАЦИЮ
     updateAdditionalInfo(data, airQualityData);
-    
+
     // ОБНОВЛЯЕМ ПРОГНОЗЫ И СОВЕТ
     if (forecastData) {
         updateHourlyForecast(forecastData);
@@ -638,14 +642,14 @@ function updateWeatherData(data, forecastData, airQualityData) {
 // ========== ФУНКЦИИ ДЛЯ ДОПОЛНИТЕЛЬНОЙ ИНФОРМАЦИИ ==========
 function updateAdditionalInfo(data, airQualityData) {
     updateAirQualityInfo(airQualityData);
-    
+
     // ФАЗЫ ЛУНЫ
     const moonInfo = calculateMoonInfo();
     document.getElementById('moon-phase-text').textContent = `Фаза: ${moonInfo.phase}`;
     document.getElementById('moon-illumination').textContent = `Освещенность: ${moonInfo.illumination}%`;
     document.getElementById('moon-age').textContent = `Возраст: ${moonInfo.age} дней`;
     document.getElementById('moon-next').textContent = `Следующая фаза: ${moonInfo.nextPhase} (${moonInfo.daysToNext} дней)`;
-    
+
     updateMoonVisualization(moonInfo.phasePercent);
 }
 
@@ -659,13 +663,13 @@ function getPollutionLevel(value, pollutant) {
         'so2': [35, 75, 185, 304, 604],
         'co': [4.4, 9.4, 12.4, 15.4, 30.4] // Теперь в мг/м³ вместо мкг/м³
     };
-    
+
     const levels = ['хороший', 'удовлетворительный', 'умеренный', 'плохой', 'очень плохой', 'опасный'];
     const threshold = thresholds[pollutant] || thresholds.pm2_5;
-    
+
     // Для CO используем значение как есть (уже в мг/м³ после конвертации)
     const adjustedValue = pollutant === 'co' ? value / 1000 : value;
-    
+
     for (let i = 0; i < threshold.length; i++) {
         if (adjustedValue <= threshold[i]) return levels[i];
     }
@@ -687,12 +691,12 @@ function getPollutionLevelClass(level) {
 function updateAirQualityInfo(airQualityData) {
     const airQualityElement = document.getElementById('air-quality');
     if (!airQualityElement) return;
-    
+
     if (airQualityData && airQualityData.list && airQualityData.list.length > 0) {
         const airData = airQualityData.list[0];
         const aqi = airData.main.aqi;
         const components = airData.components;
-        
+
         const aqiLevels = {
             1: { text: 'Хороший', class: 'level-good', advice: 'Идеальные условия для прогулок' },
             2: { text: 'Удовлетворительный', class: 'level-moderate', advice: 'Хорошие условия, подходят для большинства людей' },
@@ -700,7 +704,7 @@ function updateAirQualityInfo(airQualityData) {
             4: { text: 'Плохой', class: 'level-unhealthy', advice: 'Ограничить физическую активность на открытом воздухе' },
             5: { text: 'Очень плохой', class: 'level-very-unhealthy', advice: 'Избегать длительного пребывания на улице' }
         };
-        
+
         const aqiInfo = aqiLevels[aqi] || aqiLevels[1];
 
         airQualityElement.innerHTML = `
@@ -770,7 +774,7 @@ function updateAirQualityHint(airData) {
 
     const components = airData.components;
     const aqi = airData.main.aqi;
-    
+
     const aqiLevels = {
         1: 'Хороший',
         2: 'Удовлетворительный', 
@@ -815,31 +819,31 @@ function initAirQualityHint() {
     const questionBtn = document.getElementById('air-quality-question');
     const overlay = document.getElementById('air-quality-overlay');
     const closeBtn = document.getElementById('close-air-quality-hint');
-    
+
     if (!questionBtn || !overlay || !closeBtn) return;
-    
+
     questionBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         overlay.style.display = 'flex';
         document.body.classList.add('settings-open');
     });
-    
+
     closeBtn.addEventListener('click', function() {
         closeAirQualityHint();
     });
-    
+
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
             closeAirQualityHint();
         }
     });
-    
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.style.display === 'flex') {
             closeAirQualityHint();
         }
     });
-    
+
     function closeAirQualityHint() {
         overlay.style.display = 'none';
         document.body.classList.remove('settings-open');
@@ -893,21 +897,21 @@ function calculateMoonInfo() {
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const day = now.getDate();
-    
+
     let age = 0;
     if (month <= 2) {
         age = Math.floor(365.25 * (year - 1)) + Math.floor(30.6 * (month + 12 - 3)) + day - 694039.09;
     } else {
         age = Math.floor(365.25 * year) + Math.floor(30.6 * (month - 3)) + day - 694039.09;
     }
-    
+
     age /= 29.5305882;
     age -= Math.floor(age);
     if (age < 0) age += 1;
-    
+
     const moonAge = age * 29.5305882;
     const illumination = Math.round((1 - Math.cos(Math.PI * moonAge / 14.7652941)) * 50);
-    
+
     let phase, phasePercent, nextPhase, daysToNext;
 
     if (moonAge < 1.84566) {
@@ -951,9 +955,9 @@ function calculateMoonInfo() {
         nextPhase = 'Новолуние';
         daysToNext = Math.round(29.5305882 - moonAge);
     }
-    
+
     phasePercent = Math.max(0, Math.min(100, phasePercent));
-    
+
     return {
         phase,
         illumination: Math.max(0, Math.min(100, illumination)),
@@ -967,11 +971,11 @@ function calculateMoonInfo() {
 function updateMoonVisualization(phasePercent) {
     const moonPhase = document.getElementById('moon-phase');
     if (!moonPhase) return;
-    
+
     moonPhase.style.transform = '';
     moonPhase.style.background = '';
     moonPhase.style.clipPath = '';
-    
+
     if (phasePercent === 0) {
         moonPhase.style.clipPath = 'inset(0 0 0 100%)';
     } else if (phasePercent === 100) {
@@ -989,7 +993,7 @@ function updateMoonVisualization(phasePercent) {
 function updateHourlyForecast(forecastData) {
     const container = document.getElementById('hourly-forecast');
     if (!container) return;
-    
+
     container.innerHTML = '';
 
     const hourlyForecasts = forecastData.list.slice(0, 8);
@@ -997,13 +1001,13 @@ function updateHourlyForecast(forecastData) {
     hourlyForecasts.forEach((forecast, index) => {
         const hourCard = document.createElement('div');
         hourCard.className = 'hour-card';
-        
+
         const forecastTime = new Date(forecast.dt * 1000);
         const timeString = formatHour(forecastTime);
         const temp = applyTemperatureShift(forecast.main.temp);
         const weatherIcon = getWeatherIcon(forecast.weather[0].main, forecast.main.temp);
         const weatherDesc = translateWeather(forecast.weather[0].description);
-        
+
         hourCard.innerHTML = `
             <div class="hour-time">${timeString}</div>
             <div class="hour-icon">${weatherIcon}</div>
@@ -1020,7 +1024,7 @@ function updateHourlyForecast(forecastData) {
 function updateWeeklyForecast(forecastData) {
     const container = document.getElementById('forecast-week');
     if (!container) return;
-    
+
     container.innerHTML = '';
 
     const dailyForecasts = [];
@@ -1037,13 +1041,13 @@ function updateWeeklyForecast(forecastData) {
     dailyForecasts.forEach((forecast, index) => {
         const dayCard = document.createElement('div');
         dayCard.className = 'forecast-day';
-        
+
         const dayIndex = (todayIndex + index) % 7;
         const dayName = index === 0 ? 'СЕГОДНЯ' : dayNames[dayIndex];
 
         const tempMax = applyTemperatureShift(forecast.main.temp_max);
         const tempMin = applyTemperatureShift(forecast.main.temp_min);
-        
+
         dayCard.innerHTML = `
             <div class="day-name">${dayName}</div>
             <div class="day-temps">
@@ -1058,7 +1062,7 @@ function updateWeeklyForecast(forecastData) {
 function getWeatherIcon(weatherMain, temperature) {
     const main = weatherMain.toLowerCase();
     const isNight = isCurrentlyNight();
-    
+
     if (isNight) {
         switch(main) {
             case 'clear': return '●';
@@ -1102,10 +1106,10 @@ function updateThemeByWeather(weatherMain, sys) {
     const currentTime = now.getTime();
     const sunrise = sys.sunrise * 1000;
     const sunset = sys.sunset * 1000;
-    
+
     const isNight = currentTime < sunrise || currentTime > sunset;
     const themeClass = isNight ? 'night' : weatherMain.toLowerCase();
-    
+
     document.body.className = themeClass;
 }
 
@@ -1117,7 +1121,7 @@ function saveSettings() {
 function loadSettings() {
     const savedUnits = localStorage.getItem('weatherUnits');
     const savedTheme = localStorage.getItem('weatherTheme');
-    
+
     if (savedUnits) {
         currentUnits = savedUnits;
         const unitsText = {
@@ -1130,7 +1134,7 @@ function loadSettings() {
             unitsElement.textContent = unitsText[currentUnits];
         }
     }
-    
+
     if (savedTheme) {
         currentTheme = savedTheme;
         document.querySelectorAll('.theme-option').forEach(option => {
@@ -1139,7 +1143,7 @@ function loadSettings() {
                 option.classList.add('active');
             }
         });
-        
+
         if (currentTheme === 'light') {
             document.body.style.background = 'linear-gradient(135deg, #87CEEB, #E0F7FA)';
             document.body.style.color = '#333';
@@ -1159,7 +1163,7 @@ function initMap() {
         console.error('Yandex Maps API не загружена');
         return;
     }
-    
+
     ymaps.ready(function() {
         map = new ymaps.Map('map', {
             center: [59.9343, 30.3351], // Центр Питера вместо Москвы
@@ -1181,7 +1185,7 @@ function initMap() {
 
         const mapLoading = document.querySelector('.map-loading');
         if (mapLoading) mapLoading.style.display = 'none';
-        
+
         getUserLocation();
     });
 }
@@ -1203,26 +1207,26 @@ function getUserLocation() {
                 const lng = position.coords.longitude;
                 console.log('Геолокация успешна:', lat, lng); // Логируем координаты
                 getWeatherByCoords(lat, lng);
-                
+
                 if (map) {
                     // Удаляем старый маркер если есть
                     if (userPlacemark) {
                         map.geoObjects.remove(userPlacemark);
                     }
-                    
+
                     userPlacemark = new ymaps.Placemark([lat, lng], {
                         balloonContent: 'Ваше местоположение'
                     }, {
                         preset: 'islands#blueCircleDotIcon',
                         draggable: false
                     });
-                    
+
                     map.geoObjects.add(userPlacemark);
                 }
             },
             error => {
                 console.log('Ошибка геолокации:', error);
-                
+
                 // Более информативное уведомление
                 let errorMessage = 'Геолокация недоступна';
                 switch(error.code) {
@@ -1236,9 +1240,9 @@ function getUserLocation() {
                         errorMessage = 'Время ожидания геолокации истекло.';
                         break;
                 }
-                
 
-                
+
+
                 // Используем координаты Питера как fallback
                 const fallbackLat = 59.9343;
                 const fallbackLng = 30.3351;
@@ -1254,7 +1258,7 @@ function getUserLocation() {
     } else {
         console.log('Геолокация не поддерживается браузером');
         showNotification('Ваш браузер не поддерживает геолокацию');
-        
+
         const fallbackLat = 59.9343;
         const fallbackLng = 30.3351;
         getWeatherByCoords(fallbackLat, fallbackLng);
@@ -1265,24 +1269,24 @@ function getUserLocation() {
 function showSuggestions(query) {
     const suggestionsContainer = document.getElementById('search-suggestions');
     if (!suggestionsContainer) return;
-    
+
     suggestionsContainer.innerHTML = '';
-    
+
     if (query.length < 2) {
         suggestionsContainer.style.display = 'none';
         return;
     }
-    
+
     const filteredCities = cityDatabase.filter(city => 
         city.name.toLowerCase().includes(query.toLowerCase()) ||
         city.region.toLowerCase().includes(query.toLowerCase())
     );
-    
+
     if (filteredCities.length === 0) {
         suggestionsContainer.style.display = 'none';
         return;
     }
-    
+
     filteredCities.forEach(city => {
         const item = document.createElement('div');
         item.className = 'suggestion-item';
@@ -1298,7 +1302,7 @@ function showSuggestions(query) {
         });
         suggestionsContainer.appendChild(item);
     });
-    
+
     suggestionsContainer.style.display = 'block';
 }
 
@@ -1306,22 +1310,22 @@ function showSuggestions(query) {
 document.addEventListener('DOMContentLoaded', () => {
     // Показываем экран загрузки сразу
     showLoadingScreen();
-    
+
     // Загружаем настройки
     loadSettings();
-    
+
     // Инициализируем компоненты
     initMap();
     initTipCarousel();
     initAirQualityHint(); // Инициализация подсказки качества воздуха
-    
+
     // Обработчики для поиска
     const citySearch = document.getElementById('city-search');
     if (citySearch) {
         citySearch.addEventListener('input', (e) => {
             showSuggestions(e.target.value);
         });
-        
+
         citySearch.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const city = e.target.value.trim();
@@ -1331,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     // Закрываем подсказки при клике вне поиска
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-container')) {
@@ -1393,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             themeOptions.forEach(opt => opt.classList.remove('active'));
             option.classList.add('active');
             currentTheme = option.getAttribute('data-theme');
-            
+
             if (currentTheme === 'light') {
                 document.body.style.background = 'linear-gradient(135deg, #87CEEB, #E0F7FA)';
                 document.body.style.color = '#333';
@@ -1404,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.style.background = '';
                 document.body.style.color = '';
             }
-            
+
             saveSettings();
         });
     });
@@ -1436,3 +1440,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// Кастомная кнопка установки PWA
+let deferredPrompt;
+const installPrompt = document.getElementById('install-prompt');
+const installBtn = document.getElementById('install-btn');
+const installClose = document.getElementById('install-close');
+
+// Показываем кастомную кнопку когда можно установить
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // Показываем нашу кастомную кнопку через 3 секунды
+  setTimeout(() => {
+    if (deferredPrompt && !isAppInstalled()) {
+      installPrompt.style.display = 'block';
+    }
+  }, 3000);
+});
+
+// Обработчик установки
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+
+  if (outcome === 'accepted') {
+    console.log('Пользователь установил приложение');
+    installPrompt.style.display = 'none';
+  }
+
+  deferredPrompt = null;
+});
+
+// Закрытие кнопки
+installClose.addEventListener('click', () => {
+  installPrompt.style.display = 'none';
+  // Сохраняем в localStorage что пользователь закрыл кнопку
+  localStorage.setItem('installPromptClosed', 'true');
+});
+
+// Проверка установлено ли уже приложение
+function isAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone ||
+         document.referrer.includes('android-app://');
+}
+
+// Проверяем не закрывал ли пользователь кнопку ранее
+if (localStorage.getItem('installPromptClosed') === 'true') {
+  installPrompt.style.display = 'none';
+}
+
+// Скрываем кнопку если приложение уже установлено
+if (isAppInstalled()) {
+  installPrompt.style.display = 'none';
+}
