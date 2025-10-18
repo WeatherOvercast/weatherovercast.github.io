@@ -38,15 +38,18 @@ body.settings-open {
 
 /* Погодные темы */
 body.clear {
-    background: linear-gradient(135deg, #7BA7CC, #A8D1F0, #D4EBFF);
+    background: linear-gradient(135deg, #4A7FA6, #6B9AC2, #8CB8DE);
 }
 
 body.clouds {
-    background: linear-gradient(135deg, #7F8C8D, #A6B2B3, #CBD5D6);
+    background: linear-gradient(135deg, #a8d1f0, #c6e2ff, #e8f4ff);
+}
+body.broken\ clouds {
+    background: linear-gradient(135deg, #5A7A95, #7B98B3, #9CB6D1);
 }
 
 body.rain {
-    background: linear-gradient(135deg, #4A6572, #6A7F8F, #8FA3B1);
+    background: linear-gradient(135deg, #5D6D7E, #7F8C8D, #A6B2B3);
 }
 
 body.snow {
@@ -63,8 +66,8 @@ body.drizzle {
 }
 
 body.mist, body.fog, body.haze {
-    background: linear-gradient(135deg, #95A5A6, #BDC3C7, #D5DBDB);
-    color: #4A5568;
+    background: linear-gradient(135deg, #8C9B9C, #A8B5B6, #C4CFD0);
+    color: #2D3748;
 }
 
 /* Ночные темы */
@@ -982,19 +985,22 @@ header {
 /* Стили для визуализации луны */
 .moon-visualization {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 10px 0;
+    margin: 15px 0;
+    text-align: center;
 }
 
 .moon-circle {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     background: #f1c40f;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+    margin: 0 auto 15px auto;
 }
 
 .moon-phase {
@@ -1009,14 +1015,16 @@ header {
 }
 
 .moon-details {
-    margin-left: 15px;
+    width: 100%;
+    text-align: center;
 }
 
 .moon-detail-item {
     font-size: 14px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    text-align: center;
+    padding: 2px 0;
 }
-
 /* Мобильные стили */
 @media (max-width: 1200px) {
     .weather-content {
@@ -1922,4 +1930,30 @@ header {
         font-size: 11px;
         padding: 3px 6px;
     }
+}
+/* ФИКС ДЛЯ ЦЕНТРИРОВАНИЯ ЛУНЫ */
+.moon-visualization {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 15px auto !important;
+}
+
+.moon-circle {
+    margin: 0 auto 15px auto !important;
+}
+
+.moon-details {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.moon-detail-item {
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+body[class*="broken"] {
+    background: linear-gradient(135deg, #5A7A95, #7B98B3, #9CB6D1) !important;
 }

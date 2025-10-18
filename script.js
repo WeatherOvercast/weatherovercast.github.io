@@ -18,6 +18,8 @@ let currentUnits = localStorage.getItem('weatherUnits') || 'celsius';
 let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
 let currentCity = '';
 let currentCityData = null;
+let unitsDropdown = null;
+let languageDropdown = null;
 const TEMPERATURE_SHIFT = 0;
 
 // Функции для конвертации температуры
@@ -1366,7 +1368,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initMap();
     updateUITexts();
-    
+        unitsDropdown = document.getElementById('units-dropdown');
+    languageDropdown = document.getElementById('language-dropdown');
     document.getElementById('locate-btn').addEventListener('click', getUserLocation);
     
     document.getElementById('city-search').addEventListener('input', (e) => {
