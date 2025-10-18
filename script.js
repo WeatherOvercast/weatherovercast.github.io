@@ -2,6 +2,10 @@
 const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
+// Функция уведомлений
+function showNotification(message) {
+    console.log('🔔 ' + message);
+}
 
 // Глобальные переменные
 let map = null;
@@ -96,7 +100,13 @@ function addToFavorites(cityData) {
         favorites.push(favoriteCity);
         saveFavorites();
         updateFavoriteButton(true);
-        showNotification('Город добавлен в избранное');
+        // Функция уведомлений (добавьте в начало файла с другими функциями)
+function showNotification(message) {
+    // Простое уведомление в консоли
+    console.log('📢 ' + message);
+
+}
+        //showNotification('Город добавлен в избранное');
     }
 }
 
@@ -106,7 +116,7 @@ function removeFromFavorites(cityName) {
     if (currentCity === cityName) {
         updateFavoriteButton(false);
     }
-    showNotification('Город удален из избранного');
+    //showNotification('Город удален из избранного');
 }
 
 function saveFavorites() {
