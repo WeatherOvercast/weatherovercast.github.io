@@ -1497,3 +1497,128 @@ if (localStorage.getItem('installPromptClosed') === 'true') {
 if (isAppInstalled()) {
   installPrompt.style.display = 'none';
 }
+// Принудительный показ на ПК после загрузки
+window.addEventListener('load', () => {
+    const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (isPC) {
+        setTimeout(() => {
+            // Показываем кастомную кнопку на ПК
+            const installPrompt = document.getElementById('install-prompt');
+            if (installPrompt) {
+                installPrompt.style.display = 'block';
+            }
+        }, 5000); // Через 5 секунд
+    }
+});
+// PWA Installation
+class PWAInstaller {
+    constructor() {
+        this.deferredPrompt = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.checkIfInstalled();
+    }
+
+    bindEvents() {
+        // Событие когда можно установить PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt fired');
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.showInstallButton();
+        });
+
+        // Событие когда PWA установлено
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed');
+            this.hideInstallButton();
+            this.deferredPrompt = null;
+        });
+
+        // Клик по кнопке установки
+        document.getElementById('install-btn')?.addEventListener('click', () => {
+            this.installPWA();
+        });
+
+        // Закрытие кнопки
+        document.getElementById('install-close')?.addEventListener('click', () => {
+            this.hideInstallButton();
+        });
+    }
+
+    showInstallButton() {
+        const installPrompt = document.getElementById('install-prompt');
+        if (installPrompt && !this.isAppInstalled()) {
+            console.log('Showing install button');
+            installPrompt.style.display = 'block';
+            
+            // Авто-скрытие через 15 секунд
+            setTimeout(() => {
+                this.hideInstallButton();
+            }, 15000);
+        }
+    }
+
+    hideInstallButton() {
+        const installPrompt = document.getElementById('install-prompt');
+        if (installPrompt) {
+            installPrompt.style.display = 'none';
+        }
+    }
+
+    async installPWA() {
+        if (!this.deferredPrompt) {
+            console.log('No deferred prompt available');
+            return;
+        }
+
+        try {
+            console.log('Showing install prompt');
+            this.deferredPrompt.prompt();
+            
+            const { outcome } = await this.deferredPrompt.userChoice;
+            console.log('User choice:', outcome);
+            
+            if (outcome === 'accepted') {
+                console.log('User accepted install');
+                this.hideInstallButton();
+            }
+            
+            this.deferredPrompt = null;
+        } catch (error) {
+            console.error('Install error:', error);
+        }
+    }
+
+    isAppInstalled() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    }
+
+    checkIfInstalled() {
+        if (this.isAppInstalled()) {
+            console.log('App is already installed');
+            this.hideInstallButton();
+        }
+    }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    new PWAInstaller();
+    
+    // Показываем кнопку на ПК через 5 секунд для тестирования
+    setTimeout(() => {
+        const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isPC) {
+            const installPrompt = document.getElementById('install-prompt');
+            if (installPrompt) {
+                installPrompt.style.display = 'block';
+            }
+        }
+    }, 5000);
+});
