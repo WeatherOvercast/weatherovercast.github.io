@@ -1428,3 +1428,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// Кастомная кнопка установки PWA
+let deferredPrompt;
+const installPrompt = document.getElementById('install-prompt');
+const installBtn = document.getElementById('install-btn');
+const installClose = document.getElementById('install-close');
+
+// Показываем кастомную кнопку когда можно установить
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Показываем нашу кастомную кнопку через 3 секунды
+  setTimeout(() => {
+    if (deferredPrompt && !isAppInstalled()) {
+      installPrompt.style.display = 'block';
+    }
+  }, 3000);
+});
+
+// Обработчик установки
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  
+  if (outcome === 'accepted') {
+    console.log('Пользователь установил приложение');
+    installPrompt.style.display = 'none';
+  }
+  
+  deferredPrompt = null;
+});
+
+// Закрытие кнопки
+installClose.addEventListener('click', () => {
+  installPrompt.style.display = 'none';
+  // Сохраняем в localStorage что пользователь закрыл кнопку
+  localStorage.setItem('installPromptClosed', 'true');
+});
+
+// Проверка установлено ли уже приложение
+function isAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone ||
+         document.referrer.includes('android-app://');
+}
+
+// Проверяем не закрывал ли пользователь кнопку ранее
+if (localStorage.getItem('installPromptClosed') === 'true') {
+  installPrompt.style.display = 'none';
+}
+
+// Скрываем кнопку если приложение уже установлено
+if (isAppInstalled()) {
+  installPrompt.style.display = 'none';
+}

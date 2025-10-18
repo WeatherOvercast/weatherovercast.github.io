@@ -1,6 +1,6 @@
 {
   "name": "Weather App",
-  "short_name": "Weather Overcast", 
+  "short_name": "Overcast", 
   "start_url": "/",
   "display": "standalone",
   "background_color": "#5D8AA8",
