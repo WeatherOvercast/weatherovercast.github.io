@@ -7,12 +7,10 @@
     <script src="https://api-maps.yandex.ru/2.1/?apikey=demokey&lang=ru_RU" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-<!-- ВСЕГО 4 СТРОКИ ДЛЯ PWA -->
+
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#5D8AA8">
-<meta name="msapplication-TileColor" content="#5D8AA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
     <!-- Экран загрузки -->
@@ -432,71 +430,6 @@
         </div>
     </div>
 </div>
-<!-- Кастомная кнопка установки PWA -->
-<div id="install-prompt" class="install-prompt">
-  <div class="install-panel">
-    <button class="install-close" id="install-close">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <div class="install-content">
-      <div class="install-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L12 16M12 16L8 12M12 16L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="install-text">
-        <div class="install-title">Установить приложение</div>
-        <div class="install-desc">Для быстрого доступа к прогнозу погоды</div>
-      </div>
-    </div>
-    <button class="install-btn" id="install-btn">Установить</button>
-  </div>
-</div>
-<!-- Плашка с вопросом о текущей погоде -->
-<div id="weather-question" class="weather-question">
-  <div class="question-panel">
-    <div class="question-content">
-      <div class="question-icon">🌤️</div>
-      <div class="question-text">
-        <div class="question-title" id="question-title">Сейчас Ясно?</div>
-        <div class="question-desc">Помогите улучшить точность прогноза</div>
-      </div>
-    </div>
-    <div class="question-buttons">
-      <button class="question-btn question-no" id="question-no">Нет</button>
-      <button class="question-btn question-yes" id="question-yes">Да</button>
-    </div>
-  </div>
-</div>
-
-<!-- Окошко благодарности за установку -->
-<div id="install-thanks" class="install-thanks">
-  <div class="thanks-panel">
-    <button class="thanks-close" id="thanks-close">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <div class="thanks-content">
-      <div class="thanks-icon">🎉</div>
-      <div class="thanks-text">
-        <div class="thanks-title">Спасибо за установку!</div>
-        <div class="thanks-desc">Приложение готово к работе</div>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-// Регистрация Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js')
-    .then(() => console.log('SW registered'))
-    .catch(err => console.log('SW error:', err));
-}
-</script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,9 +1,5 @@
-
-// Простейший Service Worker
-self.addEventListener('install', (e) => {
+// Простой Service Worker - только для установки
+self.addEventListener('install', (event) => {
   self.skipWaiting();
-});
-
-self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request));
+  console.log('PWA установлен');
 });
