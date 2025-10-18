@@ -374,128 +374,6 @@ function formatHour(date) {
     });
 }
 
-function showNotification(message, type = 'info') {
-    // Создаем красивое уведомление
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        </div>
-    `;
-    
-    // Добавляем стили для уведомлений
-    if (!document.querySelector('.notification-styles')) {
-        const styles = document.createElement('style');
-        styles.className = 'notification-styles';
-        styles.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--card-bg);
-                backdrop-filter: blur(20px);
-                border: 1px solid var(--card-border);
-                border-radius: var(--card-radius);
-                padding: 15px 20px;
-                color: var(--text-color);
-                z-index: 10000;
-                max-width: 400px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-                animation: slideInRight 0.3s ease-out;
-            }
-            
-            .notification-error {
-                border-left: 4px solid #ff6b6b;
-            }
-            
-            .notification-warning {
-                border-left: 4px solid #ffd93d;
-            }
-            
-            .notification-info {
-                border-left: 4px solid #6bc5ff;
-            }
-            
-            .notification-content {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 15px;
-            }
-            
-            .notification-close {
-                background: none;
-                border: none;
-                color: var(--text-color);
-                font-size: 18px;
-                cursor: pointer;
-                opacity: 0.7;
-                padding: 0;
-                width: 20px;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .notification-close:hover {
-                opacity: 1;
-            }
-            
-            @keyframes slideInRight {
-                from {
-                    opacity: 0;
-                    transform: translateX(100%);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
-    document.body.appendChild(notification);
-    
-    // Закрытие по клику
-    const closeBtn = notification.querySelector('.notification-close');
-    closeBtn.addEventListener('click', () => {
-        notification.remove();
-    });
-    
-    // Автоматическое закрытие через 5 секунд
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOutRight 0.3s ease-in';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 5000);
-    
-    // Добавляем анимацию исчезновения
-    if (!document.querySelector('.notification-out-animation')) {
-        const outAnimation = document.createElement('style');
-        outAnimation.className = 'notification-out-animation';
-        outAnimation.textContent = `
-            @keyframes slideOutRight {
-                from {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translateX(100%);
-                }
-            }
-        `;
-        document.head.appendChild(outAnimation);
-    }
-    
-    console.log('Уведомление:', message);
-}
-
 function calculateDewPoint(temp, humidity) {
     if (humidity === 0) return -273.15;
     
@@ -1290,7 +1168,7 @@ function initMap() {
 
         const overlay = document.createElement('div');
         overlay.className = 'map-overlay';
-        overlay.innerHTML = 'Карта осадков';
+        overlay.innerHTML = 'Карта';
         document.querySelector('.precipitation-map').appendChild(overlay);
 
         const mapLoading = document.querySelector('.map-loading');
@@ -1351,7 +1229,7 @@ function getUserLocation() {
                         break;
                 }
                 
-                showNotification(errorMessage);
+
                 
                 // Используем координаты Питера как fallback
                 const fallbackLat = 59.9343;

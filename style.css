@@ -326,7 +326,6 @@ body.settings-open {
 }
 
 /* Погодные темы */
-/* Темные и насыщенные градиенты */
 body.clear {
     background: linear-gradient(135deg, #3A6B95, #5A8BBF, #7AABE9);
 }
@@ -349,9 +348,8 @@ body.rain {
 }
 
 body.night {
-    background: linear-gradient(135deg, #1E2A3A, #3E4A5A, #5E6A7A);
+  background: linear-gradient(135deg, #0f1b2b 0%, #1a3658 100%);
 }
-
 body.snow {
     background: linear-gradient(135deg, #B0C4DE, #D1E0F0, #E8F0F8);
     color: #4A5568;
