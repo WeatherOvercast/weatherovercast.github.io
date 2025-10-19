@@ -2,6 +2,8 @@
 const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
+const HISTORY_URL = 'https://api.openweathermap.org/data/2.5/onecall/timemachine';
+
 // Функция уведомлений
 function showNotification(message) {
     console.log('🔔 ' + message);
@@ -101,13 +103,6 @@ function addToFavorites(cityData) {
         saveFavorites();
         updateFavoriteButton(true);
         showNotification('Город добавлен в избранное');
-        // Функция уведомлений (добавьте в начало файла с другими функциями)
-function showNotification(message) {
-    // Простое уведомление в консоли
-    console.log('📢 ' + message);
-
-}
-        //showNotification('Город добавлен в избранное');
     }
 }
 
@@ -118,7 +113,6 @@ function removeFromFavorites(cityName) {
         updateFavoriteButton(false);
     }
     showNotification('Город удален из избранного');
-    //showNotification('Город удален из избранного');
 }
 
 function saveFavorites() {
@@ -379,6 +373,14 @@ function formatTime(date) {
     });
 }
 
+function formatHourWithMinutes(date) {
+    return date.toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+    });
+}
+
 function formatHour(date) {
     return date.toLocaleTimeString('ru-RU', { 
         hour: '2-digit',
@@ -393,6 +395,43 @@ function calculateDewPoint(temp, humidity) {
     const b = 237.7;
     const alpha = ((a * temp) / (b + temp)) + Math.log(humidity / 100.0);
     return (b * alpha) / (a - alpha);
+}
+
+// ========== ФУНКЦИИ ДЛЯ ИСТОРИИ ПОГОДЫ ==========
+async function getWeatherHistory(lat, lon) {
+    try {
+        const now = Math.floor(Date.now() / 1000);
+        const historyData = [];
+        
+        // Получаем данные за последние 24 часа (каждый час)
+        for (let i = 24; i > 0; i -= 1) {
+            const timestamp = now - (i * 3600);
+            try {
+                const response = await fetch(
+                    `${HISTORY_URL}?lat=${lat}&lon=${lon}&dt=${timestamp}&appid=${API_KEY}&units=metric&lang=ru`
+                );
+                const data = await response.json();
+                
+                if (data && data.current) {
+                    historyData.push({
+                        ...data.current,
+                        dt: timestamp
+                    });
+                }
+            } catch (error) {
+                console.log('Ошибка получения данных за час:', error);
+                // Продолжаем получать остальные данные
+            }
+            
+            // Небольшая задержка чтобы не превысить лимиты API
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        return historyData;
+    } catch (error) {
+        console.error('Ошибка получения истории погоды:', error);
+        return [];
+    }
 }
 
 // ========== ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О ПОГОДЕ ==========
@@ -412,16 +451,17 @@ async function getAirQuality(lat, lon) {
 async function getWeatherByCoords(lat, lon) {
     try {
         showLoadingScreen();
-        const [weatherData, forecastData, airQualityData] = await Promise.all([
+        const [weatherData, forecastData, airQualityData, historyData] = await Promise.all([
             fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
             fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
-            getAirQuality(lat, lon)
+            getAirQuality(lat, lon),
+            getWeatherHistory(lat, lon)
         ]);
 
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
-            updateWeatherData(weatherData, forecastData, airQualityData);
+            updateWeatherData(weatherData, forecastData, airQualityData, historyData);
             updateMapLocation(lat, lon);
         } else {
             throw new Error(weatherData.message);
@@ -445,12 +485,13 @@ async function getWeatherByCity(city) {
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
-            const [forecastData, airQualityData] = await Promise.all([
+            const [forecastData, airQualityData, historyData] = await Promise.all([
                 getForecast(weatherData.coord.lat, weatherData.coord.lon),
-                getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
+                getAirQuality(weatherData.coord.lat, weatherData.coord.lon),
+                getWeatherHistory(weatherData.coord.lat, weatherData.coord.lon)
             ]);
 
-            updateWeatherData(weatherData, forecastData, airQualityData);
+            updateWeatherData(weatherData, forecastData, airQualityData, historyData);
             updateMapLocation(weatherData.coord.lat, weatherData.coord.lon);
         } else {
             throw new Error(weatherData.message);
@@ -476,7 +517,7 @@ async function getForecast(lat, lon) {
 }
 
 // ========== ОСНОВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ ==========
-function updateWeatherData(data, forecastData, airQualityData) {
+function updateWeatherData(data, forecastData, airQualityData, historyData) {
     // ОСНОВНЫЕ ДАННЫЕ
     const temp = applyTemperatureShift(data.main.temp);
     const feelsLike = applyTemperatureShift(data.main.feels_like);
@@ -627,7 +668,7 @@ function updateWeatherData(data, forecastData, airQualityData) {
 
     // ОБНОВЛЯЕМ ПРОГНОЗЫ И СОВЕТ
     if (forecastData) {
-        updateHourlyForecast(forecastData);
+        updateHourlyForecast(forecastData, historyData, data);
         updateWeeklyForecast(forecastData);
         updateWeatherTip(data, forecastData);
     }
@@ -661,13 +702,12 @@ function getPollutionLevel(value, pollutant) {
         'o3': [54, 70, 85, 105, 200],
         'no2': [53, 100, 360, 649, 1249],
         'so2': [35, 75, 185, 304, 604],
-        'co': [4.4, 9.4, 12.4, 15.4, 30.4] // Теперь в мг/м³ вместо мкг/м³
+        'co': [4.4, 9.4, 12.4, 15.4, 30.4]
     };
 
     const levels = ['хороший', 'удовлетворительный', 'умеренный', 'плохой', 'очень плохой', 'опасный'];
     const threshold = thresholds[pollutant] || thresholds.pm2_5;
 
-    // Для CO используем значение как есть (уже в мг/м³ после конвертации)
     const adjustedValue = pollutant === 'co' ? value / 1000 : value;
 
     for (let i = 0; i < threshold.length; i++) {
@@ -756,7 +796,6 @@ function updateAirQualityInfo(airQualityData) {
             </div>
         `;
 
-        // Обновляем данные в подсказке
         updateAirQualityHint(airData);
     } else {
         airQualityElement.innerHTML = `
@@ -850,48 +889,7 @@ function initAirQualityHint() {
     }
 }
 
-// Добавляем стили для деталей качества воздуха
-const airQualityStyles = `
-.air-quality-details {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-
-.pollutant-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 13px;
-}
-
-.pollutant-item:last-child {
-    border-bottom: none;
-}
-
-.pollutant-level {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-weight: 600;
-}
-
-.level-good { background: #4CAF50; color: white; }
-.level-moderate { background: #FFEB3B; color: #333; }
-.level-unhealthy-sensitive { background: #FF9800; color: white; }
-.level-unhealthy { background: #F44336; color: white; }
-.level-very-unhealthy { background: #9C27B0; color: white; }
-.level-hazardous { background: #795548; color: white; }
-`;
-
-// Добавляем стили в документ
-const styleSheet = document.createElement('style');
-styleSheet.textContent = airQualityStyles;
-document.head.appendChild(styleSheet);
-
+// ========== ФУНКЦИИ ДЛЯ ЛУНЫ ==========
 function calculateMoonInfo() {
     const now = new Date();
     const year = now.getFullYear();
@@ -990,23 +988,97 @@ function updateMoonVisualization(phasePercent) {
 }
 
 // ========== ФУНКЦИИ ДЛЯ ПРОГНОЗОВ ==========
-function updateHourlyForecast(forecastData) {
+function updateHourlyForecast(forecastData, historyData, currentWeatherData) {
     const container = document.getElementById('hourly-forecast');
     if (!container) return;
 
     container.innerHTML = '';
 
-    const hourlyForecasts = forecastData.list.slice(0, 8);
+    const currentData = forecastData.city;
+    const sunrise = new Date(currentData.sunrise * 1000);
+    const sunset = new Date(currentData.sunset * 1000);
+    const now = new Date();
+    const isMobile = window.innerWidth <= 768;
 
-    hourlyForecasts.forEach((forecast, index) => {
-        const hourCard = document.createElement('div');
-        hourCard.className = 'hour-card';
+    // Определяем сколько показывать карточек в зависимости от устройства
+    const historyToShow = isMobile ? historyData : historyData.slice(-6); // На ПК показываем только последние 6 часов истории
+    const forecastToShow = isMobile ? forecastData.list.slice(0, 12) : forecastData.list.slice(0, 6); // На ПК показываем 6 часов прогноза
 
+    // Добавляем исторические данные
+    if (historyToShow && historyToShow.length > 0) {
+        historyToShow.forEach((historyItem, index) => {
+            const historyTime = new Date(historyItem.dt * 1000);
+            
+            // Пропускаем если это текущий час (чтобы не дублировать)
+            if (Math.abs(historyTime - now) < 3600000) return;
+
+            const timeString = formatHourWithMinutes(historyTime);
+            const temp = applyTemperatureShift(historyItem.temp);
+            const weatherIcon = getWeatherIcon(historyItem.weather[0].main, historyItem.temp);
+            const weatherDesc = translateWeather(historyItem.weather[0].description);
+
+            const hourCard = document.createElement('div');
+            hourCard.className = 'hour-card history-card';
+            
+            hourCard.innerHTML = `
+                <div class="hour-time">${timeString}</div>
+                <div class="hour-icon">${weatherIcon}</div>
+                <div class="hour-temp">
+                    <span class="hour-temp-bullet">●</span>
+                    <span>${temp}${getTemperatureSymbol(currentUnits)}</span>
+                </div>
+                <div class="hour-weather">${weatherDesc}</div>
+                <div class="history-badge">БЫЛО</div>
+            `;
+            container.appendChild(hourCard);
+
+            // Вставляем рассвет/закат если нужно (только для полной истории на мобильных)
+            if (isMobile && index < historyToShow.length - 1) {
+                const nextHistoryTime = new Date(historyToShow[index + 1].dt * 1000);
+                
+                if (historyTime < sunrise && nextHistoryTime > sunrise) {
+                    insertSunEventTile(container, 'sunrise', sunrise, true);
+                }
+                
+                if (historyTime < sunset && nextHistoryTime > sunset) {
+                    insertSunEventTile(container, 'sunset', sunset, true);
+                }
+            }
+        });
+    }
+
+    // Добавляем текущую погоду
+    const currentTemp = applyTemperatureShift(currentWeatherData.main.temp);
+    const currentWeatherIcon = getWeatherIcon(currentWeatherData.weather[0].main, currentWeatherData.main.temp);
+    const currentWeatherDesc = translateWeather(currentWeatherData.weather[0].description);
+
+    const currentHourCard = document.createElement('div');
+    currentHourCard.className = 'hour-card current-card';
+    currentHourCard.innerHTML = `
+        <div class="hour-time">${isMobile ? 'Сейчас' : formatHourWithMinutes(now)}</div>
+        <div class="hour-icon">${currentWeatherIcon}</div>
+        <div class="hour-temp">
+            <span class="hour-temp-bullet">●</span>
+            <span>${currentTemp}${getTemperatureSymbol(currentUnits)}</span>
+        </div>
+        <div class="hour-weather">${currentWeatherDesc}</div>
+    `;
+    container.appendChild(currentHourCard);
+
+    // Добавляем прогноз на следующие часы
+    forecastToShow.forEach((forecast, index) => {
         const forecastTime = new Date(forecast.dt * 1000);
-        const timeString = formatHour(forecastTime);
+        
+        // Пропускаем если это уже прошлое время
+        if (forecastTime < now) return;
+
+        const timeString = formatHourWithMinutes(forecastTime);
         const temp = applyTemperatureShift(forecast.main.temp);
         const weatherIcon = getWeatherIcon(forecast.weather[0].main, forecast.main.temp);
         const weatherDesc = translateWeather(forecast.weather[0].description);
+
+        const hourCard = document.createElement('div');
+        hourCard.className = 'hour-card forecast-card';
 
         hourCard.innerHTML = `
             <div class="hour-time">${timeString}</div>
@@ -1018,7 +1090,43 @@ function updateHourlyForecast(forecastData) {
             <div class="hour-weather">${weatherDesc}</div>
         `;
         container.appendChild(hourCard);
+
+        // Вставляем рассвет/закат если нужно
+        if (index < forecastToShow.length - 1) {
+            const nextForecastTime = new Date(forecastToShow[index + 1].dt * 1000);
+            
+            if (forecastTime < sunrise && nextForecastTime > sunrise) {
+                insertSunEventTile(container, 'sunrise', sunrise, false);
+            }
+            
+            if (forecastTime < sunset && nextForecastTime > sunset) {
+                insertSunEventTile(container, 'sunset', sunset, false);
+            }
+        }
     });
+}
+
+function insertSunEventTile(container, eventType, eventTime, isHistory = false) {
+    const eventCard = document.createElement('div');
+    eventCard.className = `hour-card sun-event-card ${isHistory ? 'history-sun-event' : 'forecast-sun-event'}`;
+    
+    const isSunrise = eventType === 'sunrise';
+    const eventName = isSunrise ? 'Рассвет' : 'Закат';
+    const eventIcon = isSunrise ? 
+        '<div class="sun-mini-icon sunrise-icon"></div>' : 
+        '<div class="sun-mini-icon sunset-icon"></div>';
+    
+    eventCard.innerHTML = `
+        <div class="hour-time">${formatHourWithMinutes(eventTime)}</div>
+        ${eventIcon}
+        <div class="hour-temp">
+            <span class="hour-temp-bullet">●</span>
+            <span>${eventName}</span>
+        </div>
+        <div class="hour-weather">${isSunrise ? 'Начало дня' : 'Конец дня'}</div>
+    `;
+    
+    container.appendChild(eventCard);
 }
 
 function updateWeeklyForecast(forecastData) {
@@ -1166,7 +1274,7 @@ function initMap() {
 
     ymaps.ready(function() {
         map = new ymaps.Map('map', {
-            center: [59.9343, 30.3351], // Центр Питера вместо Москвы
+            center: [59.9343, 30.3351],
             zoom: 10
         });
 
@@ -1205,11 +1313,10 @@ function getUserLocation() {
             position => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                console.log('Геолокация успешна:', lat, lng); // Логируем координаты
+                console.log('Геолокация успешна:', lat, lng);
                 getWeatherByCoords(lat, lng);
 
                 if (map) {
-                    // Удаляем старый маркер если есть
                     if (userPlacemark) {
                         map.geoObjects.remove(userPlacemark);
                     }
@@ -1227,7 +1334,6 @@ function getUserLocation() {
             error => {
                 console.log('Ошибка геолокации:', error);
 
-                // Более информативное уведомление
                 let errorMessage = 'Геолокация недоступна';
                 switch(error.code) {
                     case error.PERMISSION_DENIED:
@@ -1241,9 +1347,6 @@ function getUserLocation() {
                         break;
                 }
 
-
-
-                // Используем координаты Питера как fallback
                 const fallbackLat = 59.9343;
                 const fallbackLng = 30.3351;
                 console.log('Используем fallback координаты:', fallbackLat, fallbackLng);
@@ -1251,7 +1354,7 @@ function getUserLocation() {
             },
             {
                 enableHighAccuracy: true,
-                timeout: 15000, // Увеличиваем таймаут до 15 секунд
+                timeout: 15000,
                 maximumAge: 600000
             }
         );
@@ -1317,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Инициализируем компоненты
     initMap();
     initTipCarousel();
-    initAirQualityHint(); // Инициализация подсказки качества воздуха
+    initAirQualityHint();
 
     // Обработчики для поиска
     const citySearch = document.getElementById('city-search');
@@ -1440,6 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 // Кастомная кнопка установки PWA
 let deferredPrompt;
 const installPrompt = document.getElementById('install-prompt');
@@ -1451,7 +1555,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // Показываем нашу кастомную кнопку через 3 секунды
   setTimeout(() => {
     if (deferredPrompt && !isAppInstalled()) {
       installPrompt.style.display = 'block';
@@ -1477,7 +1580,6 @@ installBtn.addEventListener('click', async () => {
 // Закрытие кнопки
 installClose.addEventListener('click', () => {
   installPrompt.style.display = 'none';
-  // Сохраняем в localStorage что пользователь закрыл кнопку
   localStorage.setItem('installPromptClosed', 'true');
 });
 
@@ -1497,128 +1599,211 @@ if (localStorage.getItem('installPromptClosed') === 'true') {
 if (isAppInstalled()) {
   installPrompt.style.display = 'none';
 }
-// Принудительный показ на ПК после загрузки
-window.addEventListener('load', () => {
-    const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (isPC) {
-        setTimeout(() => {
-            // Показываем кастомную кнопку на ПК
-            const installPrompt = document.getElementById('install-prompt');
-            if (installPrompt) {
-                installPrompt.style.display = 'block';
-            }
-        }, 5000); // Через 5 секунд
+
+// Добавляем стили для расширенного прогноза
+const extendedForecastStyles = `
+.air-quality-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.pollutant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+}
+
+.pollutant-item:last-child {
+    border-bottom: none;
+}
+
+.pollutant-level {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.level-good { background: #4CAF50; color: white; }
+.level-moderate { background: #FFEB3B; color: #333; }
+.level-unhealthy-sensitive { background: #FF9800; color: white; }
+.level-unhealthy { background: #F44336; color: white; }
+.level-very-unhealthy { background: #9C27B0; color: white; }
+.level-hazardous { background: #795548; color: white; }
+
+/* Стили для плиток рассвета и заката */
+.sun-event-card {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2)) !important;
+    border: 1px solid rgba(255, 215, 0, 0.4) !important;
+}
+
+.sun-event-card .sun-mini-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto 8px auto;
+}
+
+.sun-event-card .sunrise-icon {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+.sun-event-card .sunset-icon {
+    background: linear-gradient(135deg, #ff6b6b, #ff8c00, #ff4757);
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+}
+
+.sun-event-card .sun-mini-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.sun-event-card .sunrise-icon::after {
+    background: #ffeb3b;
+    box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+}
+
+.sun-event-card .sunset-icon::after {
+    background: #ff7f50;
+    box-shadow: 0 0 8px rgba(255, 127, 80, 0.8);
+}
+
+/* Стили для исторических данных */
+.history-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    opacity: 0.7;
+}
+
+.history-card .hour-time {
+    opacity: 0.7;
+}
+
+.history-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(128, 128, 128, 0.7);
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Стили для текущего времени - такой же цвет как у других плиток */
+.current-card {
+    background: var(--card-bg) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.current-card::before {
+    content: 'СЕЙЧАС';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.current-card .hour-time {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Стили для прогноза */
+.forecast-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .sun-event-card .sun-mini-icon {
+        width: 25px;
+        height: 25px;
     }
-});
-// PWA Installation
-class PWAInstaller {
-    constructor() {
-        this.deferredPrompt = null;
-        this.init();
+    
+    .sun-event-card .sun-mini-icon::after {
+        width: 16px;
+        height: 16px;
     }
-
-    init() {
-        this.bindEvents();
-        this.checkIfInstalled();
+    
+    .history-badge {
+        font-size: 8px;
+        padding: 1px 4px;
     }
-
-    bindEvents() {
-        // Событие когда можно установить PWA
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt fired');
-            e.preventDefault();
-            this.deferredPrompt = e;
-            this.showInstallButton();
-        });
-
-        // Событие когда PWA установлено
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA installed');
-            this.hideInstallButton();
-            this.deferredPrompt = null;
-        });
-
-        // Клик по кнопке установки
-        document.getElementById('install-btn')?.addEventListener('click', () => {
-            this.installPWA();
-        });
-
-        // Закрытие кнопки
-        document.getElementById('install-close')?.addEventListener('click', () => {
-            this.hideInstallButton();
-        });
-    }
-
-    showInstallButton() {
-        const installPrompt = document.getElementById('install-prompt');
-        if (installPrompt && !this.isAppInstalled()) {
-            console.log('Showing install button');
-            installPrompt.style.display = 'block';
-            
-            // Авто-скрытие через 15 секунд
-            setTimeout(() => {
-                this.hideInstallButton();
-            }, 15000);
-        }
-    }
-
-    hideInstallButton() {
-        const installPrompt = document.getElementById('install-prompt');
-        if (installPrompt) {
-            installPrompt.style.display = 'none';
-        }
-    }
-
-    async installPWA() {
-        if (!this.deferredPrompt) {
-            console.log('No deferred prompt available');
-            return;
-        }
-
-        try {
-            console.log('Showing install prompt');
-            this.deferredPrompt.prompt();
-            
-            const { outcome } = await this.deferredPrompt.userChoice;
-            console.log('User choice:', outcome);
-            
-            if (outcome === 'accepted') {
-                console.log('User accepted install');
-                this.hideInstallButton();
-            }
-            
-            this.deferredPrompt = null;
-        } catch (error) {
-            console.error('Install error:', error);
-        }
-    }
-
-    isAppInstalled() {
-        return window.matchMedia('(display-mode: standalone)').matches || 
-               window.navigator.standalone ||
-               document.referrer.includes('android-app://');
-    }
-
-    checkIfInstalled() {
-        if (this.isAppInstalled()) {
-            console.log('App is already installed');
-            this.hideInstallButton();
-        }
+    
+    .current-card::before {
+        font-size: 9px;
+        padding: 1px 6px;
+        top: -6px;
     }
 }
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    new PWAInstaller();
+@media (max-width: 480px) {
+    .sun-event-card .sun-mini-icon {
+        width: 22px;
+        height: 22px;
+    }
     
-    // Показываем кнопку на ПК через 5 секунд для тестирования
-    setTimeout(() => {
-        const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (isPC) {
-            const installPrompt = document.getElementById('install-prompt');
-            if (installPrompt) {
-                installPrompt.style.display = 'block';
-            }
-        }
-    }, 5000);
-});
+    .sun-event-card .sun-mini-icon::after {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .history-badge {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+    
+    .current-card::before {
+        font-size: 8px;
+        padding: 1px 4px;
+        top: -5px;
+    }
+}
+
+/* Улучшенная прокрутка для часового прогноза */
+.hours-container {
+    scroll-behavior: smooth;
+    scroll-padding: 0 20px;
+}
+
+.hour-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.hour-card:hover {
+    transform: translateY(-2px);
+}
+`;
+
+// Добавляем стили в документ
+const styleSheet = document.createElement('style');
+styleSheet.textContent = extendedForecastStyles;
+document.head.appendChild(styleSheet);

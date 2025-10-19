@@ -2589,3 +2589,171 @@ body[class*="broken"] {
   font-weight: 600;
   cursor: pointer;
 }
+/* Стили для контейнера часового прогноза */
+.hours-container {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    min-height: 140px;
+}
+
+/* Стили для мобильных - горизонтальная прокрутка */
+@media (max-width: 768px) {
+    .hours-container {
+        overflow-x: auto;
+        padding: 12px 15px;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+    }
+    
+    .hours-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .hour-card {
+        flex: 0 0 auto;
+        width: 110px;
+    }
+}
+
+/* Стили для ПК - без прокрутки, адаптивная сетка */
+@media (min-width: 769px) {
+    .hours-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        padding: 15px;
+        overflow: visible;
+        justify-content: center;
+    }
+    
+    .hour-card {
+        width: 100%;
+        min-width: 120px;
+    }
+}
+
+/* Базовые стили для карточек */
+.hour-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: var(--card-radius);
+    padding: 16px 10px;
+    border: 1px solid var(--card-border);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.hour-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Стили для исторических карточек */
+.history-card {
+    opacity: 0.8;
+}
+
+.history-card .hour-time {
+    opacity: 0.8;
+}
+
+.history-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(128, 128, 128, 0.8);
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Стили для текущей карточки */
+.current-card {
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+.current-card .hour-time {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Стили для плиток рассвета и заката */
+.sun-event-card {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2)) !important;
+    border: 1px solid rgba(255, 215, 0, 0.4) !important;
+}
+
+.sun-event-card .sun-mini-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto 8px auto;
+}
+
+.sun-event-card .sunrise-icon {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+.sun-event-card .sunset-icon {
+    background: linear-gradient(135deg, #ff6b6b, #ff8c00, #ff4757);
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+}
+
+.sun-event-card .sun-mini-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.sun-event-card .sunrise-icon::after {
+    background: #ffeb3b;
+    box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+}
+
+.sun-event-card .sunset-icon::after {
+    background: #ff7f50;
+    box-shadow: 0 0 8px rgba(255, 127, 80, 0.8);
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+    .hours-container {
+        gap: 8px;
+        padding: 10px 12px;
+        min-height: 120px;
+    }
+    
+    .hour-card {
+        width: 100px;
+        padding: 12px 8px;
+    }
+    
+    .history-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+}
+
+/* Для очень широких экранов ограничиваем максимальную ширину */
+@media (min-width: 1400px) {
+    .hours-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
