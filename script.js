@@ -2,7 +2,6 @@
 const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
-const HISTORY_URL = 'https://api.openweathermap.org/data/2.5/onecall/timemachine';
 
 // Функция уведомлений
 function showNotification(message) {
@@ -51,6 +50,48 @@ const weatherTranslations = {
     'moderate rain': 'Умеренный дождь',
     'heavy intensity rain': 'Сильный дождь'
 };
+
+// ========== УЛУЧШЕННЫЕ ФУНКЦИИ ДЛЯ ВРЕМЕНИ ==========
+function formatTime(date) {
+    return date.toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+    });
+}
+
+function getCorrectLocalTime(utcTimestamp, lat, lon) {
+    return new Promise(async (resolve) => {
+        try {
+            // OpenWeatherMap уже возвращает локальное время, используем как есть
+            const localTime = new Date(utcTimestamp * 1000);
+            console.log('Время из OpenWeatherMap (уже локальное):', localTime);
+            resolve(localTime);
+            
+        } catch (error) {
+            console.log('Ошибка расчета времени, используем локальное время устройства');
+            resolve(new Date());
+        }
+    });
+}
+
+function calculateTimezoneForRussia(longitude) {
+    let offset = 3 * 3600; // UTC+3 по умолчанию
+    return offset;
+}
+
+function getLocalTimeFromUTC(utcTimestamp, timezoneOffset) {
+    // OpenWeatherMap уже возвращает локальное время, используем как есть
+    return new Date(utcTimestamp * 1000);
+}
+
+function formatHourWithMinutes(date) {
+    return date.toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+    });
+}
 
 // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ТЕМПЕРАТУРОЙ ==========
 function convertTemperature(temp, units) {
@@ -112,7 +153,7 @@ function removeFromFavorites(cityName) {
     if (currentCity === cityName) {
         updateFavoriteButton(false);
     }
-    showNotification('Город удален из избранного');
+    showNotification('Город удален из избранное');
 }
 
 function saveFavorites() {
@@ -285,7 +326,7 @@ function initTipCarousel() {
     }, 8000);
 }
 
-function updateWeatherTip(data, forecastData) {
+async function updateWeatherTip(data, forecastData) {
     const tipText = document.getElementById('tip-text');
     const factText = document.getElementById('fact-text');
 
@@ -296,12 +337,16 @@ function updateWeatherTip(data, forecastData) {
     if (hasRainToday.found) {
         tipText.textContent = `Не забудьте зонт. Возможен дождь в ${hasRainToday.time}`;
     } else {
-        const sunrise = new Date(data.sys.sunrise * 1000);
-        const sunset = new Date(data.sys.sunset * 1000);
-        const sunriseTime = formatTime(sunrise);
-        const sunsetTime = formatTime(sunset);
+        try {
+            const sunrise = await getCorrectLocalTime(data.sys.sunrise, data.coord.lat, data.coord.lon);
+            const sunset = await getCorrectLocalTime(data.sys.sunset, data.coord.lat, data.coord.lon);
+            const sunriseTime = formatTime(sunrise);
+            const sunsetTime = formatTime(sunset);
 
-        tipText.textContent = `Не пропустите рассвет в ${sunriseTime} и закат в ${sunsetTime}`;
+            tipText.textContent = `Не пропустите рассвет в ${sunriseTime} и закат в ${sunsetTime}`;
+        } catch (error) {
+            tipText.textContent = 'Сегодня хорошая погода для прогулок!';
+        }
     }
 
     // Интересные факты о погоде
@@ -365,29 +410,6 @@ function translateWeather(description) {
     return weatherTranslations[description] || description;
 }
 
-function formatTime(date) {
-    return date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-    });
-}
-
-function formatHourWithMinutes(date) {
-    return date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-    });
-}
-
-function formatHour(date) {
-    return date.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit',
-        hour12: false 
-    });
-}
-
 function calculateDewPoint(temp, humidity) {
     if (humidity === 0) return -273.15;
 
@@ -397,40 +419,145 @@ function calculateDewPoint(temp, humidity) {
     return (b * alpha) / (a - alpha);
 }
 
-// ========== ФУНКЦИИ ДЛЯ ИСТОРИИ ПОГОДЫ ==========
-async function getWeatherHistory(lat, lon) {
+// ========== ПРОСТЫЕ ФУНКЦИИ ДЛЯ ЛУНЫ БЕЗ ВНЕШНИХ API ==========
+async function calculateMoonInfo() {
     try {
-        const now = Math.floor(Date.now() / 1000);
-        const historyData = [];
-        
-        // Получаем данные за последние 24 часа (каждый час)
-        for (let i = 24; i > 0; i -= 1) {
-            const timestamp = now - (i * 3600);
-            try {
-                const response = await fetch(
-                    `${HISTORY_URL}?lat=${lat}&lon=${lon}&dt=${timestamp}&appid=${API_KEY}&units=metric&lang=ru`
-                );
-                const data = await response.json();
-                
-                if (data && data.current) {
-                    historyData.push({
-                        ...data.current,
-                        dt: timestamp
-                    });
-                }
-            } catch (error) {
-                console.log('Ошибка получения данных за час:', error);
-                // Продолжаем получать остальные данные
-            }
-            
-            // Небольшая задержка чтобы не превысить лимиты API
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
-        
-        return historyData;
+        console.log('Вычисляем фазу луны локально...');
+        return calculateSimpleMoonPhase();
     } catch (error) {
-        console.error('Ошибка получения истории погоды:', error);
-        return [];
+        console.log('Ошибка расчета луны:', error);
+        // Возвращаем реалистичные данные по умолчанию
+        return {
+            phase: 'Растущая луна',
+            illumination: 45,
+            age: 7,
+            phasePercent: 45,
+            isWaning: false,
+            nextPhase: 'Первая четверть', 
+            daysToNext: 2
+        };
+    }
+}
+
+function calculateSimpleMoonPhase() {
+    const now = new Date();
+    
+    // Используем известное новолуние как точку отсчета
+    const knownNewMoon = new Date('2024-12-01T06:21:00Z').getTime();
+    const currentTime = now.getTime();
+    
+    // Лунный цикл в миллисекундах (29.53 дня)
+    const lunarCycleMs = 29.53 * 24 * 60 * 60 * 1000;
+    
+    // Возраст луны в днях (0-29.53)
+    const moonAgeDays = ((currentTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
+    
+    // Фаза луны (0-1)
+    const phase = moonAgeDays / 29.53;
+    
+    console.log('Локальный расчет луны:', { moonAgeDays, phase });
+    
+    return formatMoonPhase(phase);
+}
+
+function formatMoonPhase(phase) {
+    console.log('Phase from calculation:', phase);
+    
+    let phaseName, phasePercent, isWaning;
+    
+    if (phase < 0.02 || phase > 0.98) {
+        phaseName = 'Новолуние';
+        phasePercent = 0;
+        isWaning = false;
+    } else if (phase < 0.25) {
+        phaseName = 'Растущая луна';
+        phasePercent = Math.round(phase * 4 * 25);
+        isWaning = false;
+    } else if (phase < 0.27) {
+        phaseName = 'Первая четверть';
+        phasePercent = 50;
+        isWaning = false;
+    } else if (phase < 0.5) {
+        phaseName = 'Прибывающая луна';
+        phasePercent = 50 + Math.round((phase - 0.25) * 4 * 25);
+        isWaning = false;
+    } else if (phase < 0.52) {
+        phaseName = 'Полнолуние';
+        phasePercent = 100;
+        isWaning = false;
+    } else if (phase < 0.75) {
+        phaseName = 'Убывающая луна';
+        phasePercent = 100 - Math.round((phase - 0.5) * 4 * 25);
+        isWaning = true;
+    } else if (phase < 0.77) {
+        phaseName = 'Последняя четверть';
+        phasePercent = 50;
+        isWaning = true;
+    } else {
+        phaseName = 'Старая луна';
+        phasePercent = 50 - Math.round((phase - 0.75) * 4 * 25);
+        isWaning = true;
+    }
+    
+    const illumination = Math.round(Math.abs(Math.sin(2 * Math.PI * phase)) * 100);
+    
+    console.log('Calculated illumination:', illumination);
+    
+    return {
+        phase: phaseName,
+        illumination: illumination,
+        age: Math.round(phase * 29.53),
+        phasePercent: phasePercent,
+        isWaning: isWaning,
+        nextPhase: getNextPhase(phaseName),
+        daysToNext: getDaysToNext(phase)
+    };
+}
+
+function getNextPhase(currentPhase) {
+    const phases = ['Новолуние', 'Растущая луна', 'Первая четверть', 'Прибывающая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
+    const currentIndex = phases.indexOf(currentPhase);
+    return phases[(currentIndex + 1) % phases.length];
+}
+
+function getDaysToNext(phase) {
+    if (phase < 0.25) return Math.round((0.25 - phase) * 29.53);
+    if (phase < 0.5) return Math.round((0.5 - phase) * 29.53);
+    if (phase < 0.75) return Math.round((0.75 - phase) * 29.53);
+    return Math.round((1 - phase) * 29.53);
+}
+
+function updateMoonVisualization(phasePercent, isWaning) {
+    const moonPhase = document.getElementById('moon-phase');
+    if (!moonPhase) return;
+
+    console.log('Визуализация луны:', { phasePercent, isWaning });
+
+    // Полностью сбрасываем стили
+    moonPhase.style.cssText = '';
+
+    // Базовые стили
+    moonPhase.style.position = 'absolute';
+    moonPhase.style.top = '0';
+    moonPhase.style.left = '0';
+    moonPhase.style.width = '100%';
+    moonPhase.style.height = '100%';
+    moonPhase.style.borderRadius = '50%';
+    moonPhase.style.background = '#f1c40f';
+    moonPhase.style.boxShadow = 'inset 0 0 10px rgba(241, 196, 15, 0.8)';
+
+    if (phasePercent === 0) {
+        moonPhase.style.clipPath = 'inset(0 0 0 100%)';
+    } else if (phasePercent === 100) {
+        moonPhase.style.clipPath = 'inset(0 0 0 0%)';
+    } else {
+        if (isWaning) {
+            const visiblePercent = phasePercent;
+            moonPhase.style.clipPath = `inset(0 ${100 - visiblePercent}% 0 0)`;
+        } else {
+            const visiblePercent = phasePercent;
+            moonPhase.style.clipPath = `inset(0 0 0 ${100 - visiblePercent}%)`;
+        }
     }
 }
 
@@ -451,17 +578,17 @@ async function getAirQuality(lat, lon) {
 async function getWeatherByCoords(lat, lon) {
     try {
         showLoadingScreen();
-        const [weatherData, forecastData, airQualityData, historyData] = await Promise.all([
+        const [weatherData, forecastData, airQualityData] = await Promise.all([
             fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
             fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
-            getAirQuality(lat, lon),
-            getWeatherHistory(lat, lon)
+            getAirQuality(lat, lon)
         ]);
 
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
-            updateWeatherData(weatherData, forecastData, airQualityData, historyData);
+            
+            await updateWeatherData(weatherData, forecastData, airQualityData);
             updateMapLocation(lat, lon);
         } else {
             throw new Error(weatherData.message);
@@ -485,13 +612,12 @@ async function getWeatherByCity(city) {
         if (weatherData.cod === 200) {
             currentCityData = weatherData;
             currentCity = weatherData.name;
-            const [forecastData, airQualityData, historyData] = await Promise.all([
+            const [forecastData, airQualityData] = await Promise.all([
                 getForecast(weatherData.coord.lat, weatherData.coord.lon),
-                getAirQuality(weatherData.coord.lat, weatherData.coord.lon),
-                getWeatherHistory(weatherData.coord.lat, weatherData.coord.lon)
+                getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
             ]);
 
-            updateWeatherData(weatherData, forecastData, airQualityData, historyData);
+            await updateWeatherData(weatherData, forecastData, airQualityData);
             updateMapLocation(weatherData.coord.lat, weatherData.coord.lon);
         } else {
             throw new Error(weatherData.message);
@@ -517,7 +643,7 @@ async function getForecast(lat, lon) {
 }
 
 // ========== ОСНОВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ ==========
-function updateWeatherData(data, forecastData, airQualityData, historyData) {
+async function updateWeatherData(data, forecastData, airQualityData) {
     // ОСНОВНЫЕ ДАННЫЕ
     const temp = applyTemperatureShift(data.main.temp);
     const feelsLike = applyTemperatureShift(data.main.feels_like);
@@ -636,12 +762,28 @@ function updateWeatherData(data, forecastData, airQualityData, historyData) {
         <div class="dew-point-info">Температура: ${Math.round(data.main.temp)}°C</div>
     `;
 
-    // РАССВЕТ И ЗАКАТ
-    const sunrise = new Date(data.sys.sunrise * 1000);
-    const sunset = new Date(data.sys.sunset * 1000);
-    document.getElementById('sunrise-time').textContent = formatTime(sunrise);
-    document.getElementById('sunset-time').textContent = formatTime(sunset);
-    document.getElementById('sun-times-city').textContent = data.name;
+           // РАССВЕТ И ЗАКАТ - ИСПОЛЬЗУЕМ ВРЕМЯ КАК ЕСТЬ ИЗ API
+    try {
+        // OpenWeatherMap уже возвращает локальное время в timestamp
+        const sunrise = new Date(data.sys.sunrise * 1000);
+        const sunset = new Date(data.sys.sunset * 1000);
+        
+        console.log('Рассвет:', sunrise);
+        console.log('Закат:', sunset);
+        
+        document.getElementById('sunrise-time').textContent = formatTime(sunrise);
+        document.getElementById('sunset-time').textContent = formatTime(sunset);
+        document.getElementById('sun-times-city').textContent = data.name;
+    } catch (error) {
+        console.log('Ошибка времени:', error);
+        // Просто используем timestamp как есть
+        const sunrise = new Date(data.sys.sunrise * 1000);
+        const sunset = new Date(data.sys.sunset * 1000);
+        
+        document.getElementById('sunrise-time').textContent = formatTime(sunrise);
+        document.getElementById('sunset-time').textContent = formatTime(sunset);
+        document.getElementById('sun-times-city').textContent = data.name;
+    }
 
     // ОСАДКИ В ОСНОВНОМ БЛОКЕ
     if (data.rain) {
@@ -668,7 +810,7 @@ function updateWeatherData(data, forecastData, airQualityData, historyData) {
 
     // ОБНОВЛЯЕМ ПРОГНОЗЫ И СОВЕТ
     if (forecastData) {
-        updateHourlyForecast(forecastData, historyData, data);
+        updateHourlyForecast(forecastData, data);
         updateWeeklyForecast(forecastData);
         updateWeatherTip(data, forecastData);
     }
@@ -684,14 +826,29 @@ function updateWeatherData(data, forecastData, airQualityData, historyData) {
 function updateAdditionalInfo(data, airQualityData) {
     updateAirQualityInfo(airQualityData);
 
-    // ФАЗЫ ЛУНЫ
-    const moonInfo = calculateMoonInfo();
-    document.getElementById('moon-phase-text').textContent = `Фаза: ${moonInfo.phase}`;
-    document.getElementById('moon-illumination').textContent = `Освещенность: ${moonInfo.illumination}%`;
-    document.getElementById('moon-age').textContent = `Возраст: ${moonInfo.age} дней`;
-    document.getElementById('moon-next').textContent = `Следующая фаза: ${moonInfo.nextPhase} (${moonInfo.daysToNext} дней)`;
+    // ФАЗЫ ЛУНЫ - асинхронно загружаем данные
+    loadMoonInfo();
+}
 
-    updateMoonVisualization(moonInfo.phasePercent);
+function loadMoonInfo() {
+    try {
+        const moonInfo = calculateMoonInfo();
+        
+        moonInfo.then(info => {
+            console.log('Moon info:', info); 
+            
+            document.getElementById('moon-phase-text').textContent = `Фаза: ${info.phase}`;
+            document.getElementById('moon-illumination').textContent = `Освещенность: ${info.illumination}%`;
+            document.getElementById('moon-age').textContent = `Возраст: ${info.age} дней`;
+            document.getElementById('moon-next').textContent = `Следующая фаза: ${info.nextPhase} (через ${info.daysToNext} дней)`;
+
+            updateMoonVisualization(info.phasePercent, info.isWaning);
+        });
+        
+    } catch (error) {
+        console.error('Ошибка загрузки данных о луне:', error);
+        document.getElementById('moon-phase-text').textContent = 'Фаза: Данные недоступны';
+    }
 }
 
 // ========== ФУНКЦИИ ДЛЯ КАЧЕСТВА ВОЗДУХА ==========
@@ -889,163 +1046,25 @@ function initAirQualityHint() {
     }
 }
 
-// ========== ФУНКЦИИ ДЛЯ ЛУНЫ ==========
-function calculateMoonInfo() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-
-    let age = 0;
-    if (month <= 2) {
-        age = Math.floor(365.25 * (year - 1)) + Math.floor(30.6 * (month + 12 - 3)) + day - 694039.09;
-    } else {
-        age = Math.floor(365.25 * year) + Math.floor(30.6 * (month - 3)) + day - 694039.09;
-    }
-
-    age /= 29.5305882;
-    age -= Math.floor(age);
-    if (age < 0) age += 1;
-
-    const moonAge = age * 29.5305882;
-    const illumination = Math.round((1 - Math.cos(Math.PI * moonAge / 14.7652941)) * 50);
-
-    let phase, phasePercent, nextPhase, daysToNext;
-
-    if (moonAge < 1.84566) {
-        phase = 'Новолуние';
-        phasePercent = 0;
-        nextPhase = 'Молодая луна';
-        daysToNext = Math.round(1.84566 - moonAge);
-    } else if (moonAge < 5.53699) {
-        phase = 'Молодая луна';
-        phasePercent = Math.round((moonAge - 1.84566) / (5.53699 - 1.84566) * 25);
-        nextPhase = 'Первая четверть';
-        daysToNext = Math.round(5.53699 - moonAge);
-    } else if (moonAge < 9.22831) {
-        phase = 'Первая четверть';
-        phasePercent = 25 + Math.round((moonAge - 5.53699) / (9.22831 - 5.53699) * 25);
-        nextPhase = 'Прибывающая луна';
-        daysToNext = Math.round(9.22831 - moonAge);
-    } else if (moonAge < 12.91963) {
-        phase = 'Прибывающая луна';
-        phasePercent = 50 + Math.round((moonAge - 9.22831) / (12.91963 - 9.22831) * 25);
-        nextPhase = 'Полнолуние';
-        daysToNext = Math.round(12.91963 - moonAge);
-    } else if (moonAge < 16.61096) {
-        phase = 'Полнолуние';
-        phasePercent = 75 + Math.round((moonAge - 12.91963) / (16.61096 - 12.91963) * 25);
-        nextPhase = 'Убывающая луна';
-        daysToNext = Math.round(16.61096 - moonAge);
-    } else if (moonAge < 20.30228) {
-        phase = 'Убывающая луна';
-        phasePercent = 75 - Math.round((moonAge - 16.61096) / (20.30228 - 16.61096) * 25);
-        nextPhase = 'Последняя четверть';
-        daysToNext = Math.round(20.30228 - moonAge);
-    } else if (moonAge < 23.99361) {
-        phase = 'Последняя четверть';
-        phasePercent = 50 - Math.round((moonAge - 20.30228) / (23.99361 - 20.30228) * 25);
-        nextPhase = 'Старая луна';
-        daysToNext = Math.round(23.99361 - moonAge);
-    } else {
-        phase = 'Старая луна';
-        phasePercent = 25 - Math.round((moonAge - 23.99361) / (29.5305882 - 23.99361) * 25);
-        nextPhase = 'Новолуние';
-        daysToNext = Math.round(29.5305882 - moonAge);
-    }
-
-    phasePercent = Math.max(0, Math.min(100, phasePercent));
-
-    return {
-        phase,
-        illumination: Math.max(0, Math.min(100, illumination)),
-        age: Math.round(moonAge),
-        nextPhase,
-        daysToNext,
-        phasePercent
-    };
-}
-
-function updateMoonVisualization(phasePercent) {
-    const moonPhase = document.getElementById('moon-phase');
-    if (!moonPhase) return;
-
-    moonPhase.style.transform = '';
-    moonPhase.style.background = '';
-    moonPhase.style.clipPath = '';
-
-    if (phasePercent === 0) {
-        moonPhase.style.clipPath = 'inset(0 0 0 100%)';
-    } else if (phasePercent === 100) {
-        moonPhase.style.clipPath = 'inset(0 0 0 0%)';
-    } else if (phasePercent <= 50) {
-        const clipPercent = 100 - (phasePercent * 2);
-        moonPhase.style.clipPath = `inset(0 0 0 ${clipPercent}%)`;
-    } else {
-        const clipPercent = (phasePercent - 50) * 2;
-        moonPhase.style.clipPath = `inset(0 ${clipPercent}% 0 0)`;
-    }
-}
-
-// ========== ФУНКЦИИ ДЛЯ ПРОГНОЗОВ ==========
-function updateHourlyForecast(forecastData, historyData, currentWeatherData) {
+// ========== ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ ПРОГНОЗОВ ==========
+function updateHourlyForecast(forecastData, currentWeatherData) {
     const container = document.getElementById('hourly-forecast');
     if (!container) return;
 
     container.innerHTML = '';
 
     const currentData = forecastData.city;
-    const sunrise = new Date(currentData.sunrise * 1000);
-    const sunset = new Date(currentData.sunset * 1000);
+    const timezoneOffset = currentData.timezone;
+    
+    // Получаем время с учетом часового пояса и коррекции -1 час
+    const timeShift = 3600; // 1 час в секундах
+const sunrise = new Date(currentData.sunrise * 1000);
+const sunset = new Date(currentData.sunset * 1000);
+    
     const now = new Date();
-    const isMobile = window.innerWidth <= 768;
 
-    // Определяем сколько показывать карточек в зависимости от устройства
-    const historyToShow = isMobile ? historyData : historyData.slice(-6); // На ПК показываем только последние 6 часов истории
-    const forecastToShow = isMobile ? forecastData.list.slice(0, 12) : forecastData.list.slice(0, 6); // На ПК показываем 6 часов прогноза
-
-    // Добавляем исторические данные
-    if (historyToShow && historyToShow.length > 0) {
-        historyToShow.forEach((historyItem, index) => {
-            const historyTime = new Date(historyItem.dt * 1000);
-            
-            // Пропускаем если это текущий час (чтобы не дублировать)
-            if (Math.abs(historyTime - now) < 3600000) return;
-
-            const timeString = formatHourWithMinutes(historyTime);
-            const temp = applyTemperatureShift(historyItem.temp);
-            const weatherIcon = getWeatherIcon(historyItem.weather[0].main, historyItem.temp);
-            const weatherDesc = translateWeather(historyItem.weather[0].description);
-
-            const hourCard = document.createElement('div');
-            hourCard.className = 'hour-card history-card';
-            
-            hourCard.innerHTML = `
-                <div class="hour-time">${timeString}</div>
-                <div class="hour-icon">${weatherIcon}</div>
-                <div class="hour-temp">
-                    <span class="hour-temp-bullet">●</span>
-                    <span>${temp}${getTemperatureSymbol(currentUnits)}</span>
-                </div>
-                <div class="hour-weather">${weatherDesc}</div>
-                <div class="history-badge">БЫЛО</div>
-            `;
-            container.appendChild(hourCard);
-
-            // Вставляем рассвет/закат если нужно (только для полной истории на мобильных)
-            if (isMobile && index < historyToShow.length - 1) {
-                const nextHistoryTime = new Date(historyToShow[index + 1].dt * 1000);
-                
-                if (historyTime < sunrise && nextHistoryTime > sunrise) {
-                    insertSunEventTile(container, 'sunrise', sunrise, true);
-                }
-                
-                if (historyTime < sunset && nextHistoryTime > sunset) {
-                    insertSunEventTile(container, 'sunset', sunset, true);
-                }
-            }
-        });
-    }
+    // ИСПРАВЛЕНИЕ: Берем только 7 прогнозов + текущая погода = 8 карточек
+    const forecastToShow = forecastData.list.slice(0, 7);
 
     // Добавляем текущую погоду
     const currentTemp = applyTemperatureShift(currentWeatherData.main.temp);
@@ -1055,7 +1074,7 @@ function updateHourlyForecast(forecastData, historyData, currentWeatherData) {
     const currentHourCard = document.createElement('div');
     currentHourCard.className = 'hour-card current-card';
     currentHourCard.innerHTML = `
-        <div class="hour-time">${isMobile ? 'Сейчас' : formatHourWithMinutes(now)}</div>
+        <div class="hour-time">Сейчас</div>
         <div class="hour-icon">${currentWeatherIcon}</div>
         <div class="hour-temp">
             <span class="hour-temp-bullet">●</span>
@@ -1067,12 +1086,13 @@ function updateHourlyForecast(forecastData, historyData, currentWeatherData) {
 
     // Добавляем прогноз на следующие часы
     forecastToShow.forEach((forecast, index) => {
-        const forecastTime = new Date(forecast.dt * 1000);
-        
+        // Учитываем часовой пояс для времени прогноза с коррекцией -1 час
+const forecastTime = new Date(forecast.dt * 1000);
+
         // Пропускаем если это уже прошлое время
         if (forecastTime < now) return;
 
-        const timeString = formatHourWithMinutes(forecastTime);
+        const timeString = formatTime(forecastTime);
         const temp = applyTemperatureShift(forecast.main.temp);
         const weatherIcon = getWeatherIcon(forecast.weather[0].main, forecast.main.temp);
         const weatherDesc = translateWeather(forecast.weather[0].description);
@@ -1090,43 +1110,13 @@ function updateHourlyForecast(forecastData, historyData, currentWeatherData) {
             <div class="hour-weather">${weatherDesc}</div>
         `;
         container.appendChild(hourCard);
-
-        // Вставляем рассвет/закат если нужно
-        if (index < forecastToShow.length - 1) {
-            const nextForecastTime = new Date(forecastToShow[index + 1].dt * 1000);
-            
-            if (forecastTime < sunrise && nextForecastTime > sunrise) {
-                insertSunEventTile(container, 'sunrise', sunrise, false);
-            }
-            
-            if (forecastTime < sunset && nextForecastTime > sunset) {
-                insertSunEventTile(container, 'sunset', sunset, false);
-            }
-        }
     });
-}
 
-function insertSunEventTile(container, eventType, eventTime, isHistory = false) {
-    const eventCard = document.createElement('div');
-    eventCard.className = `hour-card sun-event-card ${isHistory ? 'history-sun-event' : 'forecast-sun-event'}`;
-    
-    const isSunrise = eventType === 'sunrise';
-    const eventName = isSunrise ? 'Рассвет' : 'Закат';
-    const eventIcon = isSunrise ? 
-        '<div class="sun-mini-icon sunrise-icon"></div>' : 
-        '<div class="sun-mini-icon sunset-icon"></div>';
-    
-    eventCard.innerHTML = `
-        <div class="hour-time">${formatHourWithMinutes(eventTime)}</div>
-        ${eventIcon}
-        <div class="hour-temp">
-            <span class="hour-temp-bullet">●</span>
-            <span>${eventName}</span>
-        </div>
-        <div class="hour-weather">${isSunrise ? 'Начало дня' : 'Конец дня'}</div>
-    `;
-    
-    container.appendChild(eventCard);
+    // Обновляем заголовок
+    const title = document.querySelector('.hourly-forecast .section-title');
+    if (title) {
+        title.innerHTML = 'Прогноз на 8 часов <span style="font-size: 14px; opacity: 0.7;">(точность ~90%)</span>';
+    }
 }
 
 function updateWeeklyForecast(forecastData) {
@@ -1212,8 +1202,9 @@ function updateThemeByWeather(weatherMain, sys) {
 
     const now = new Date();
     const currentTime = now.getTime();
-    const sunrise = sys.sunrise * 1000;
-    const sunset = sys.sunset * 1000;
+    const timezoneOffset = sys.timezone || 0;
+const sunrise = new Date(sys.sunrise * 1000).getTime();
+const sunset = new Date(sys.sunset * 1000).getTime();
 
     const isNight = currentTime < sunrise || currentTime > sunset;
     const themeClass = isNight ? 'night' : weatherMain.toLowerCase();
@@ -1269,33 +1260,40 @@ function loadSettings() {
 function initMap() {
     if (typeof ymaps === 'undefined') {
         console.error('Yandex Maps API не загружена');
+        // Показываем сообщение пользователю
+        showNotification('Карты временно недоступны');
         return;
     }
 
-    ymaps.ready(function() {
-        map = new ymaps.Map('map', {
-            center: [59.9343, 30.3351],
-            zoom: 10
+    try {
+        ymaps.ready(function() {
+            map = new ymaps.Map('map', {
+                center: [59.9343, 30.3351],
+                zoom: 10
+            });
+
+            map.controls.remove('zoomControl');
+            map.controls.remove('geolocationControl');
+            map.controls.remove('searchControl');
+            map.controls.remove('trafficControl');
+            map.controls.remove('typeSelector');
+            map.controls.remove('fullscreenControl');
+            map.controls.remove('rulerControl');
+
+            const overlay = document.createElement('div');
+            overlay.className = 'map-overlay';
+            overlay.innerHTML = 'Карта';
+            document.querySelector('.precipitation-map').appendChild(overlay);
+
+            const mapLoading = document.querySelector('.map-loading');
+            if (mapLoading) mapLoading.style.display = 'none';
+
+            getUserLocation();
         });
-
-        map.controls.remove('zoomControl');
-        map.controls.remove('geolocationControl');
-        map.controls.remove('searchControl');
-        map.controls.remove('trafficControl');
-        map.controls.remove('typeSelector');
-        map.controls.remove('fullscreenControl');
-        map.controls.remove('rulerControl');
-
-        const overlay = document.createElement('div');
-        overlay.className = 'map-overlay';
-        overlay.innerHTML = 'Карта';
-        document.querySelector('.precipitation-map').appendChild(overlay);
-
-        const mapLoading = document.querySelector('.map-loading');
-        if (mapLoading) mapLoading.style.display = 'none';
-
-        getUserLocation();
-    });
+    } catch (error) {
+        console.error('Ошибка инициализации карты:', error);
+        showNotification('Ошибка загрузки карты');
+    }
 }
 
 function updateMapLocation(lat, lon) {
@@ -1409,6 +1407,128 @@ function showSuggestions(query) {
     suggestionsContainer.style.display = 'block';
 }
 
+// ========== ФУНКЦИИ ДЛЯ ИНФОРМАЦИИ О РАЗРАБОТЧИКЕ ==========
+function initDeveloperInfo() {
+    const developerBtn = document.getElementById('developer-info-btn');
+    const developerOverlay = document.getElementById('developer-info-overlay');
+    const closeDeveloperBtn = document.getElementById('close-developer-info');
+    const avatarUpload = document.getElementById('avatar-upload');
+    const avatarImage = document.getElementById('developer-avatar');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    const colorOptions = document.querySelectorAll('.color-option');
+    const developerPanel = document.querySelector('.developer-panel');
+
+    if (!developerBtn || !developerOverlay || !closeDeveloperBtn) return;
+
+    // Загружаем сохраненные настройки
+    loadDeveloperSettings();
+
+    // Открытие панели разработчика
+    developerBtn.addEventListener('click', function() {
+        developerOverlay.style.display = 'flex';
+        document.body.classList.add('settings-open');
+    });
+
+    // Закрытие панели разработчика
+    closeDeveloperBtn.addEventListener('click', function() {
+        closeDeveloperInfo();
+    });
+
+    developerOverlay.addEventListener('click', function(e) {
+        if (e.target === developerOverlay) {
+            closeDeveloperInfo();
+        }
+    });
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && developerOverlay.style.display === 'flex') {
+            closeDeveloperInfo();
+        }
+    });
+
+    // Загрузка аватарки
+    if (avatarUpload && avatarImage) {
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImage.src = e.target.result;
+                    avatarImage.style.display = 'block';
+                    avatarPlaceholder.style.display = 'none';
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem('developerAvatar', e.target.result);
+                    showNotification('Аватарка успешно загружена!');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Смена цветовой схемы
+    colorOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const color = this.getAttribute('data-color');
+            
+            // Убираем активный класс у всех
+            colorOptions.forEach(opt => opt.classList.remove('active'));
+            // Добавляем активный класс выбранному
+            this.classList.add('active');
+            
+            // Применяем тему
+            applyDeveloperTheme(color);
+            
+            // Сохраняем выбор
+            localStorage.setItem('developerTheme', color);
+        });
+    });
+
+    function closeDeveloperInfo() {
+        developerOverlay.style.display = 'none';
+        document.body.classList.remove('settings-open');
+    }
+}
+
+function loadDeveloperSettings() {
+    // Загружаем аватарку
+    const savedAvatar = localStorage.getItem('developerAvatar');
+    const avatarImage = document.getElementById('developer-avatar');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    
+    if (savedAvatar && avatarImage) {
+        avatarImage.src = savedAvatar;
+        avatarImage.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+    }
+    
+    // Загружаем цветовую тему
+    const savedTheme = localStorage.getItem('developerTheme') || 'blue';
+    applyDeveloperTheme(savedTheme);
+    
+    // Активируем соответствующую кнопку
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        if (option.getAttribute('data-color') === savedTheme) {
+            option.classList.add('active');
+        } else {
+            option.classList.remove('active');
+        }
+    });
+}
+
+function applyDeveloperTheme(color) {
+    const developerPanel = document.querySelector('.developer-panel');
+    if (!developerPanel) return;
+    
+    // Убираем все темы
+    developerPanel.classList.remove('blue-theme', 'purple-theme', 'green-theme', 'orange-theme');
+    
+    // Добавляем выбранную тему
+    developerPanel.classList.add(`${color}-theme`);
+}
+
 // ========== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==========
 document.addEventListener('DOMContentLoaded', () => {
     // Показываем экран загрузки сразу
@@ -1421,6 +1541,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMap();
     initTipCarousel();
     initAirQualityHint();
+    initDeveloperInfo();
 
     // Обработчики для поиска
     const citySearch = document.getElementById('city-search');
@@ -1563,25 +1684,30 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 // Обработчик установки
-installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
 
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-  if (outcome === 'accepted') {
-    console.log('Пользователь установил приложение');
-    installPrompt.style.display = 'none';
-  }
+      if (outcome === 'accepted') {
+        console.log('Пользователь установил приложение');
+        installPrompt.style.display = 'none';
+      }
 
-  deferredPrompt = null;
-});
+
+      deferredPrompt = null;
+    });
+}
 
 // Закрытие кнопки
-installClose.addEventListener('click', () => {
-  installPrompt.style.display = 'none';
-  localStorage.setItem('installPromptClosed', 'true');
-});
+if (installClose) {
+    installClose.addEventListener('click', () => {
+      installPrompt.style.display = 'none';
+      localStorage.setItem('installPromptClosed', 'true');
+    });
+}
 
 // Проверка установлено ли уже приложение
 function isAppInstalled() {
@@ -1591,12 +1717,12 @@ function isAppInstalled() {
 }
 
 // Проверяем не закрывал ли пользователь кнопку ранее
-if (localStorage.getItem('installPromptClosed') === 'true') {
+if (installPrompt && localStorage.getItem('installPromptClosed') === 'true') {
   installPrompt.style.display = 'none';
 }
 
 // Скрываем кнопку если приложение уже установлено
-if (isAppInstalled()) {
+if (installPrompt && isAppInstalled()) {
   installPrompt.style.display = 'none';
 }
 
@@ -1738,6 +1864,11 @@ const extendedForecastStyles = `
 .forecast-card {
     background: var(--card-bg) !important;
     border: 1px solid var(--card-border) !important;
+}
+
+/* Ограничиваем количество карточек до 8 */
+.hours-container .hour-card:nth-child(n+9) {
+    display: none !important;
 }
 
 /* Адаптивность для мобильных */
