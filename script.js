@@ -1542,6 +1542,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initTipCarousel();
     initAirQualityHint();
     initDeveloperInfo();
+    initAdminSystem();
+
 
     // Обработчики для поиска
     const citySearch = document.getElementById('city-search');
@@ -1938,3 +1940,713 @@ const extendedForecastStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = extendedForecastStyles;
 document.head.appendChild(styleSheet);
+
+function showEmergencyFallback() {
+  document.body.innerHTML = `
+    <div style="padding: 50px; text-align: center; background: linear-gradient(135deg, #2C3E50, #4A6572); color: white; min-height: 100vh;">
+      <h1>🌧️ Weather Overcast</h1>
+      <p>⚠️ Сервис погоды временно недоступен</p>
+      <p style="opacity: 0.8;">OpenWeatherMap API проводит технические работы</p>
+      <button onclick="location.reload()" style="padding: 10px 20px; background: #10B981; border: none; border-radius: 8px; color: white; cursor: pointer; margin: 10px;">Обновить</button>
+      <button onclick="useDemoData()" style="padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; margin: 10px;">Демо-данные</button>
+    </div>
+  `;
+}
+
+function useDemoData() {
+  const demoData = {
+    name: "Санкт-Петербург",
+    main: { temp: 15, feels_like: 14, humidity: 75, pressure: 1013 },
+    weather: [{ description: "облачно", main: "Clouds" }],
+    wind: { speed: 3, deg: 180 },
+    sys: { sunrise: Date.now()/1000 + 21600, sunset: Date.now()/1000 + 64800 }
+  };
+  updateWeatherData(demoData, null, null, []);
+}
+
+// ====== ЧЁРНАЯ АДМИН-ПАНЕЛЬ ======
+const ADMIN_PASSWORD = "noah_admin_2024";
+let adminMode = false;
+let adminPanelVisible = false;
+let isDragging = false;
+let dragOffset = { x: 0, y: 0 };
+
+// Инициализация админ-системы
+function initAdminSystem() {
+    const originalLog = console.log;
+    
+    console.log = function(...args) {
+        if (args.length > 0 && typeof args[0] === 'string' && !adminMode) {
+            const input = args[0].trim();
+            if (input === ADMIN_PASSWORD) {
+                activateAdminMode();
+                return;
+            }
+        }
+        originalLog.apply(console, args);
+    };
+}
+
+// Активация админ-режима
+function activateAdminMode() {
+    adminMode = true;
+    console.log(`%c⚡ АДМИН-РЕЖИМ АКТИВИРОВАН`, 'color: #ffffff; font-size: 16px; font-weight: bold; background: #000000; padding: 10px;');
+    showAdminPanel();
+    showAdminGreeting();
+}
+
+// Быстрый вызов
+window.admin = function() {
+    activateAdminMode();
+};
+
+// Показать админ-панель
+function showAdminPanel() {
+    const panel = document.getElementById('admin-panel');
+    const overlay = document.getElementById('admin-overlay');
+    const minimized = document.getElementById('admin-panel-minimized');
+    
+    if (panel && overlay) {
+        panel.style.display = 'block';
+        overlay.style.display = 'block';
+        if (minimized) minimized.style.display = 'none';
+        adminPanelVisible = true;
+        
+        // Инициализируем перетаскивание
+        setTimeout(() => initAdminDrag(), 100);
+        
+        // Фокус на поле ввода
+        const input = document.getElementById('admin-command');
+        if (input) {
+            input.focus();
+            input.value = '';
+        }
+    }
+}
+
+// Закрыть админ-панель
+function closeAdminPanel() {
+    const panel = document.getElementById('admin-panel');
+    const overlay = document.getElementById('admin-overlay');
+    
+    if (panel && overlay) {
+        panel.style.display = 'none';
+        overlay.style.display = 'none';
+        adminPanelVisible = false;
+    }
+}
+
+// Свернуть панель
+function minimizeAdminPanel() {
+    const panel = document.getElementById('admin-panel');
+    const minimized = document.getElementById('admin-panel-minimized');
+    
+    if (panel && minimized) {
+        panel.style.display = 'none';
+        minimized.style.display = 'block';
+        adminPanelVisible = false;
+    }
+}
+
+// Восстановить панель
+function restoreAdminPanel() {
+    const minimized = document.getElementById('admin-panel-minimized');
+    if (minimized) {
+        minimized.style.display = 'none';
+        showAdminPanel();
+    }
+}
+
+// Перетаскивание окна
+function initAdminDrag() {
+    const panel = document.getElementById('admin-panel');
+    const header = panel.querySelector('div:first-child');
+    
+    header.addEventListener('mousedown', startAdminDrag);
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging && panel) {
+            const x = e.clientX - dragOffset.x;
+            const y = e.clientY - dragOffset.y;
+            
+            const maxX = window.innerWidth - panel.offsetWidth;
+            const maxY = window.innerHeight - panel.offsetHeight;
+            
+            panel.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+            panel.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            panel.style.transform = 'none';
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        if (panel) panel.style.cursor = '';
+    });
+}
+
+function startAdminDrag(e) {
+    if (e.target.tagName === 'BUTTON') return;
+    
+    isDragging = true;
+    const panel = document.getElementById('admin-panel');
+    const rect = panel.getBoundingClientRect();
+    
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    
+    panel.style.cursor = 'move';
+    e.preventDefault();
+}
+
+// Выполнить команду
+function executeAdminCommand() {
+    const input = document.getElementById('admin-command');
+    if (!input || !input.value.trim()) return;
+    
+    const command = input.value.trim();
+    input.value = '';
+    
+    updateAdminOutput(`C:\\WeatherApp\\Admin&gt; ${command}`);
+    handleAdminCommand(command);
+}
+
+// Быстрая команда
+function executeAdminQuickCommand(command) {
+    const input = document.getElementById('admin-command');
+    if (input) {
+        input.value = command;
+        executeAdminCommand();
+    }
+}
+
+// Обработчик команд
+function handleAdminCommand(command) {
+    switch(command.toLowerCase()) {
+        case 'emergency on':
+            showEmergencyOverlay();
+            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
+            break;
+            
+        case 'emergency off':
+            hideEmergencyOverlay();
+            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
+            break;
+            
+        case 'site down':
+            simulateSiteDown();
+            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
+            break;
+            
+        case 'site up':
+            restoreSite();
+            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
+            break;
+            
+        case 'clear cache':
+            clearAdminCache();
+            updateAdminOutput('КЭШ И ЛОКАЛЬНЫЕ ДАННЫЕ ОЧИЩЕНЫ');
+            break;
+            
+        case 'get data':
+            showSystemData();
+            break;
+            
+        case 'debug':
+            showDebugInfo();
+            break;
+            
+        case 'help':
+            showAdminHelp();
+            break;
+            
+        case 'panic':
+            triggerRealPanic();
+            break;
+            
+        case 'logout':
+            adminMode = false;
+            closeAdminPanel();
+            updateAdminOutput('СЕАНС АДМИНИСТРАТОРА ЗАВЕРШЕН');
+            break;
+            
+        default:
+            updateAdminOutput(`ОШИБКА: КОМАНДА "${command}" НЕ РАСПОЗНАНА`);
+    }
+}
+
+// Вывод в консоль (ТОЛЬКО БЕЛЫЙ ТЕКСТ)
+function updateAdminOutput(message) {
+    const output = document.getElementById('admin-output');
+    if (!output) return;
+    
+    const newMessage = document.createElement('div');
+    newMessage.textContent = message;
+    newMessage.style.color = '#ffffff';
+    newMessage.style.marginBottom = '4px';
+    newMessage.style.fontFamily = "'Consolas', monospace";
+    newMessage.style.fontSize = '13px';
+    newMessage.style.lineHeight = '1.3';
+    
+    output.appendChild(newMessage);
+    output.scrollTop = output.scrollHeight;
+}
+
+// Приветствие
+function showAdminGreeting() {
+    updateAdminOutput('АДМИНИСТРАТИВНАЯ КОНСОЛЬ ГОТОВА К РАБОТЕ');
+    updateAdminOutput('ВВЕДИТЕ HELP ДЛЯ СПИСКА КОМАНД');
+}
+
+// Помощь
+function showAdminHelp() {
+    updateAdminOutput('=== СПРАВКА ПО КОМАНДАМ ===');
+    updateAdminOutput('EMERGENCY ON/OFF    - ВКЛЮЧИТЬ/ВЫКЛЮЧИТЬ ТЕХРАБОТЫ');
+    updateAdminOutput('SITE DOWN/UP        - РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ/ВОССТАНОВЛЕНИЕ САЙТА');
+    updateAdminOutput('CLEAR CACHE         - ОЧИСТИТЬ КЭШ И LOCALSTORAGE');
+    updateAdminOutput('GET DATA            - ПОКАЗАТЬ СИСТЕМНЫЕ ДАННЫЕ');
+    updateAdminOutput('DEBUG               - ОТЛАДОЧНАЯ ИНФОРМАЦИЯ');
+    updateAdminOutput('PANIC               - АВАРИЙНОЕ ОТКЛЮЧЕНИЕ (ОПАСНО!)');
+    updateAdminOutput('HELP                - ЭТА СПРАВКА');
+    updateAdminOutput('LOGOUT              - ВЫЙТИ ИЗ АДМИН-РЕЖИМА');
+}
+
+// ====== РЕАЛЬНОЕ УПРАВЛЕНИЕ САЙТОМ ======
+
+// Показать окно технических работ
+function showEmergencyOverlay() {
+    const overlay = document.getElementById('emergency-overlay-admin');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Скрыть окно технических работ
+function hideEmergencyOverlay() {
+    const overlay = document.getElementById('emergency-overlay-admin');
+    if (overlay) {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+// РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА (но админ-панель остаётся поверх всего)
+function simulateSiteDown() {
+    // 1. Блокируем весь интерфейс КРОМЕ админ-панели
+    document.body.style.pointerEvents = 'none';
+    document.body.style.opacity = '0.3';
+    document.body.style.filter = 'grayscale(100%)';
+    
+    // 2. Отключаем все кликабельные элементы КРОМЕ админ-панели
+    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card, .weather-main, header, .precipitation-map');
+    allElements.forEach(el => {
+        // Пропускаем элементы админ-панели
+        if (!el.closest('#admin-panel') && !el.closest('#admin-overlay') && !el.closest('#admin-panel-minimized')) {
+            el.style.pointerEvents = 'none';
+            el.style.cursor = 'not-allowed';
+        }
+    });
+    
+    // 3. Админ-панель ДОЛЖНА оставаться поверх всего
+    const adminPanel = document.getElementById('admin-panel');
+    const adminOverlay = document.getElementById('admin-overlay');
+    const adminMinimized = document.getElementById('admin-panel-minimized');
+    
+    if (adminPanel) adminPanel.style.zIndex = '1000000';
+    if (adminOverlay) adminOverlay.style.zIndex = '999999';
+    if (adminMinimized) adminMinimized.style.zIndex = '1000000';
+    
+    // 4. Показываем экран аварии (но под админ-панелью)
+    showEmergencyOverlay();
+    document.body.style.animationPlayState = 'paused';
+    
+    // 5. Сохраняем состояние
+    localStorage.setItem('siteDown', 'true');
+    
+    updateAdminOutput('САЙТ УСПЕШНО ОТКЛЮЧЕН. ВСЕ ФУНКЦИИ ЗАБЛОКИРОВАНЫ.');
+    updateAdminOutput('АДМИН-ПАНЕЛЬ ОСТАЕТСЯ АКТИВНОЙ ПОВЕРХ ВСЕГО');
+}
+
+// Восстановление сайта
+function restoreSite() {
+    // 1. Восстанавливаем интерфейс
+    document.body.style.pointerEvents = '';
+    document.body.style.opacity = '1';
+    document.body.style.filter = 'none';
+    
+    // 2. Восстанавливаем все элементы
+    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card, .weather-main, header, .precipitation-map');
+    allElements.forEach(el => {
+        el.style.pointerEvents = '';
+        el.style.cursor = '';
+    });
+    
+    // 3. Возвращаем нормальные z-index для админ-панели
+    const adminPanel = document.getElementById('admin-panel');
+    const adminOverlay = document.getElementById('admin-overlay');
+    const adminMinimized = document.getElementById('admin-panel-minimized');
+    
+    if (adminPanel) adminPanel.style.zIndex = '10000';
+    if (adminOverlay) adminOverlay.style.zIndex = '9999';
+    if (adminMinimized) adminMinimized.style.zIndex = '10000';
+    
+    // 4. Скрываем экран аварии
+    hideEmergencyOverlay();
+    document.body.style.animationPlayState = 'running';
+    
+    // 5. Удаляем состояние
+    localStorage.removeItem('siteDown');
+    
+    updateAdminOutput('САЙТ УСПЕШНО ВОССТАНОВЛЕН. ВСЕ ФУНКЦИИ АКТИВНЫ.');
+}
+
+// АВАРИЙНОЕ ОТКЛЮЧЕНИЕ (но админ-панель остаётся!)
+function triggerRealPanic() {
+    updateAdminOutput('АВАРИЙНОЕ ОТКЛЮЧЕНИЕ АКТИВИРОВАНО');
+    updateAdminOutput('ВСЕ СИСТЕМЫ БУДУТ ОТКЛЮЧЕНЫ...');
+    updateAdminOutput('НО АДМИН-ПАНЕЛЬ ОСТАНЕТСЯ!');
+    
+    setTimeout(() => {
+        // Сохраняем админ-панель перед уничтожением всего
+        const adminPanel = document.getElementById('admin-panel');
+        const adminHTML = adminPanel ? adminPanel.outerHTML : '';
+        
+        // Уничтожаем всё КРОМЕ админ-панели
+        document.body.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; color: #ffffff; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 1; font-family: 'Consolas'; text-align: center; border: 2px solid #ffffff;">
+                <div style="font-size: 48px; margin-bottom: 20px;">💥</div>
+                <h1 style="font-size: 32px; margin-bottom: 20px; border-bottom: 1px solid #ffffff; padding-bottom: 10px;">СИСТЕМНЫЙ СБОЙ</h1>
+                <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px;">
+                    ПРОИЗОШЛА КРИТИЧЕСКАЯ ОШИБКА СИСТЕМЫ<br>
+                    ДЛЯ ВОССТАНОВЛЕНИЯ РАБОТЫ ПЕРЕЗАГРУЗИТЕ СТРАНИЦУ
+                </p>
+                <button onclick="window.location.reload()" style="padding: 15px 30px; background: #000000; border: 2px solid #ffffff; color: white; cursor: pointer; font-size: 16px; font-weight: bold;">
+                    ПЕРЕЗАГРУЗИТЬ СИСТЕМУ
+                </button>
+            </div>
+            ${adminHTML}
+        `;
+        
+        // Восстанавливаем функциональность админ-панели
+        setTimeout(() => {
+            const restoredPanel = document.getElementById('admin-panel');
+            if (restoredPanel) {
+                restoredPanel.style.zIndex = '1000000';
+                restoredPanel.style.display = 'block';
+                
+                // Восстанавливаем обработчики
+                const closeBtn = restoredPanel.querySelector('button[onclick*="closeAdminPanel"]');
+                const minimizeBtn = restoredPanel.querySelector('button[onclick*="minimizeAdminPanel"]');
+                const input = document.getElementById('admin-command');
+                
+                if (closeBtn) closeBtn.onclick = closeAdminPanel;
+                if (minimizeBtn) minimizeBtn.onclick = minimizeAdminPanel;
+                if (input) {
+                    input.onkeypress = function(e) {
+                        if (e.key === 'Enter') executeAdminCommand();
+                    };
+                }
+            }
+        }, 100);
+    }, 2000);
+}
+
+// Очистка кэша
+function clearAdminCache() {
+    localStorage.clear();
+    sessionStorage.clear();
+    updateAdminOutput('ВЕСЬ КЭШ ОЧИЩЕН. LOCALSTORAGE И SESSIONSTORAGE ПУСТЫ.');
+}
+
+// Системные данные
+function showSystemData() {
+    const data = {
+        'ТЕКУЩИЙ ГОРОД': currentCity || 'НЕ ВЫБРАН',
+        'ЕДИНИЦЫ ИЗМЕРЕНИЯ': currentUnits || 'CELSIUS',
+        'ТЕМА': currentTheme || 'DYNAMIC',
+        'ИЗБРАННЫЕ ГОРОДА': favorites ? favorites.length : 0,
+        'БРАУЗЕР': navigator.userAgent.split(' ')[0],
+        'ONLINE': navigator.onLine ? 'ДА' : 'НЕТ',
+        'ЭКРАН': `${screen.width}X${screen.height}`,
+        'ВРЕМЯ': new Date().toLocaleString('ru-RU')
+    };
+    
+    updateAdminOutput('=== СИСТЕМНАЯ ИНФОРМАЦИЯ ===');
+    Object.entries(data).forEach(([key, value]) => {
+        updateAdminOutput(`${key}: ${value}`);
+    });
+}
+
+// Отладочная информация
+function showDebugInfo() {
+    updateAdminOutput('=== ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ===');
+    updateAdminOutput(`ТЕКУЩИЙ ГОРОД: ${currentCity || 'НЕ ВЫБРАН'}`);
+    updateAdminOutput(`ЕДИНИЦЫ ИЗМЕРЕНИЯ: ${currentUnits || 'CELSIUS'}`);
+    updateAdminOutput(`ТЕМА: ${currentTheme || 'DYNAMIC'}`);
+    updateAdminOutput(`ИЗБРАННЫЕ ГОРОДА: ${favorites ? favorites.length : 0}`);
+    updateAdminOutput(`API КЛЮЧ: ${window.API_KEY ? 'УСТАНОВЛЕН' : 'ОТСУТСТВУЕТ'}`);
+    updateAdminOutput(`ГЕОЛОКАЦИЯ: ${window.userPlacemark ? 'АКТИВНА' : 'НЕ АКТИВНА'}`);
+    updateAdminOutput(`ONLINE: ${navigator.onLine ? 'ДА' : 'НЕТ'}`);
+}
+
+// ====== ИНИЦИАЛИЗАЦИЯ ======
+
+document.addEventListener('DOMContentLoaded', function() {
+    initAdminSystem();
+    
+    const adminCommandInput = document.getElementById('admin-command');
+    if (adminCommandInput) {
+        adminCommandInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeAdminCommand();
+            }
+        });
+    }
+    
+    const minimizedPanel = document.getElementById('admin-panel-minimized');
+    if (minizedPanel) {
+        minimizedPanel.addEventListener('click', restoreAdminPanel);
+    }
+});
+
+// ====== СОХРАНЕНИЕ СОСТОЯНИЯ ТЕХРАБОТ ======
+
+// Показать окно технических работ
+function showEmergencyOverlay() {
+    const overlay = document.getElementById('emergency-overlay-admin');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // СОХРАНЯЕМ состояние в localStorage
+        localStorage.setItem('emergencyMode', 'true');
+    }
+}
+
+// Скрыть окно технических работ
+function hideEmergencyOverlay() {
+    const overlay = document.getElementById('emergency-overlay-admin');
+    if (overlay) {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // УДАЛЯЕМ состояние из localStorage
+        localStorage.removeItem('emergencyMode');
+    }
+}
+
+// Восстановить состояние при загрузке страницы
+function restoreEmergencyState() {
+    const emergencyMode = localStorage.getItem('emergencyMode');
+    if (emergencyMode === 'true') {
+        // Если был включен режим техработ, восстанавливаем его
+        setTimeout(() => {
+            showEmergencyOverlay();
+            // Также восстанавливаем состояние сайта (если был отключен)
+            if (localStorage.getItem('siteDown') === 'true') {
+                simulateSiteDown();
+            }
+        }, 100);
+    }
+}
+
+// РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА (с сохранением состояния)
+function simulateSiteDown() {
+    document.body.style.pointerEvents = 'none';
+    document.body.style.opacity = '0.3';
+    document.body.style.filter = 'grayscale(100%)';
+    
+    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
+    allElements.forEach(el => {
+        el.style.pointerEvents = 'none';
+        el.style.cursor = 'not-allowed';
+    });
+    
+    showEmergencyOverlay();
+    document.body.style.animationPlayState = 'paused';
+    
+    // СОХРАНЯЕМ состояние отключения сайта
+    localStorage.setItem('siteDown', 'true');
+    
+    updateAdminOutput('САЙТ УСПЕШНО ОТКЛЮЧЕН. ВСЕ ФУНКЦИИ ЗАБЛОКИРОВАНЫ.');
+}
+
+// Восстановление сайта (с очисткой состояния)
+function restoreSite() {
+    document.body.style.pointerEvents = '';
+    document.body.style.opacity = '1';
+    document.body.style.filter = 'none';
+    
+    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
+    allElements.forEach(el => {
+        el.style.pointerEvents = '';
+        el.style.cursor = '';
+    });
+    
+    hideEmergencyOverlay();
+    document.body.style.animationPlayState = 'running';
+    
+    // УДАЛЯЕМ состояние отключения сайта
+    localStorage.removeItem('siteDown');
+    
+    updateAdminOutput('САЙТ УСПЕШНО ВОССТАНОВЛЕН. ВСЕ ФУНКЦИИ АКТИВНЫ.');
+}
+
+// Обнови инициализацию в DOMContentLoaded:
+document.addEventListener('DOMContentLoaded', function() {
+    initAdminSystem();
+    
+    const adminCommandInput = document.getElementById('admin-command');
+    if (adminCommandInput) {
+        adminCommandInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeAdminCommand();
+            }
+        });
+    }
+    
+    const minimizedPanel = document.getElementById('admin-panel-minimized');
+    if (minimizedPanel) {
+        minimizedPanel.addEventListener('click', restoreAdminPanel);
+    }
+    
+    // ВОССТАНАВЛИВАЕМ состояние техработ при загрузке страницы
+    restoreEmergencyState();
+});
+
+function handleAdminCommand(command) {
+    switch(command.toLowerCase()) {
+        case 'emergency on':
+            showEmergencyOverlay();
+            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
+            break;
+            
+        case 'emergency off':
+            hideEmergencyOverlay();
+            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
+            break;
+            
+        case 'site down':
+            simulateSiteDown();
+            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
+            break;
+            
+        case 'site up':
+            restoreSite();
+            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
+            break;
+            
+        case 'clear state':
+            clearEmergencyState();
+            updateAdminOutput('ВСЕ СОСТОЯНИЯ СБРОШЕНЫ');
+            break;
+            
+
+    }
+}
+function handleAdminCommand(command) {
+    switch(command.toLowerCase()) {
+        case 'emergency on':
+            showEmergencyOverlay();
+            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
+            break;
+            
+        case 'emergency off':
+            hideEmergencyOverlay();
+            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
+            break;
+            
+        case 'site down':
+            simulateSiteDown();
+            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
+            break;
+            
+        case 'site up':
+            restoreSite();
+            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
+            break;
+            
+        case 'fix':
+        case 'recovery':
+        case 'восстановить':
+            emergencyRecovery();
+            updateAdminOutput('ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ ВЫПОЛНЕНО');
+            break;
+            
+        case 'clear state':
+            clearEmergencyState();
+            updateAdminOutput('ВСЕ СОСТОЯНИЯ СБРОШЕНЫ');
+            break;
+            
+    }
+}
+
+// Функция принудительной очистки всех состояний
+function clearEmergencyState() {
+    localStorage.removeItem('emergencyMode');
+    localStorage.removeItem('siteDown');
+    
+    // Принудительно восстанавливаем сайт
+    document.body.style.pointerEvents = '';
+    document.body.style.opacity = '1';
+    document.body.style.filter = 'none';
+    document.body.style.animationPlayState = 'running';
+    document.body.style.overflow = '';
+    
+    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
+    allElements.forEach(el => {
+        el.style.pointerEvents = '';
+        el.style.cursor = '';
+    });
+    
+    const overlay = document.getElementById('emergency-overlay-admin');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// Глобальные функции
+window.closeAdminPanel = closeAdminPanel;
+window.minimizeAdminPanel = minimizeAdminPanel;
+window.executeAdminCommand = executeAdminCommand;
+window.executeAdminQuickCommand = executeAdminQuickCommand;
+window.hideEmergencyOverlay = hideEmergencyOverlay;
+
+// Вставь это прямо в консоль F12 чтобы восстановить сайт:
+function emergencyRecovery() {
+    // 1. Восстанавливаем весь сайт
+    document.body.style.pointerEvents = '';
+    document.body.style.opacity = '1';
+    document.body.style.filter = 'none';
+    document.body.style.animationPlayState = 'running';
+    document.body.style.overflow = '';
+    
+    // 2. Восстанавливаем все элементы
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        el.style.pointerEvents = '';
+        el.style.cursor = '';
+    });
+    
+    // 3. Убираем все оверлеи техработ
+    const overlays = document.querySelectorAll('[id*="emergency"], [id*="overlay"]');
+    overlays.forEach(overlay => {
+        overlay.style.display = 'none';
+    });
+    
+    // 4. Чистим localStorage
+    localStorage.removeItem('emergencyMode');
+    localStorage.removeItem('siteDown');
+    
+    // 5. Принудительно показываем админ-панель
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel) {
+        adminPanel.style.display = 'block';
+        adminPanel.style.zIndex = '1000000';
+    }
+    
+    console.log('✅ Сайт восстановлен! Все функции активны.');
+}
+
+// Или ещё проще - одна команда:
+window.fix = emergencyRecovery;
