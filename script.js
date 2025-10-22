@@ -2230,74 +2230,120 @@ function hideEmergencyOverlay() {
     }
 }
 
-// РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА (но админ-панель остаётся поверх всего)
-function simulateSiteDown() {
-    // 1. Блокируем весь интерфейс КРОМЕ админ-панели
+// ГЛОБАЛЬНОЕ отключение сайта (имитация реального падения)
+function simulateGlobalSiteDown() {
+    // 1. Блокируем ВЕСЬ интерфейс
     document.body.style.pointerEvents = 'none';
-    document.body.style.opacity = '0.3';
-    document.body.style.filter = 'grayscale(100%)';
+    document.body.style.opacity = '0.2';
+    document.body.style.filter = 'grayscale(100%) blur(5px)';
     
-    // 2. Отключаем все кликабельные элементы КРОМЕ админ-панели
-    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card, .weather-main, header, .precipitation-map');
-    allElements.forEach(el => {
-        // Пропускаем элементы админ-панели
-        if (!el.closest('#admin-panel') && !el.closest('#admin-overlay') && !el.closest('#admin-panel-minimized')) {
-            el.style.pointerEvents = 'none';
-            el.style.cursor = 'not-allowed';
-        }
-    });
+    // 2. Показываем реалистичный экран ошибки
+    const errorOverlay = document.createElement('div');
+    errorOverlay.id = 'global-error-overlay';
+    errorOverlay.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2c3e50, #4a6572); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 99998; color: white; text-align: center; font-family: 'Segoe UI', sans-serif;">
+            <div style="font-size: 80px; margin-bottom: 20px;">🌧️💥</div>
+            <h1 style="font-size: 32px; margin-bottom: 15px; color: #ff6b6b;">Сервис временно недоступен</h1>
+            <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px; line-height: 1.5;">
+                Произошла критическая ошибка сервера.<br>
+                Наша команда уже работает над решением проблемы.
+            </p>
+            <div style="display: flex; gap: 15px; margin-bottom: 40px;">
+                <div style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.7;">Код ошибки</div>
+                    <div style="font-weight: bold;">500 INTERNAL_SERVER_ERROR</div>
+                </div>
+                <div style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                    <div style="font-size: 12px; opacity: 0.7;">Время ответа</div>
+                    <div style="font-weight: bold;">TIMEOUT</div>
+                </div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 12px; max-width: 400px;">
+                <div style="font-size: 14px; margin-bottom: 10px;">📞 Техническая поддержка</div>
+                <div style="font-size: 12px; opacity: 0.8;">support@weatherapp.com • +7 (999) 123-45-67</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(errorOverlay);
     
-    // 3. Админ-панель ДОЛЖНА оставаться поверх всего
+    // 3. Сохраняем состояние
+    localStorage.setItem('globalDown', 'true');
+    
+    // 4. Админ-панель остаётся поверх всего
     const adminPanel = document.getElementById('admin-panel');
-    const adminOverlay = document.getElementById('admin-overlay');
-    const adminMinimized = document.getElementById('admin-panel-minimized');
-    
-    if (adminPanel) adminPanel.style.zIndex = '1000000';
-    if (adminOverlay) adminOverlay.style.zIndex = '999999';
-    if (adminMinimized) adminMinimized.style.zIndex = '1000000';
-    
-    // 4. Показываем экран аварии (но под админ-панелью)
-    showEmergencyOverlay();
-    document.body.style.animationPlayState = 'paused';
-    
-    // 5. Сохраняем состояние
-    localStorage.setItem('siteDown', 'true');
-    
-    updateAdminOutput('САЙТ УСПЕШНО ОТКЛЮЧЕН. ВСЕ ФУНКЦИИ ЗАБЛОКИРОВАНЫ.');
-    updateAdminOutput('АДМИН-ПАНЕЛЬ ОСТАЕТСЯ АКТИВНОЙ ПОВЕРХ ВСЕГО');
+    if (adminPanel) adminPanel.style.zIndex = '99999';
 }
 
-// Восстановление сайта
-function restoreSite() {
-    // 1. Восстанавливаем интерфейс
+// Восстановление глобального падения
+function restoreGlobalSite() {
+    // 1. Убираем оверлей ошибки
+    const errorOverlay = document.getElementById('global-error-overlay');
+    if (errorOverlay) errorOverlay.remove();
+    
+    // 2. Восстанавливаем интерфейс
     document.body.style.pointerEvents = '';
     document.body.style.opacity = '1';
     document.body.style.filter = 'none';
     
-    // 2. Восстанавливаем все элементы
-    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card, .weather-main, header, .precipitation-map');
-    allElements.forEach(el => {
-        el.style.pointerEvents = '';
-        el.style.cursor = '';
-    });
+    // 3. Чистим состояние
+    localStorage.removeItem('globalDown');
     
-    // 3. Возвращаем нормальные z-index для админ-панели
+    // 4. Возвращаем нормальный z-index
     const adminPanel = document.getElementById('admin-panel');
-    const adminOverlay = document.getElementById('admin-overlay');
-    const adminMinimized = document.getElementById('admin-panel-minimized');
-    
     if (adminPanel) adminPanel.style.zIndex = '10000';
-    if (adminOverlay) adminOverlay.style.zIndex = '9999';
-    if (adminMinimized) adminMinimized.style.zIndex = '10000';
+}
+
+// Имитация отключения API
+function simulateAPIOutage() {
+    // Переопределяем функции API чтобы они возвращали ошибки
+    window.originalGetWeatherByCoords = getWeatherByCoords;
+    window.originalGetWeatherByCity = getWeatherByCity;
     
-    // 4. Скрываем экран аварии
-    hideEmergencyOverlay();
-    document.body.style.animationPlayState = 'running';
+    getWeatherByCoords = function(lat, lon) {
+        showNotification('❌ Ошибка подключения к серверу погоды', 'error');
+        return Promise.reject(new Error('API Service Unavailable'));
+    };
     
-    // 5. Удаляем состояние
-    localStorage.removeItem('siteDown');
+    getWeatherByCity = function(city) {
+        showNotification('❌ Сервис погоды временно недоступен', 'error');
+        return Promise.reject(new Error('Weather API Offline'));
+    };
     
-    updateAdminOutput('САЙТ УСПЕШНО ВОССТАНОВЛЕН. ВСЕ ФУНКЦИИ АКТИВНЫ.');
+    // Показываем сообщение о проблемах с API
+    showNotification('🌐 Режим отключенных API активирован', 'warning');
+    localStorage.setItem('apiMock', 'true');
+}
+
+// Восстановление API
+function restoreAPIServices() {
+    // Восстанавливаем оригинальные функции
+    if (window.originalGetWeatherByCoords) {
+        getWeatherByCoords = window.originalGetWeatherByCoords;
+    }
+    if (window.originalGetWeatherByCity) {
+        getWeatherByCity = window.originalGetWeatherByCity;
+    }
+    
+    showNotification('🌐 API службы восстановлены', 'success');
+    localStorage.removeItem('apiMock');
+}
+
+// Восстановление при загрузке
+function restoreEmergencyState() {
+    const globalDown = localStorage.getItem('globalDown');
+    const apiMock = localStorage.getItem('apiMock');
+    
+    if (globalDown === 'true') {
+        setTimeout(() => {
+            simulateGlobalSiteDown();
+        }, 100);
+    }
+    
+    if (apiMock === 'true') {
+        setTimeout(() => {
+            simulateAPIOutage();
+        }, 100);
+    }
 }
 
 // АВАРИЙНОЕ ОТКЛЮЧЕНИЕ (но админ-панель остаётся!)
@@ -2577,10 +2623,29 @@ function handleAdminCommand(command) {
             clearEmergencyState();
             updateAdminOutput('ВСЕ СОСТОЯНИЯ СБРОШЕНЫ');
             break;
-            
-    }
-}
 
+          case 'global down':
+            simulateGlobalSiteDown();
+            updateAdminOutput('ГЛОБАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА АКТИВИРОВАНО');
+            break;
+            
+        case 'global up':
+            restoreGlobalSite();
+            updateAdminOutput('ГЛОБАЛЬНОЕ ВОССТАНОВЛЕНИЕ ВЫПОЛНЕНО');
+            break;
+            
+        case 'mock api':
+            simulateAPIOutage();
+            updateAdminOutput('РЕЖИМ ОТКЛЮЧЕННЫХ API АКТИВИРОВАН');
+            break;
+            
+        case 'restore api':
+            restoreAPIServices();
+            updateAdminOutput('API СЛУЖБЫ ВОССТАНОВЛЕНЫ');
+            break;
+    }    
+            
+}
 // Функция принудительной очистки всех состояний
 function clearEmergencyState() {
     localStorage.removeItem('emergencyMode');
@@ -2650,3 +2715,14 @@ function emergencyRecovery() {
 
 // Или ещё проще - одна команда:
 window.fix = emergencyRecovery;
+
+// Функции для переключения состояний сервисов
+function showServicesDetails() {
+    document.getElementById('services-normal').style.display = 'none';
+    document.getElementById('services-details').style.display = 'block';
+}
+
+function hideServicesDetails() {
+    document.getElementById('services-details').style.display = 'none';
+    document.getElementById('services-normal').style.display = 'block';
+}

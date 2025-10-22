@@ -128,6 +128,70 @@
             <div class="settings-item">
                 <a href="https://t.me/prelude_commit" class="settings-link">Связаться с разработчиком</a>
             </div>
+
+            <!-- Добавь перед закрывающим </div> для settings-panel -->
+
+<!-- Buy me a coffee -->
+<div class="settings-item">
+    <div class="settings-title">Поддержать разработчика</div>
+    <a href="https://buymeacoffee.com/noah" target="_blank" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
+        <span style="font-size: 20px;">☕</span>
+        <span style="font-weight: 600;">Buy me a coffee</span>
+    </a>
+</div>
+
+<!-- Сервисы (переключаемая плашка) -->
+<div class="settings-item">
+    <div class="settings-title">Используемые сервисы</div>
+    <div id="services-container">
+        <!-- Обычное состояние -->
+        <div id="services-normal" class="services-state">
+            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; text-align: center; cursor: pointer;" onclick="showServicesDetails()">
+                <div style="font-size: 14px; margin-bottom: 5px;">● Внешние API</div>
+                <div style="font-size: 12px; opacity: 0.7;">Нажмите для просмотра сервисов</div>
+            </div>
+        </div>
+        
+        <!-- Детальное состояние -->
+        <div id="services-details" class="services-state" style="display: none;">
+            <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 600;">● Используемые сервисы</div>
+                    <button onclick="hideServicesDetails()" style="background: none; border: none; color: var(--text-color); cursor: pointer; padding: 4px; border-radius: 4px;">✕</button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- OpenWeatherMap -->
+                    <a href="https://openweathermap.org/api" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.3); border-radius: 6px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
+                        <span style="font-size: 16px;">●</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 13px;">OpenWeatherMap</div>
+                            <div style="font-size: 11px; opacity: 0.7;">Погодные данные и прогнозы</div>
+                        </div>
+                        <span style="font-size: 12px; opacity: 0.7;">↗</span>
+                    </a>
+                    
+                    <!-- Yandex Maps -->
+                    <a href="https://yandex.ru/dev/maps/" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 6px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
+                        <span style="font-size: 16px;">●</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 13px;">Yandex Maps</div>
+                            <div style="font-size: 11px; opacity: 0.7;">Карты и геолокация</div>
+                        </div>
+                        <span style="font-size: 12px; opacity: 0.7;">↗</span>
+                    </a>
+                </div>
+                
+                <div style="margin-top: 12px; padding: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+                    <div style="font-size: 11px; opacity: 0.7; text-align: center;">
+                        Нажмите на сервис для перехода на сайт API
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 
