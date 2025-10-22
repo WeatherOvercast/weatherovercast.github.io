@@ -129,8 +129,6 @@
                 <a href="https://t.me/prelude_commit" class="settings-link">Связаться с разработчиком</a>
             </div>
 
-            <!-- Добавь перед закрывающим </div> для settings-panel -->
-
 <!-- Buy me a coffee -->
 <div class="settings-item">
     <div class="settings-title">Поддержать разработчика</div>
@@ -522,84 +520,6 @@
     <button class="install-btn" id="install-btn">Установить</button>
   </div>
 </div>
-
-<!-- Windows-style админ-панель - ЧЁРНАЯ ВЕРСИЯ -->
-<div id="admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999;"></div>
-
-<div id="admin-panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000000; color: #ffffff; padding: 0; border: 2px solid #ffffff; z-index: 10000; box-shadow: 0 0 30px rgba(255,255,255,0.2); min-width: 600px; min-height: 400px; font-family: 'Consolas', 'Courier New', monospace;">
-    <!-- Заголовок окна -->
-    <div style="background: #000000; padding: 8px 12px; border-bottom: 2px solid #ffffff; display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none;">
-        <div style="font-weight: bold; color: white; font-size: 13px;">
-            ⚡ АДМИНИСТРАТИВНАЯ КОНСОЛЬ WEATHER APP
-        </div>
-        <div style="display: flex; gap: 2px;">
-            <button onclick="minimizeAdminPanel()" style="background: #000000; border: 1px solid #ffffff; color: white; width: 22px; height: 22px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center;">_</button>
-            <button onclick="closeAdminPanel()" style="background: #000000; border: 1px solid #ffffff; color: white; width: 22px; height: 22px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center;">✕</button>
-        </div>
-    </div>
-    
-    <!-- Тело консоли -->
-    <div style="padding: 15px; height: calc(100% - 60px); overflow: hidden; display: flex; flex-direction: column; background: #000000;">
-        <!-- Быстрые команды -->
-        <div style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
-            <button onclick="executeAdminQuickCommand('emergency on')" style="background: #000000; border: 1px solid #ffffff; color: white; padding: 6px; cursor: pointer; font-size: 11px; font-family: 'Consolas';">АВАРИЯ ВКЛ</button>
-            <button onclick="executeAdminQuickCommand('emergency off')" style="background: #000000; border: 1px solid #ffffff; color: white; padding: 6px; cursor: pointer; font-size: 11px; font-family: 'Consolas';">АВАРИЯ ВЫКЛ</button>
-            <button onclick="executeAdminQuickCommand('site down')" style="background: #000000; border: 1px solid #ffffff; color: white; padding: 6px; cursor: pointer; font-size: 11px; font-family: 'Consolas';">УРОНИТЬ САЙТ</button>
-            <button onclick="executeAdminQuickCommand('site up')" style="background: #000000; border: 1px solid #ffffff; color: white; padding: 6px; cursor: pointer; font-size: 11px; font-family: 'Consolas';">ВОССТАНОВИТЬ</button>
-        </div>
-        
-        <!-- Поле ввода -->
-        <div style="margin-bottom: 15px;">
-            <div style="display: flex; align-items: center; margin-bottom: 8px; color: #ffffff;">
-                <span style="color: #ffffff;">C:\WeatherApp\Admin&gt;</span>
-                <input type="text" id="admin-command" placeholder=" Введите команду..." 
-                       style="flex: 1; margin-left: 8px; padding: 6px 8px; background: #000000; border: 1px solid #ffffff; color: #ffffff; font-family: 'Consolas'; outline: none; font-size: 13px;">
-            </div>
-            <button onclick="executeAdminCommand()" style="width: 100%; padding: 8px; background: #000000; border: 2px solid #ffffff; color: white; cursor: pointer; font-family: 'Consolas'; font-size: 12px; font-weight: bold;">
-                ВЫПОЛНИТЬ КОМАНДУ [ENTER]
-            </button>
-        </div>
-        
-        <!-- Вывод консоли -->
-        <div id="admin-output" style="background: #000000; border: 1px solid #ffffff; padding: 12px; flex: 1; overflow-y: auto; font-size: 13px; color: #ffffff; font-family: 'Consolas';">
-            <div style="color: #ffffff;">WEATHER APP ADMINISTRATIVE CONSOLE</div>
-            <div style="color: #ffffff;">Version 1.0 | Security Level: MAXIMUM</div>
-            <div style="margin: 10px 0;"></div>
-            <div style="color: #ffffff;">C:\WeatherApp\Admin&gt; admin_panel --start</div>
-            <div style="color: #ffffff;">Административная консоль инициализирована</div>
-            <div style="color: #ffffff;">Введите 'help' для списка команд</div>
-        </div>
-    </div>
-</div>
-
-<!-- Минифицированная панель -->
-<div id="admin-panel-minimized" style="display: none; position: fixed; bottom: 10px; right: 10px; background: #000000; border: 2px solid #ffffff; padding: 8px 12px; cursor: pointer; font-family: 'Consolas'; color: white; font-size: 11px; z-index: 10000;">
-    ⚡ Админ-консоль [click to restore]
-</div>
-
-<!-- Окно технических работ (стиль как PWA установка) -->
-<div id="emergency-overlay-admin" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(91, 141, 191, 0.7); backdrop-filter: blur(20px); z-index: 100000; align-items: flex-start; justify-content: center; padding-top: 50px;">
-    <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(30px); border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; color: #333;">
-        <div style="font-size: 48px; margin-bottom: 15px;">🍪</div>
-        <h2 style="margin: 0 0 15px 0; color: #d83b01; font-size: 24px;">Технические работы</h2>
-        <p style="margin: 0 0 20px 0; line-height: 1.5; color: #666;">В настоящее время ведутся технические работы. Сервис будет доступен в ближайшее время.</p>
-        
-        <button onclick="hideEmergencyOverlay()" style="padding: 12px 30px; background: #0078d7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s ease;">
-            Понятно
-        </button>
-        
-        <div style="margin-top: 20px; font-size: 12px; color: #999;">
-            Weather App Service • v1.0.1
-        </div>
-    </div>
-</div>
-        
-        <div style="margin-top: 20px; font-size: 12px; color: #666; border-top: 1px solid #333; padding-top: 10px;">
-            Weather App Service • v1
-        </div>
-    </div>
-</div>
-
 <!-- Контейнер для уведомлений -->
 <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>
     <script src="script.js"></script>

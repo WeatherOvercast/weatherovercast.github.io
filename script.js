@@ -18,6 +18,140 @@ let currentCityData = null;
 let favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
 const TEMPERATURE_SHIFT = 0;
 
+
+
+// ========== СИСТЕМА УВЕДОМЛЕНИЙ ==========
+let isFirstLoad = true;
+
+class IOSNotifications {
+    constructor() {
+        this.notificationQueue = [];
+        this.isShowing = false;
+        this.init();
+    }
+
+    init() {
+        const container = document.createElement('div');
+        container.id = 'ios-notifications-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            z-index: 10000;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+
+    show(options) {
+        return new Promise((resolve) => {
+            const notification = {
+                id: Date.now().toString(),
+                type: options.type || 'info',
+                title: options.title || '',
+                message: options.message || '',
+                duration: options.duration || 3000,
+                onClose: resolve
+            };
+
+            this.notificationQueue.push(notification);
+            this.processQueue();
+        });
+    }
+
+    processQueue() {
+        if (this.isShowing || this.notificationQueue.length === 0) return;
+        this.isShowing = true;
+        const notification = this.notificationQueue.shift();
+        this.createNotificationElement(notification);
+    }
+
+    createNotificationElement(notification) {
+        const container = document.getElementById('ios-notifications-container');
+        const notificationEl = document.createElement('div');
+        notificationEl.className = `ios-notification ${notification.type}`;
+        notificationEl.id = `notification-${notification.id}`;
+
+        const timeString = new Date().toLocaleTimeString('ru-RU', {
+            hour: '2-digit', 
+            minute: '2-digit'
+        });
+
+        notificationEl.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-app">
+                    <div class="app-icon">W</div>
+                    <span>Weather Overcast</span>
+                </div>
+                <div class="notification-time">${timeString}</div>
+            </div>
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+        `;
+
+        container.appendChild(notificationEl);
+
+        requestAnimationFrame(() => {
+            notificationEl.classList.add('show');
+        });
+
+        setTimeout(() => {
+            this.hideNotification(notification.id, notification.onClose);
+        }, notification.duration);
+    }
+
+    hideNotification(id, onClose) {
+        const notificationEl = document.getElementById(`notification-${id}`);
+        if (!notificationEl) {
+            this.isShowing = false;
+            this.processQueue();
+            if (onClose) onClose();
+            return;
+        }
+
+        notificationEl.classList.remove('show');
+        notificationEl.classList.add('hide');
+
+        setTimeout(() => {
+            notificationEl.remove();
+            this.isShowing = false;
+            this.processQueue();
+            if (onClose) onClose();
+        }, 500);
+    }
+
+    success(title, message, duration = 2000) {
+        return this.show({ type: 'success', title, message, duration });
+    }
+
+    warning(title, message, duration = 4000) {
+        return this.show({ type: 'warning', title, message, duration });
+    }
+
+    error(title, message, duration = 5000) {
+        return this.show({ type: 'error', title, message, duration });
+    }
+
+    info(title, message, duration = 3000) {
+        return this.show({ type: 'info', title, message, duration });
+    }
+}
+
+const iosNotifications = new IOSNotifications();
+
+// Заменяем старую функцию showNotification
+function showNotification(message, type = 'info') {
+    switch(type) {
+        case 'error': iosNotifications.error('Ошибка', message); break;
+        case 'warning': iosNotifications.warning('Внимание', message); break;
+        case 'success': iosNotifications.success('Успешно', message); break;
+        default: iosNotifications.info('Информация', message);
+    }
+}
+
+
 // База данных для автодополнения
 const cityDatabase = [
     { name: "Санкт-Петербург", region: "Санкт-Петербург и Ленинградская область", type: "город" },
@@ -130,7 +264,6 @@ function updateAllTemperatures() {
     }
 }
 
-// ========== ФУНКЦИИ ДЛЯ ИЗБРАННОГО ==========
 function addToFavorites(cityData) {
     if (!isCityInFavorites(cityData.name)) {
         const favoriteCity = {
@@ -143,7 +276,7 @@ function addToFavorites(cityData) {
         favorites.push(favoriteCity);
         saveFavorites();
         updateFavoriteButton(true);
-        showNotification('Город добавлен в избранное');
+        iosNotifications.success('Добавлено', `${cityData.name} в избранном`, 2000);
     }
 }
 
@@ -153,7 +286,7 @@ function removeFromFavorites(cityName) {
     if (currentCity === cityName) {
         updateFavoriteButton(false);
     }
-    showNotification('Город удален из избранное');
+    iosNotifications.info('Удалено', `${cityName} из избранного`, 2000);
 }
 
 function saveFavorites() {
@@ -177,6 +310,8 @@ function updateFavoriteButton(isFavorite) {
     }
 }
 
+// ========== АНИМИРОВАННЫЕ ФУНКЦИИ ДЛЯ ОКОН ==========
+
 function showFavoritesPanel() {
     const overlay = document.getElementById('favorites-overlay');
     const list = document.getElementById('favorites-list');
@@ -184,6 +319,8 @@ function showFavoritesPanel() {
 
     if (!overlay || !list || !empty) return;
 
+    // Сбрасываем анимации
+    overlay.style.animation = 'none';
     list.innerHTML = '';
 
     if (favorites.length === 0) {
@@ -193,9 +330,10 @@ function showFavoritesPanel() {
         empty.style.display = 'none';
         list.style.display = 'block';
 
-        favorites.forEach(city => {
+        favorites.forEach((city, index) => {
             const item = document.createElement('div');
             item.className = 'favorite-item';
+            item.style.animationDelay = `${0.1 + index * 0.05}s`;
             item.innerHTML = `
                 <div class="favorite-info" onclick="selectFavoriteCity('${city.name}', ${city.lat}, ${city.lon})">
                     <div class="favorite-city">${city.name}</div>
@@ -211,8 +349,113 @@ function showFavoritesPanel() {
         });
     }
 
-    overlay.style.display = 'flex';
-    document.body.classList.add('settings-open');
+    // Запускаем анимацию
+    requestAnimationFrame(() => {
+        overlay.style.display = 'flex';
+        overlay.style.animation = 'fadeInOverlay 0.3s ease-out';
+        document.body.classList.add('settings-open');
+    });
+}
+
+function closeFavoritesPanel() {
+    const overlay = document.getElementById('favorites-overlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeInOverlay 0.3s ease-out reverse';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }, 250);
+    }
+}
+
+// Обновляем функцию для настроек
+function showSettingsPanel() {
+    const overlay = document.getElementById('settings-overlay');
+    if (overlay) {
+        overlay.style.animation = 'none';
+        requestAnimationFrame(() => {
+            overlay.style.display = 'flex';
+            overlay.style.animation = 'fadeInOverlay 0.3s ease-out';
+            document.body.classList.add('settings-open');
+        });
+    }
+}
+
+function closeSettingsPanel() {
+    const overlay = document.getElementById('settings-overlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeInOverlay 0.3s ease-out reverse';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }, 250);
+    }
+}
+
+// Обновляем функцию для качества воздуха
+function initAirQualityHint() {
+    const questionBtn = document.getElementById('air-quality-question');
+    const overlay = document.getElementById('air-quality-overlay');
+    const closeBtn = document.getElementById('close-air-quality-hint');
+
+    if (!questionBtn || !overlay || !closeBtn) return;
+
+    questionBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        overlay.style.animation = 'none';
+        requestAnimationFrame(() => {
+            overlay.style.display = 'flex';
+            overlay.style.animation = 'fadeInOverlay 0.3s ease-out';
+            document.body.classList.add('settings-open');
+        });
+    });
+
+    closeBtn.addEventListener('click', function() {
+        closeAirQualityHint();
+    });
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeAirQualityHint();
+        }
+    });
+
+    function closeAirQualityHint() {
+        overlay.style.animation = 'fadeInOverlay 0.3s ease-out reverse';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.body.classList.remove('settings-open');
+        }, 250);
+    }
+}
+
+// Обновляем функцию для сервисов
+function showServicesDetails() {
+    const normal = document.getElementById('services-normal');
+    const details = document.getElementById('services-details');
+    
+    if (normal && details) {
+        normal.style.animation = 'scaleIn 0.3s ease-out reverse';
+        setTimeout(() => {
+            normal.style.display = 'none';
+            details.style.display = 'block';
+            details.style.animation = 'scaleIn 0.3s ease-out';
+        }, 150);
+    }
+}
+
+function hideServicesDetails() {
+    const normal = document.getElementById('services-normal');
+    const details = document.getElementById('services-details');
+    
+    if (normal && details) {
+        details.style.animation = 'scaleIn 0.3s ease-out reverse';
+        setTimeout(() => {
+            details.style.display = 'none';
+            normal.style.display = 'block';
+            normal.style.animation = 'scaleIn 0.3s ease-out';
+        }, 150);
+    }
 }
 
 function selectFavoriteCity(cityName, lat, lon) {
@@ -283,7 +526,12 @@ function hideLoadingScreen() {
     setTimeout(() => {
         loadingScreen.style.display = 'none';
 
-        // Показываем основной контент с анимацией
+        // ТОЛЬКО при первой загрузке
+        if (isFirstLoad) {
+            iosNotifications.success('Готово', 'Weather Overcast загружен', 3000);
+            isFirstLoad = false;
+        }
+
         const container = document.querySelector('.container');
         const header = document.querySelector('header');
 
@@ -564,38 +812,200 @@ function updateMoonVisualization(phasePercent, isWaning) {
 // ========== ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О ПОГОДЕ ==========
 async function getAirQuality(lat, lon) {
     try {
+        const controller = new AbortController();
+        const timeoutDuration = 10000; // 10 секунд
+        
+        const timeoutId = setTimeout(() => {
+            console.log('⏰ Таймаут качества воздуха - отменяем...');
+            controller.abort();
+        }, timeoutDuration);
+        
         const response = await fetch(
-            `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`
+            `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`,
+            { 
+                signal: controller.signal,
+                method: 'GET'
+            }
         );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         return data;
+        
     } catch (error) {
-        console.error('Ошибка получения качества воздуха:', error);
+        console.log('⚠️ Качество воздуха недоступно:', error.message);
+        // Возвращаем null вместо выброса ошибки
         return null;
     }
 }
 
+// ========== РЕЗЕРВНЫЕ ДАННЫЕ ПРИ ОШИБКАХ ==========
+function showFallbackWeatherData() {
+    console.log('🔄 Показываем резервные данные...');
+    
+    // Базовые данные по умолчанию
+    const fallbackData = {
+        name: currentCity || 'Санкт-Петербург',
+        main: {
+            temp: 15,
+            feels_like: 14,
+            humidity: 65,
+            pressure: 750
+        },
+        weather: [{ description: 'Данные обновляются', main: 'Clouds' }],
+        wind: { speed: 3 },
+        sys: { 
+            sunrise: Math.floor(Date.now() / 1000) + 21600, // +6 часов
+            sunset: Math.floor(Date.now() / 1000) + 64800   // +18 часов
+        },
+        visibility: 10
+    };
+    
+    // Обновляем интерфейс с резервными данными
+    const temp = convertTemperature(fallbackData.main.temp, currentUnits);
+    const feelsLike = convertTemperature(fallbackData.main.feels_like, currentUnits);
+    
+    document.getElementById('current-temp').innerHTML = `
+        <span class="temp-bullet">●</span>
+        <span class="temp-value">${temp}${getTemperatureSymbol(currentUnits)}</span>
+    `;
+    document.getElementById('feels-like').textContent = `Ощущается как ${feelsLike}${getTemperatureSymbol(currentUnits)}`;
+    document.getElementById('weather-description').textContent = 'Данные временно недоступны';
+    
+    // Обновляем остальные поля
+    document.getElementById('wind-details').innerHTML = `
+        <div class="tile-content-item">
+            <span>●</span>
+            <span>-- км/ч</span>
+        </div>
+    `;
+    
+    document.getElementById('pressure-details').innerHTML = `
+        <div class="tile-content-item">
+            <span>●</span>
+            <span>${fallbackData.main.pressure} мм рт. ст.</span>
+        </div>
+    `;
+    
+    document.getElementById('humidity-details').innerHTML = `
+        <div class="tile-content-item">
+            <span>●</span>
+            <span>${fallbackData.main.humidity}%</span>
+        </div>
+    `;
+    
+    document.getElementById('rain-info').innerHTML = `
+        <span>●</span>
+        <span>Данные обновляются</span>
+    `;
+    
+    document.getElementById('wind-info').innerHTML = `
+        <span>●</span>
+        <span>Данные обновляются</span>
+    `;
+    
+    // Показываем сообщение
+    iosNotifications.info('Временные данные', 'Используем резервную информацию', 3000);
+}
+
 async function getWeatherByCoords(lat, lon) {
+    // Добавляем проверку на доступность сети
+    if (!navigator.onLine) {
+        console.log('📡 Нет подключения к интернету');
+        iosNotifications.warning('Нет сети', 'Проверьте подключение к интернету', 4000);
+        hideLoadingScreen();
+        showFallbackWeatherData();
+        return;
+    }
+    
     try {
         showLoadingScreen();
-        const [weatherData, forecastData, airQualityData] = await Promise.all([
-            fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
-            fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`).then(r => r.json()),
-            getAirQuality(lat, lon)
-        ]);
+        
+        // Создаем AbortController с правильной логикой
+        const controller = new AbortController();
+        const timeoutDuration = 15000; // 15 секунд
+        
+        // Устанавливаем таймаут
+        const timeoutId = setTimeout(() => {
+            console.log('⏰ Таймаут запроса - отменяем...');
+            controller.abort();
+        }, timeoutDuration);
+        
+        // Функция для очистки таймаута
+        const clearTimeout = () => {
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+        };
+        
+        try {
+            const [weatherData, forecastData, airQualityData] = await Promise.all([
+                fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
+                    signal: controller.signal
+                }).then(async r => {
+                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    return await r.json();
+                }),
+                fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
+                    signal: controller.signal
+                }).then(async r => {
+                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    return await r.json();
+                }),
+                getAirQuality(lat, lon)
+            ]);
 
-        if (weatherData.cod === 200) {
-            currentCityData = weatherData;
-            currentCity = weatherData.name;
+            // Очищаем таймаут если запросы успешны
+            clearTimeout();
+
+            if (weatherData.cod === 200) {
+                currentCityData = weatherData;
+                currentCity = weatherData.name;
+                
+                await updateWeatherData(weatherData, forecastData, airQualityData);
+                updateMapLocation(lat, lon);
+                
+                // Короткое уведомление только при успехе
+                if (!isFirstLoad) {
+                    iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
+                }
+            } else {
+                throw new Error(weatherData.message || 'Неизвестная ошибка API');
+            }
             
-            await updateWeatherData(weatherData, forecastData, airQualityData);
-            updateMapLocation(lat, lon);
-        } else {
-            throw new Error(weatherData.message);
+        } catch (fetchError) {
+            clearTimeout();
+            throw fetchError; // Пробрасываем ошибку дальше
         }
+        
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
-        showNotification('Ошибка: ' + error.message);
+        
+        // Более детальная обработка ошибок
+        let errorMessage = 'Не удалось загрузить данные';
+        
+        if (error.name === 'AbortError') {
+            errorMessage = 'Сервер не отвечает. Проверьте подключение';
+            console.log('🕒 Превышено время ожидания сервера');
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Проблемы с подключением к серверу погоды';
+            console.log('🌐 Ошибка сети - нет подключения к API');
+        } else if (error.message.includes('HTTP error')) {
+            errorMessage = 'Ошибка сервера погоды';
+            console.log('🚫 Ошибка HTTP от API');
+        } else {
+            console.log('❌ Другая ошибка:', error.message);
+        }
+        
+        iosNotifications.error('Ошибка', errorMessage, 4000);
+        
+        // Показываем данные по умолчанию
+        showFallbackWeatherData();
     } finally {
         setTimeout(hideLoadingScreen, 1000);
     }
@@ -619,12 +1029,17 @@ async function getWeatherByCity(city) {
 
             await updateWeatherData(weatherData, forecastData, airQualityData);
             updateMapLocation(weatherData.coord.lat, weatherData.coord.lon);
+            
+            // Короткое уведомление только при успехе
+            if (!isFirstLoad) {
+                iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
+            }
         } else {
             throw new Error(weatherData.message);
         }
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
-        showNotification('Ошибка: ' + error.message);
+        iosNotifications.error('Ошибка', 'Город не найден', 3000);
     } finally {
         setTimeout(hideLoadingScreen, 1000);
     }
@@ -1542,8 +1957,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTipCarousel();
     initAirQualityHint();
     initDeveloperInfo();
-    initAdminSystem();
-
 
     // Обработчики для поиска
     const citySearch = document.getElementById('city-search');
@@ -1665,6 +2078,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+        document.addEventListener('click', function(e) {
+        if (e.target.closest('#services-normal')) {
+            showServicesDetails();
+        }
+        
+        if (e.target.closest('#services-details button')) {
+            hideServicesDetails();
+        }
+    });
+    
+
 });
 
 // Кастомная кнопка установки PWA
@@ -1701,6 +2126,24 @@ if (installBtn) {
 
       deferredPrompt = null;
     });
+    // В конце файла, в обработчике PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    setTimeout(() => {
+        if (deferredPrompt && !isAppInstalled()) {
+            const installPrompt = document.getElementById('install-prompt');
+            if (installPrompt) {
+                installPrompt.style.animation = 'none';
+                requestAnimationFrame(() => {
+                    installPrompt.style.display = 'block';
+                    installPrompt.style.animation = 'slideUpBounce 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                });
+            }
+        }
+    }, 3000);
+});
 }
 
 // Закрытие кнопки
@@ -1941,788 +2384,460 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = extendedForecastStyles;
 document.head.appendChild(styleSheet);
 
-function showEmergencyFallback() {
-  document.body.innerHTML = `
-    <div style="padding: 50px; text-align: center; background: linear-gradient(135deg, #2C3E50, #4A6572); color: white; min-height: 100vh;">
-      <h1>🌧️ Weather Overcast</h1>
-      <p>⚠️ Сервис погоды временно недоступен</p>
-      <p style="opacity: 0.8;">OpenWeatherMap API проводит технические работы</p>
-      <button onclick="location.reload()" style="padding: 10px 20px; background: #10B981; border: none; border-radius: 8px; color: white; cursor: pointer; margin: 10px;">Обновить</button>
-      <button onclick="useDemoData()" style="padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; margin: 10px;">Демо-данные</button>
-    </div>
-  `;
-}
 
-function useDemoData() {
-  const demoData = {
-    name: "Санкт-Петербург",
-    main: { temp: 15, feels_like: 14, humidity: 75, pressure: 1013 },
-    weather: [{ description: "облачно", main: "Clouds" }],
-    wind: { speed: 3, deg: 180 },
-    sys: { sunrise: Date.now()/1000 + 21600, sunset: Date.now()/1000 + 64800 }
-  };
-  updateWeatherData(demoData, null, null, []);
-}
-
-// ====== ЧЁРНАЯ АДМИН-ПАНЕЛЬ ======
-const ADMIN_PASSWORD = "noah_admin_2024";
-let adminMode = false;
-let adminPanelVisible = false;
-let isDragging = false;
-let dragOffset = { x: 0, y: 0 };
-
-// Инициализация админ-системы
-function initAdminSystem() {
-    const originalLog = console.log;
-    
-    console.log = function(...args) {
-        if (args.length > 0 && typeof args[0] === 'string' && !adminMode) {
-            const input = args[0].trim();
-            if (input === ADMIN_PASSWORD) {
-                activateAdminMode();
-                return;
-            }
-        }
-        originalLog.apply(console, args);
-    };
-}
-
-// Активация админ-режима
-function activateAdminMode() {
-    adminMode = true;
-    console.log(`%c⚡ АДМИН-РЕЖИМ АКТИВИРОВАН`, 'color: #ffffff; font-size: 16px; font-weight: bold; background: #000000; padding: 10px;');
-    showAdminPanel();
-    showAdminGreeting();
-}
-
-// Быстрый вызов
-window.admin = function() {
-    activateAdminMode();
-};
-
-// Показать админ-панель
-function showAdminPanel() {
-    const panel = document.getElementById('admin-panel');
-    const overlay = document.getElementById('admin-overlay');
-    const minimized = document.getElementById('admin-panel-minimized');
-    
-    if (panel && overlay) {
-        panel.style.display = 'block';
-        overlay.style.display = 'block';
-        if (minimized) minimized.style.display = 'none';
-        adminPanelVisible = true;
-        
-        // Инициализируем перетаскивание
-        setTimeout(() => initAdminDrag(), 100);
-        
-        // Фокус на поле ввода
-        const input = document.getElementById('admin-command');
-        if (input) {
-            input.focus();
-            input.value = '';
-        }
-    }
-}
-
-// Закрыть админ-панель
-function closeAdminPanel() {
-    const panel = document.getElementById('admin-panel');
-    const overlay = document.getElementById('admin-overlay');
-    
-    if (panel && overlay) {
-        panel.style.display = 'none';
-        overlay.style.display = 'none';
-        adminPanelVisible = false;
-    }
-}
-
-// Свернуть панель
-function minimizeAdminPanel() {
-    const panel = document.getElementById('admin-panel');
-    const minimized = document.getElementById('admin-panel-minimized');
-    
-    if (panel && minimized) {
-        panel.style.display = 'none';
-        minimized.style.display = 'block';
-        adminPanelVisible = false;
-    }
-}
-
-// Восстановить панель
-function restoreAdminPanel() {
-    const minimized = document.getElementById('admin-panel-minimized');
-    if (minimized) {
-        minimized.style.display = 'none';
-        showAdminPanel();
-    }
-}
-
-// Перетаскивание окна
-function initAdminDrag() {
-    const panel = document.getElementById('admin-panel');
-    const header = panel.querySelector('div:first-child');
-    
-    header.addEventListener('mousedown', startAdminDrag);
-    
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging && panel) {
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
-            
-            const maxX = window.innerWidth - panel.offsetWidth;
-            const maxY = window.innerHeight - panel.offsetHeight;
-            
-            panel.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
-            panel.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
-            panel.style.transform = 'none';
-        }
-    });
-    
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        if (panel) panel.style.cursor = '';
-    });
-}
-
-function startAdminDrag(e) {
-    if (e.target.tagName === 'BUTTON') return;
-    
-    isDragging = true;
-    const panel = document.getElementById('admin-panel');
-    const rect = panel.getBoundingClientRect();
-    
-    dragOffset.x = e.clientX - rect.left;
-    dragOffset.y = e.clientY - rect.top;
-    
-    panel.style.cursor = 'move';
-    e.preventDefault();
-}
-
-// Выполнить команду
-function executeAdminCommand() {
-    const input = document.getElementById('admin-command');
-    if (!input || !input.value.trim()) return;
-    
-    const command = input.value.trim();
-    input.value = '';
-    
-    updateAdminOutput(`C:\\WeatherApp\\Admin&gt; ${command}`);
-    handleAdminCommand(command);
-}
-
-// Быстрая команда
-function executeAdminQuickCommand(command) {
-    const input = document.getElementById('admin-command');
-    if (input) {
-        input.value = command;
-        executeAdminCommand();
-    }
-}
-
-// Обработчик команд
-function handleAdminCommand(command) {
-    switch(command.toLowerCase()) {
-        case 'emergency on':
-            showEmergencyOverlay();
-            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
-            break;
-            
-        case 'emergency off':
-            hideEmergencyOverlay();
-            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
-            break;
-            
-        case 'site down':
-            simulateSiteDown();
-            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
-            break;
-            
-        case 'site up':
-            restoreSite();
-            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
-            break;
-            
-        case 'clear cache':
-            clearAdminCache();
-            updateAdminOutput('КЭШ И ЛОКАЛЬНЫЕ ДАННЫЕ ОЧИЩЕНЫ');
-            break;
-            
-        case 'get data':
-            showSystemData();
-            break;
-            
-        case 'debug':
-            showDebugInfo();
-            break;
-            
-        case 'help':
-            showAdminHelp();
-            break;
-            
-        case 'panic':
-            triggerRealPanic();
-            break;
-            
-        case 'logout':
-            adminMode = false;
-            closeAdminPanel();
-            updateAdminOutput('СЕАНС АДМИНИСТРАТОРА ЗАВЕРШЕН');
-            break;
-            
-        default:
-            updateAdminOutput(`ОШИБКА: КОМАНДА "${command}" НЕ РАСПОЗНАНА`);
-    }
-}
-
-// Вывод в консоль (ТОЛЬКО БЕЛЫЙ ТЕКСТ)
-function updateAdminOutput(message) {
-    const output = document.getElementById('admin-output');
-    if (!output) return;
-    
-    const newMessage = document.createElement('div');
-    newMessage.textContent = message;
-    newMessage.style.color = '#ffffff';
-    newMessage.style.marginBottom = '4px';
-    newMessage.style.fontFamily = "'Consolas', monospace";
-    newMessage.style.fontSize = '13px';
-    newMessage.style.lineHeight = '1.3';
-    
-    output.appendChild(newMessage);
-    output.scrollTop = output.scrollHeight;
-}
-
-// Приветствие
-function showAdminGreeting() {
-    updateAdminOutput('АДМИНИСТРАТИВНАЯ КОНСОЛЬ ГОТОВА К РАБОТЕ');
-    updateAdminOutput('ВВЕДИТЕ HELP ДЛЯ СПИСКА КОМАНД');
-}
-
-// Помощь
-function showAdminHelp() {
-    updateAdminOutput('=== СПРАВКА ПО КОМАНДАМ ===');
-    updateAdminOutput('EMERGENCY ON/OFF    - ВКЛЮЧИТЬ/ВЫКЛЮЧИТЬ ТЕХРАБОТЫ');
-    updateAdminOutput('SITE DOWN/UP        - РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ/ВОССТАНОВЛЕНИЕ САЙТА');
-    updateAdminOutput('CLEAR CACHE         - ОЧИСТИТЬ КЭШ И LOCALSTORAGE');
-    updateAdminOutput('GET DATA            - ПОКАЗАТЬ СИСТЕМНЫЕ ДАННЫЕ');
-    updateAdminOutput('DEBUG               - ОТЛАДОЧНАЯ ИНФОРМАЦИЯ');
-    updateAdminOutput('PANIC               - АВАРИЙНОЕ ОТКЛЮЧЕНИЕ (ОПАСНО!)');
-    updateAdminOutput('HELP                - ЭТА СПРАВКА');
-    updateAdminOutput('LOGOUT              - ВЫЙТИ ИЗ АДМИН-РЕЖИМА');
-}
-
-// ====== РЕАЛЬНОЕ УПРАВЛЕНИЕ САЙТОМ ======
-
-// Показать окно технических работ
-function showEmergencyOverlay() {
-    const overlay = document.getElementById('emergency-overlay-admin');
-    if (overlay) {
-        overlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Скрыть окно технических работ
-function hideEmergencyOverlay() {
-    const overlay = document.getElementById('emergency-overlay-admin');
-    if (overlay) {
-        overlay.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-}
-
-// ГЛОБАЛЬНОЕ отключение сайта (имитация реального падения)
-function simulateGlobalSiteDown() {
-    // 1. Блокируем ВЕСЬ интерфейс
-    document.body.style.pointerEvents = 'none';
-    document.body.style.opacity = '0.2';
-    document.body.style.filter = 'grayscale(100%) blur(5px)';
-    
-    // 2. Показываем реалистичный экран ошибки
-    const errorOverlay = document.createElement('div');
-    errorOverlay.id = 'global-error-overlay';
-    errorOverlay.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2c3e50, #4a6572); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 99998; color: white; text-align: center; font-family: 'Segoe UI', sans-serif;">
-            <div style="font-size: 80px; margin-bottom: 20px;">🌧️💥</div>
-            <h1 style="font-size: 32px; margin-bottom: 15px; color: #ff6b6b;">Сервис временно недоступен</h1>
-            <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px; line-height: 1.5;">
-                Произошла критическая ошибка сервера.<br>
-                Наша команда уже работает над решением проблемы.
-            </p>
-            <div style="display: flex; gap: 15px; margin-bottom: 40px;">
-                <div style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
-                    <div style="font-size: 12px; opacity: 0.7;">Код ошибки</div>
-                    <div style="font-weight: bold;">500 INTERNAL_SERVER_ERROR</div>
-                </div>
-                <div style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
-                    <div style="font-size: 12px; opacity: 0.7;">Время ответа</div>
-                    <div style="font-weight: bold;">TIMEOUT</div>
-                </div>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 12px; max-width: 400px;">
-                <div style="font-size: 14px; margin-bottom: 10px;">📞 Техническая поддержка</div>
-                <div style="font-size: 12px; opacity: 0.8;">support@weatherapp.com • +7 (999) 123-45-67</div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(errorOverlay);
-    
-    // 3. Сохраняем состояние
-    localStorage.setItem('globalDown', 'true');
-    
-    // 4. Админ-панель остаётся поверх всего
-    const adminPanel = document.getElementById('admin-panel');
-    if (adminPanel) adminPanel.style.zIndex = '99999';
-}
-
-// Восстановление глобального падения
-function restoreGlobalSite() {
-    // 1. Убираем оверлей ошибки
-    const errorOverlay = document.getElementById('global-error-overlay');
-    if (errorOverlay) errorOverlay.remove();
-    
-    // 2. Восстанавливаем интерфейс
-    document.body.style.pointerEvents = '';
-    document.body.style.opacity = '1';
-    document.body.style.filter = 'none';
-    
-    // 3. Чистим состояние
-    localStorage.removeItem('globalDown');
-    
-    // 4. Возвращаем нормальный z-index
-    const adminPanel = document.getElementById('admin-panel');
-    if (adminPanel) adminPanel.style.zIndex = '10000';
-}
-
-// Имитация отключения API
-function simulateAPIOutage() {
-    // Переопределяем функции API чтобы они возвращали ошибки
-    window.originalGetWeatherByCoords = getWeatherByCoords;
-    window.originalGetWeatherByCity = getWeatherByCity;
-    
-    getWeatherByCoords = function(lat, lon) {
-        showNotification('❌ Ошибка подключения к серверу погоды', 'error');
-        return Promise.reject(new Error('API Service Unavailable'));
-    };
-    
-    getWeatherByCity = function(city) {
-        showNotification('❌ Сервис погоды временно недоступен', 'error');
-        return Promise.reject(new Error('Weather API Offline'));
-    };
-    
-    // Показываем сообщение о проблемах с API
-    showNotification('🌐 Режим отключенных API активирован', 'warning');
-    localStorage.setItem('apiMock', 'true');
-}
-
-// Восстановление API
-function restoreAPIServices() {
-    // Восстанавливаем оригинальные функции
-    if (window.originalGetWeatherByCoords) {
-        getWeatherByCoords = window.originalGetWeatherByCoords;
-    }
-    if (window.originalGetWeatherByCity) {
-        getWeatherByCity = window.originalGetWeatherByCity;
-    }
-    
-    showNotification('🌐 API службы восстановлены', 'success');
-    localStorage.removeItem('apiMock');
-}
-
-// Восстановление при загрузке
-function restoreEmergencyState() {
-    const globalDown = localStorage.getItem('globalDown');
-    const apiMock = localStorage.getItem('apiMock');
-    
-    if (globalDown === 'true') {
-        setTimeout(() => {
-            simulateGlobalSiteDown();
-        }, 100);
-    }
-    
-    if (apiMock === 'true') {
-        setTimeout(() => {
-            simulateAPIOutage();
-        }, 100);
-    }
-}
-
-// АВАРИЙНОЕ ОТКЛЮЧЕНИЕ (но админ-панель остаётся!)
-function triggerRealPanic() {
-    updateAdminOutput('АВАРИЙНОЕ ОТКЛЮЧЕНИЕ АКТИВИРОВАНО');
-    updateAdminOutput('ВСЕ СИСТЕМЫ БУДУТ ОТКЛЮЧЕНЫ...');
-    updateAdminOutput('НО АДМИН-ПАНЕЛЬ ОСТАНЕТСЯ!');
-    
-    setTimeout(() => {
-        // Сохраняем админ-панель перед уничтожением всего
-        const adminPanel = document.getElementById('admin-panel');
-        const adminHTML = adminPanel ? adminPanel.outerHTML : '';
-        
-        // Уничтожаем всё КРОМЕ админ-панели
-        document.body.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; color: #ffffff; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 1; font-family: 'Consolas'; text-align: center; border: 2px solid #ffffff;">
-                <div style="font-size: 48px; margin-bottom: 20px;">💥</div>
-                <h1 style="font-size: 32px; margin-bottom: 20px; border-bottom: 1px solid #ffffff; padding-bottom: 10px;">СИСТЕМНЫЙ СБОЙ</h1>
-                <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px;">
-                    ПРОИЗОШЛА КРИТИЧЕСКАЯ ОШИБКА СИСТЕМЫ<br>
-                    ДЛЯ ВОССТАНОВЛЕНИЯ РАБОТЫ ПЕРЕЗАГРУЗИТЕ СТРАНИЦУ
-                </p>
-                <button onclick="window.location.reload()" style="padding: 15px 30px; background: #000000; border: 2px solid #ffffff; color: white; cursor: pointer; font-size: 16px; font-weight: bold;">
-                    ПЕРЕЗАГРУЗИТЬ СИСТЕМУ
-                </button>
-            </div>
-            ${adminHTML}
-        `;
-        
-        // Восстанавливаем функциональность админ-панели
-        setTimeout(() => {
-            const restoredPanel = document.getElementById('admin-panel');
-            if (restoredPanel) {
-                restoredPanel.style.zIndex = '1000000';
-                restoredPanel.style.display = 'block';
-                
-                // Восстанавливаем обработчики
-                const closeBtn = restoredPanel.querySelector('button[onclick*="closeAdminPanel"]');
-                const minimizeBtn = restoredPanel.querySelector('button[onclick*="minimizeAdminPanel"]');
-                const input = document.getElementById('admin-command');
-                
-                if (closeBtn) closeBtn.onclick = closeAdminPanel;
-                if (minimizeBtn) minimizeBtn.onclick = minimizeAdminPanel;
-                if (input) {
-                    input.onkeypress = function(e) {
-                        if (e.key === 'Enter') executeAdminCommand();
-                    };
-                }
-            }
-        }, 100);
-    }, 2000);
-}
-
-// Очистка кэша
-function clearAdminCache() {
-    localStorage.clear();
-    sessionStorage.clear();
-    updateAdminOutput('ВЕСЬ КЭШ ОЧИЩЕН. LOCALSTORAGE И SESSIONSTORAGE ПУСТЫ.');
-}
-
-// Системные данные
-function showSystemData() {
-    const data = {
-        'ТЕКУЩИЙ ГОРОД': currentCity || 'НЕ ВЫБРАН',
-        'ЕДИНИЦЫ ИЗМЕРЕНИЯ': currentUnits || 'CELSIUS',
-        'ТЕМА': currentTheme || 'DYNAMIC',
-        'ИЗБРАННЫЕ ГОРОДА': favorites ? favorites.length : 0,
-        'БРАУЗЕР': navigator.userAgent.split(' ')[0],
-        'ONLINE': navigator.onLine ? 'ДА' : 'НЕТ',
-        'ЭКРАН': `${screen.width}X${screen.height}`,
-        'ВРЕМЯ': new Date().toLocaleString('ru-RU')
-    };
-    
-    updateAdminOutput('=== СИСТЕМНАЯ ИНФОРМАЦИЯ ===');
-    Object.entries(data).forEach(([key, value]) => {
-        updateAdminOutput(`${key}: ${value}`);
-    });
-}
-
-// Отладочная информация
-function showDebugInfo() {
-    updateAdminOutput('=== ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ===');
-    updateAdminOutput(`ТЕКУЩИЙ ГОРОД: ${currentCity || 'НЕ ВЫБРАН'}`);
-    updateAdminOutput(`ЕДИНИЦЫ ИЗМЕРЕНИЯ: ${currentUnits || 'CELSIUS'}`);
-    updateAdminOutput(`ТЕМА: ${currentTheme || 'DYNAMIC'}`);
-    updateAdminOutput(`ИЗБРАННЫЕ ГОРОДА: ${favorites ? favorites.length : 0}`);
-    updateAdminOutput(`API КЛЮЧ: ${window.API_KEY ? 'УСТАНОВЛЕН' : 'ОТСУТСТВУЕТ'}`);
-    updateAdminOutput(`ГЕОЛОКАЦИЯ: ${window.userPlacemark ? 'АКТИВНА' : 'НЕ АКТИВНА'}`);
-    updateAdminOutput(`ONLINE: ${navigator.onLine ? 'ДА' : 'НЕТ'}`);
-}
-
-// ====== ИНИЦИАЛИЗАЦИЯ ======
-
-document.addEventListener('DOMContentLoaded', function() {
-    initAdminSystem();
-    
-    const adminCommandInput = document.getElementById('admin-command');
-    if (adminCommandInput) {
-        adminCommandInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                executeAdminCommand();
-            }
-        });
-    }
-    
-    const minimizedPanel = document.getElementById('admin-panel-minimized');
-    if (minizedPanel) {
-        minimizedPanel.addEventListener('click', restoreAdminPanel);
-    }
-});
-
-// ====== СОХРАНЕНИЕ СОСТОЯНИЯ ТЕХРАБОТ ======
-
-// Показать окно технических работ
-function showEmergencyOverlay() {
-    const overlay = document.getElementById('emergency-overlay-admin');
-    if (overlay) {
-        overlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // СОХРАНЯЕМ состояние в localStorage
-        localStorage.setItem('emergencyMode', 'true');
-    }
-}
-
-// Скрыть окно технических работ
-function hideEmergencyOverlay() {
-    const overlay = document.getElementById('emergency-overlay-admin');
-    if (overlay) {
-        overlay.style.display = 'none';
-        document.body.style.overflow = '';
-        
-        // УДАЛЯЕМ состояние из localStorage
-        localStorage.removeItem('emergencyMode');
-    }
-}
-
-// Восстановить состояние при загрузке страницы
-function restoreEmergencyState() {
-    const emergencyMode = localStorage.getItem('emergencyMode');
-    if (emergencyMode === 'true') {
-        // Если был включен режим техработ, восстанавливаем его
-        setTimeout(() => {
-            showEmergencyOverlay();
-            // Также восстанавливаем состояние сайта (если был отключен)
-            if (localStorage.getItem('siteDown') === 'true') {
-                simulateSiteDown();
-            }
-        }, 100);
-    }
-}
-
-// РЕАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА (с сохранением состояния)
-function simulateSiteDown() {
-    document.body.style.pointerEvents = 'none';
-    document.body.style.opacity = '0.3';
-    document.body.style.filter = 'grayscale(100%)';
-    
-    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
-    allElements.forEach(el => {
-        el.style.pointerEvents = 'none';
-        el.style.cursor = 'not-allowed';
-    });
-    
-    showEmergencyOverlay();
-    document.body.style.animationPlayState = 'paused';
-    
-    // СОХРАНЯЕМ состояние отключения сайта
-    localStorage.setItem('siteDown', 'true');
-    
-    updateAdminOutput('САЙТ УСПЕШНО ОТКЛЮЧЕН. ВСЕ ФУНКЦИИ ЗАБЛОКИРОВАНЫ.');
-}
-
-// Восстановление сайта (с очисткой состояния)
-function restoreSite() {
-    document.body.style.pointerEvents = '';
-    document.body.style.opacity = '1';
-    document.body.style.filter = 'none';
-    
-    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
-    allElements.forEach(el => {
-        el.style.pointerEvents = '';
-        el.style.cursor = '';
-    });
-    
-    hideEmergencyOverlay();
-    document.body.style.animationPlayState = 'running';
-    
-    // УДАЛЯЕМ состояние отключения сайта
-    localStorage.removeItem('siteDown');
-    
-    updateAdminOutput('САЙТ УСПЕШНО ВОССТАНОВЛЕН. ВСЕ ФУНКЦИИ АКТИВНЫ.');
-}
-
-// Обнови инициализацию в DOMContentLoaded:
-document.addEventListener('DOMContentLoaded', function() {
-    initAdminSystem();
-    
-    const adminCommandInput = document.getElementById('admin-command');
-    if (adminCommandInput) {
-        adminCommandInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                executeAdminCommand();
-            }
-        });
-    }
-    
-    const minimizedPanel = document.getElementById('admin-panel-minimized');
-    if (minimizedPanel) {
-        minimizedPanel.addEventListener('click', restoreAdminPanel);
-    }
-    
-    // ВОССТАНАВЛИВАЕМ состояние техработ при загрузке страницы
-    restoreEmergencyState();
-});
-
-function handleAdminCommand(command) {
-    switch(command.toLowerCase()) {
-        case 'emergency on':
-            showEmergencyOverlay();
-            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
-            break;
-            
-        case 'emergency off':
-            hideEmergencyOverlay();
-            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
-            break;
-            
-        case 'site down':
-            simulateSiteDown();
-            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
-            break;
-            
-        case 'site up':
-            restoreSite();
-            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
-            break;
-            
-        case 'clear state':
-            clearEmergencyState();
-            updateAdminOutput('ВСЕ СОСТОЯНИЯ СБРОШЕНЫ');
-            break;
-            
-
-    }
-}
-function handleAdminCommand(command) {
-    switch(command.toLowerCase()) {
-        case 'emergency on':
-            showEmergencyOverlay();
-            updateAdminOutput('ВКЛЮЧЕН РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ');
-            break;
-            
-        case 'emergency off':
-            hideEmergencyOverlay();
-            updateAdminOutput('РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ ОТКЛЮЧЕН');
-            break;
-            
-        case 'site down':
-            simulateSiteDown();
-            updateAdminOutput('САЙТ ПЕРЕВЕДЕН В АВАРИЙНЫЙ РЕЖИМ');
-            break;
-            
-        case 'site up':
-            restoreSite();
-            updateAdminOutput('САЙТ ВОССТАНОВЛЕН И РАБОТАЕТ В НОРМАЛЬНОМ РЕЖИМЕ');
-            break;
-            
-        case 'fix':
-        case 'recovery':
-        case 'восстановить':
-            emergencyRecovery();
-            updateAdminOutput('ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ ВЫПОЛНЕНО');
-            break;
-            
-        case 'clear state':
-            clearEmergencyState();
-            updateAdminOutput('ВСЕ СОСТОЯНИЯ СБРОШЕНЫ');
-            break;
-
-          case 'global down':
-            simulateGlobalSiteDown();
-            updateAdminOutput('ГЛОБАЛЬНОЕ ОТКЛЮЧЕНИЕ САЙТА АКТИВИРОВАНО');
-            break;
-            
-        case 'global up':
-            restoreGlobalSite();
-            updateAdminOutput('ГЛОБАЛЬНОЕ ВОССТАНОВЛЕНИЕ ВЫПОЛНЕНО');
-            break;
-            
-        case 'mock api':
-            simulateAPIOutage();
-            updateAdminOutput('РЕЖИМ ОТКЛЮЧЕННЫХ API АКТИВИРОВАН');
-            break;
-            
-        case 'restore api':
-            restoreAPIServices();
-            updateAdminOutput('API СЛУЖБЫ ВОССТАНОВЛЕНЫ');
-            break;
-    }    
-            
-}
-// Функция принудительной очистки всех состояний
-function clearEmergencyState() {
-    localStorage.removeItem('emergencyMode');
-    localStorage.removeItem('siteDown');
-    
-    // Принудительно восстанавливаем сайт
-    document.body.style.pointerEvents = '';
-    document.body.style.opacity = '1';
-    document.body.style.filter = 'none';
-    document.body.style.animationPlayState = 'running';
-    document.body.style.overflow = '';
-    
-    const allElements = document.querySelectorAll('button, input, a, .tile, .hour-card');
-    allElements.forEach(el => {
-        el.style.pointerEvents = '';
-        el.style.cursor = '';
-    });
-    
-    const overlay = document.getElementById('emergency-overlay-admin');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-// Глобальные функции
-window.closeAdminPanel = closeAdminPanel;
-window.minimizeAdminPanel = minimizeAdminPanel;
-window.executeAdminCommand = executeAdminCommand;
-window.executeAdminQuickCommand = executeAdminQuickCommand;
-window.hideEmergencyOverlay = hideEmergencyOverlay;
-
-// Вставь это прямо в консоль F12 чтобы восстановить сайт:
-function emergencyRecovery() {
-    // 1. Восстанавливаем весь сайт
-    document.body.style.pointerEvents = '';
-    document.body.style.opacity = '1';
-    document.body.style.filter = 'none';
-    document.body.style.animationPlayState = 'running';
-    document.body.style.overflow = '';
-    
-    // 2. Восстанавливаем все элементы
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach(el => {
-        el.style.pointerEvents = '';
-        el.style.cursor = '';
-    });
-    
-    // 3. Убираем все оверлеи техработ
-    const overlays = document.querySelectorAll('[id*="emergency"], [id*="overlay"]');
-    overlays.forEach(overlay => {
-        overlay.style.display = 'none';
-    });
-    
-    // 4. Чистим localStorage
-    localStorage.removeItem('emergencyMode');
-    localStorage.removeItem('siteDown');
-    
-    // 5. Принудительно показываем админ-панель
-    const adminPanel = document.getElementById('admin-panel');
-    if (adminPanel) {
-        adminPanel.style.display = 'block';
-        adminPanel.style.zIndex = '1000000';
-    }
-    
-    console.log('✅ Сайт восстановлен! Все функции активны.');
-}
-
-// Или ещё проще - одна команда:
-window.fix = emergencyRecovery;
-
-// Функции для переключения состояний сервисов
+// ========== СЕРВИСЫ (Внешние API) ==========
 function showServicesDetails() {
-    document.getElementById('services-normal').style.display = 'none';
-    document.getElementById('services-details').style.display = 'block';
+    const normal = document.getElementById('services-normal');
+    const details = document.getElementById('services-details');
+    if (normal && details) {
+        normal.style.display = 'none';
+        details.style.display = 'block';
+    }
 }
 
 function hideServicesDetails() {
-    document.getElementById('services-details').style.display = 'none';
-    document.getElementById('services-normal').style.display = 'block';
+    const normal = document.getElementById('services-normal');
+    const details = document.getElementById('services-details');
+    if (normal && details) {
+        normal.style.display = 'block';
+        details.style.display = 'none';
+    }
 }
+
+// ========== АДМИН РЕЖИМ ==========
+let adminMode = false;
+let adminLoginTime = null;
+let siteEnabled = localStorage.getItem('siteEnabled') !== 'false';
+
+// ========== СИСТЕМА ВЫКЛЮЧЕНИЯ САЙТА ==========
+function checkSiteStatus() {
+    if (!siteEnabled) {
+        showSiteDisabledScreen();
+        return false;
+    }
+    return true;
+}
+
+function showSiteDisabledScreen() {
+    document.body.innerHTML = '';
+    document.body.style.cssText = `
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        font-family: 'Segoe UI', sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    `;
+    
+    const hour = new Date().getHours();
+    let greeting;
+    if (hour >= 5 && hour < 12) greeting = 'Доброе утро!';
+    else if (hour >= 12 && hour < 18) greeting = 'Добрый день!';
+    else if (hour >= 18 && hour < 23) greeting = 'Добрый вечер!';
+    else greeting = 'Доброй ночи!';
+
+    const container = document.createElement('div');
+    container.style.cssText = `
+        max-width: 500px;
+        padding: 40px;
+    `;
+    
+    container.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">🔧</div>
+        <h1 style="font-size: 32px; margin-bottom: 10px;">Weather Overcast</h1>
+        <div style="font-size: 24px; margin-bottom: 10px; opacity: 0.9;">${greeting}</div>
+        <div style="font-size: 20px; margin-bottom: 30px;">Сайт отключен</div>
+        <div style="font-size: 18px; margin-bottom: 40px; line-height: 1.5;">
+            Сайт временно отключен для технического обслуживания.<br>
+            Мы работаем над улучшением сервиса и скоро вернемся!
+        </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; font-size: 14px;">
+            💻 Для восстановления откройте консоль (F12) и введите:<br>
+            <code style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 5px; font-size: 16px; margin-top: 10px; display: inline-block;">
+                rebot_site()
+            </code>
+        </div>
+    `;
+    
+    document.body.appendChild(container);
+}
+
+// ========== ОСНОВНЫЕ АДМИН КОМАНДЫ ==========
+function admin() {
+    if (adminMode) {
+        console.log('%c⚠️ Админ-режим уже активирован!', 'color: #FFA500; font-size: 14px;');
+        return;
+    }
+    
+    adminMode = true;
+    adminLoginTime = new Date();
+    
+    // Красивое лого W
+    console.log(`%c
+    ██╗    ██╗███████╗███████╗████████╗██╗  ██╗███████╗██████╗ 
+    ██║    ██║██╔════╝██╔════╝╚══██╔══╝██║  ██║██╔════╝██╔══██╗
+    ██║ █╗ ██║█████╗  █████╗     ██║   ███████║█████╗  ██████╔╝
+    ██║███╗██║██╔══╝  ██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗
+    ╚███╔███╔╝███████╗███████╗   ██║   ██║  ██║███████╗██║  ██║
+     ╚══╝╚══╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+    `, 'color: #5D8AA8; font-size: 10px;');
+    
+    // Приветствие по времени суток
+    const hour = new Date().getHours();
+    let greeting;
+    
+    if (hour >= 5 && hour < 12) {
+        greeting = 'Доброе утро! ☀️';
+    } else if (hour >= 12 && hour < 18) {
+        greeting = 'Добрый день! 🌤️';
+    } else if (hour >= 18 && hour < 23) {
+        greeting = 'Добрый вечер! 🌙';
+    } else {
+        greeting = 'Доброй ночи! 🌌';
+    }
+    
+    console.log(`%c${greeting}`, 'color: #87CEEB; font-size: 16px; font-weight: bold;');
+    
+    // Информация о входе
+    console.log(`%c🕐 Вход выполнен: ${adminLoginTime.toLocaleString('ru-RU')}`, 'color: #34C759; font-size: 12px;');
+    console.log(`%c🔧 Админ-режим активирован`, 'color: #FF9500; font-size: 12px;');
+    
+    // Список команд
+    console.log(`%c
+Доступные команды:
+%cadmin_help()%c - Показать это сообщение
+%cadmin_time()%c - Текущее время и uptime
+%cadmin_stats()%c - Статистика приложения
+%cdrop_site()%c - 💀 ВЫРУБИТЬ сайт на всех устройствах
+%crebot_site()%c - ✅ ВОССТАНОВИТЬ сайт
+%cadmin_theme(theme)%c - Сменить тему (light/dark/dynamic)
+%cadmin_notify(message)%c - Показать уведомление
+%cadmin_clear()%c - Очистить localStorage
+%cadmin_exit()%c - Выйти из админ-режима
+    `.trim(), 
+    'color: #FFFFFF; font-size: 12px;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FF453A;', 'color: #FFFFFF;',
+    'color: #32D74B;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;',
+    'color: #FFD60A;', 'color: #FFFFFF;'
+    );
+    
+    // Показываем уведомление
+    iosNotifications.success('Админ-режим', 'Режим разработчика активирован', 3000);
+}
+
+function admin_help() {
+    if (!checkAdminMode()) return;
+    
+    console.log(`%c
+📖 Справка по админ-командам:
+
+%cОсновные команды:
+%cadmin_help()%c - Эта справка
+%cadmin_time()%c - Время и uptime
+%cadmin_stats()%c - Статистика приложения
+
+%cГЛОБАЛЬНОЕ УПРАВЛЕНИЕ (ОПАСНО!):
+%cdrop_site()%c - 💀 ВЫРУБИТЬ сайт на ВСЕХ устройствах
+%crebot_site()%c - ✅ ВОССТАНОВИТЬ сайт глобально  
+%csite_status()%c - 🌐 Статус сайта
+
+%cУправление темой:
+%cadmin_theme('light')%c - Светлая тема
+%cadmin_theme('dark')%c - Тёмная тема  
+%cadmin_theme('dynamic')%c - Динамическая тема
+
+%cУтилиты:
+%cadmin_notify('Текст')%c - Тестовое уведомление
+%cadmin_clear()%c - Очистка данных
+%cadmin_exit()%c - Выход из режима
+%cforce_refresh()%c - 🔄 Принудительное обновление
+%ctest_connection()%c - 🧪 Тест соединения
+
+%cОтладочные команды:
+%csimulateError()%c - Имитация ошибки
+%cdebugInfo()%c - Отладочная информация
+    `.trim(),
+    'color: #FFFFFF; font-size: 12px;',
+    'color: #FFD60A; font-size: 11px;',
+    'color: #32D74B;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #32D74B;', 'color: #FFFFFF; font-size: 11px;', 
+    'color: #32D74B;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FF453A; font-size: 11px; font-weight: bold;',
+    'color: #FF453A;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #32D74B;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FFD60A;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FFD60A; font-size: 11px;',
+    'color: #FF453A;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FF453A;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FF453A;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FFD60A; font-size: 11px;',
+    'color: #0A84FF;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #0A84FF;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #0A84FF;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #0A84FF;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #0A84FF;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #FFD60A; font-size: 11px;',
+    'color: #BF5AF2;', 'color: #FFFFFF; font-size: 11px;',
+    'color: #BF5AF2;', 'color: #FFFFFF; font-size: 11px;'
+    );
+}
+
+function admin_time() {
+    if (!checkAdminMode()) return;
+    
+    const now = new Date();
+    const uptime = adminLoginTime ? Math.round((now - adminLoginTime) / 1000) : 0;
+    
+    console.log(`%c⏰ Время системы:`, 'color: #FFD60A; font-size: 14px;');
+    console.log(`%c   Текущее: ${now.toLocaleString('ru-RU')}`, 'color: #FFFFFF;');
+    console.log(`%c   Uptime: ${uptime} секунд`, 'color: #32D74B;');
+    console.log(`%c   Вход в админ: ${adminLoginTime.toLocaleString('ru-RU')}`, 'color: #0A84FF;');
+}
+
+function admin_stats() {
+    if (!checkAdminMode()) return;
+    
+    const favoritesCount = favorites.length;
+    const storageUsage = JSON.stringify(localStorage).length;
+    const theme = currentTheme;
+    const units = currentUnits;
+    
+    console.log(`%c📊 Статистика приложения:`, 'color: #FFD60A; font-size: 14px;');
+    console.log(`%c   Избранные города: ${favoritesCount}`, 'color: #32D74B;');
+    console.log(`%c   Размер localStorage: ${storageUsage} байт`, 'color: #0A84FF;');
+    console.log(`%c   Текущая тема: ${theme}`, 'color: #FF453A;');
+    console.log(`%c   Единицы измерения: ${units}`, 'color: #BF5AF2;');
+    console.log(`%c   Текущий город: ${currentCity || 'Не выбран'}`, 'color: #FF9F0A;');
+}
+
+function admin_theme(theme) {
+    if (!checkAdminMode()) return;
+    
+    const validThemes = ['light', 'dark', 'dynamic'];
+    if (!validThemes.includes(theme)) {
+        console.log(`%c❌ Неверная тема. Доступные: ${validThemes.join(', ')}`, 'color: #FF453A;');
+        return;
+    }
+    
+    updateTheme(theme);
+    saveSettings();
+    console.log(`%c✅ Тема изменена на: ${theme}`, 'color: #32D74B;');
+    iosNotifications.success('Админ', `Тема изменена на ${theme}`, 2000);
+}
+
+function admin_notify(message = 'Тестовое уведомление из админ-режима') {
+    if (!checkAdminMode()) return;
+    
+    iosNotifications.info('Админ-уведомление', message, 3000);
+    console.log(`%c📢 Уведомление отправлено: "${message}"`, 'color: #0A84FF;');
+}
+
+function admin_clear() {
+    if (!checkAdminMode()) return;
+    
+    if (confirm('Очистить все данные приложения?')) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+function admin_exit() {
+    if (!adminMode) {
+        console.log(`%c⚠️ Админ-режим не активирован`, 'color: #FFA500;');
+        return;
+    }
+    
+    const sessionTime = Math.round((new Date() - adminLoginTime) / 1000);
+    adminMode = false;
+    adminLoginTime = null;
+    
+    console.log(`%c👋 Выход из админ-режима`, 'color: #FF453A; font-size: 14px;');
+    console.log(`%c   Сессия длилась: ${sessionTime} секунд`, 'color: #FFA500;');
+    
+    iosNotifications.info('Админ-режим', 'Режим разработчика деактивирован', 2000);
+}
+
+// ========== ГЛОБАЛЬНОЕ УПРАВЛЕНИЕ САЙТОМ ==========
+function drop_site() {
+    if (!checkAdminMode()) return;
+    
+    console.log(`%c
+    ██████╗ ██████╗  ██████╗ ██████╗     ███████╗██╗████████╗███████╗
+    ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗    ██╔════╝██║╚══██╔══╝██╔════╝
+    ██║  ██║██████╔╝██║   ██║██████╔╝    █████╗  ██║   ██║   █████╗  
+    ██║  ██║██╔══██╗██║   ██║██╔═══╝     ██╔══╝  ██║   ██║   ██╔══╝  
+    ██████╔╝██║  ██║╚██████╔╝██║         ██║     ██║   ██║   ███████╗
+    ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝         ╚═╝     ╚═╝   ╚═╝   ╚══════╝
+    `, 'color: #FF453A; font-size: 8px;');
+    
+    localStorage.setItem('siteEnabled', 'false');
+    localStorage.setItem('siteDisabledTime', new Date().toISOString());
+    siteEnabled = false;
+    
+    console.log(`%c💀 САЙТ ВЫРУБЛЕН НА ВСЕХ УСТРОЙСТВАХ!`, 'color: #FF453A; font-size: 18px; font-weight: bold;');
+    console.log(`%c⏰ Время отключения: ${new Date().toLocaleString('ru-RU')}`, 'color: #FFA500;');
+    console.log(`%c🔧 Для восстановления введите: %crebot_site()%c`, 
+        'color: #FFFFFF;', 'color: #32D74B; font-weight: bold;', 'color: #FFFFFF;');
+    
+    setTimeout(() => {
+        showSiteDisabledScreen();
+    }, 1000);
+}
+
+function rebot_site() {
+    console.log(`%c
+    ██████╗ ███████╗██████╗  ██████╗ ████████╗    ███████╗██╗████████╗███████╗
+    ██╔══██╗██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝    ██╔════╝██║╚══██╔══╝██╔════╝
+    ██████╔╝█████╗  ██████╔╝██║   ██║   ██║       █████╗  ██║   ██║   █████╗  
+    ██╔══██╗██╔══╝  ██╔══██╗██║   ██║   ██║       ██╔══╝  ██║   ██║   ██╔══╝  
+    ██║  ██║███████╗██████╔╝╚██████╔╝   ██║       ██║     ██║   ██║   ███████╗
+    ╚═╝  ╚═╝╚══════╝╚═════╝  ╚═════╝    ╚═╝       ╚═╝     ╚═╝   ╚═╝   ╚══════╝
+    `, 'color: #32D74B; font-size: 8px;');
+    
+    localStorage.setItem('siteEnabled', 'true');
+    localStorage.setItem('siteRestoredTime', new Date().toISOString());
+    siteEnabled = true;
+    
+    console.log(`%c✅ САЙТ ВОССТАНОВЛЕН!`, 'color: #32D74B; font-size: 18px; font-weight: bold;');
+    console.log(`%c⏰ Время восстановления: ${new Date().toLocaleString('ru-RU')}`, 'color: #32D74B;');
+    
+    const disabledTime = localStorage.getItem('siteDisabledTime');
+    if (disabledTime) {
+        const downtime = Math.round((new Date() - new Date(disabledTime)) / 1000);
+        console.log(`%c📊 Сайт был выключен: ${downtime} секунд`, 'color: #FFD60A;');
+    }
+    
+    console.log(`%c🔄 Перезагрузка через 2 секунды...`, 'color: #0A84FF;');
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
+
+function site_status() {
+    if (!checkAdminMode()) return;
+    
+    const enabled = localStorage.getItem('siteEnabled') !== 'false';
+    const disabledTime = localStorage.getItem('siteDisabledTime');
+    
+    console.log(`%c🌐 Статус сайта:`, 'color: #FFD60A; font-size: 16px;');
+    console.log(`%c   Состояние: ${enabled ? '✅ ВКЛЮЧЕН' : '❌ ВЫКЛЮЧЕН'}`, 
+                `color: ${enabled ? '#32D74B' : '#FF453A'}; font-weight: bold;`);
+    
+    if (!enabled && disabledTime) {
+        const downtime = Math.round((new Date() - new Date(disabledTime)) / 1000);
+        console.log(`%c   Отключен: ${new Date(disabledTime).toLocaleString('ru-RU')}`, 'color: #FFA500;');
+        console.log(`%c   Простой: ${downtime} секунд`, 'color: #FFA500;');
+    }
+}
+
+// ========== УТИЛИТЫ И ОТЛАДКА ==========
+function force_refresh() {
+    if (!checkAdminMode()) return;
+    
+    console.log(`%c🔄 Принудительное обновление данных...`, 'color: #0A84FF;');
+    
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => {
+                console.log(`🗑️ Удаляем кэш: ${name}`);
+                caches.delete(name);
+            });
+        });
+    }
+    
+    sessionStorage.clear();
+    console.log('🗑️ Очищен sessionStorage');
+    
+    iosNotifications.info('Обновление', 'Очистка кэша и обновление данных', 2000);
+    
+    setTimeout(() => {
+        if (userPlacemark) {
+            const coords = userPlacemark.geometry.getCoordinates();
+            console.log(`📍 Обновляем данные для координат: ${coords[0]}, ${coords[1]}`);
+            getWeatherByCoords(coords[0], coords[1]);
+        } else if (currentCity) {
+            console.log(`🏙️ Обновляем данные для города: ${currentCity}`);
+            getWeatherByCity(currentCity);
+        } else {
+            console.log('🎯 Обновляем данные по геолокации');
+            getUserLocation();
+        }
+    }, 1000);
+}
+
+function test_connection() {
+    if (!checkAdminMode()) return;
+    
+    console.log(`%c🧪 Тестирование соединения...`, 'color: #FFD60A;');
+    
+    console.log(`%c📡 Online: ${navigator.onLine}`, 'color: #32D74B;');
+    console.log(`%c🌐 User Agent: ${navigator.userAgent}`, 'color: #0A84FF;');
+    
+    const testUrls = [
+        'https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo',
+        'https://api.openweathermap.org/data/2.5/forecast?q=London&appid=demo'
+    ];
+    
+    testUrls.forEach(url => {
+        fetch(url, { method: 'HEAD' })
+            .then(response => {
+                console.log(`%c✅ ${url} - Доступен (${response.status})`, 'color: #32D74B;');
+            })
+            .catch(error => {
+                console.log(`%c❌ ${url} - Недоступен: ${error.message}`, 'color: #FF453A;');
+            });
+    });
+    
+    iosNotifications.info('Тест связи', 'Проверка соединения с API', 3000);
+}
+
+function simulateError() {
+    if (!checkAdminMode()) return;
+    
+    try {
+        throw new Error('Тестовая ошибка из админ-режима');
+    } catch (error) {
+        console.error(`%c🔧 Имитация ошибки:`, 'color: #FF453A;', error);
+        iosNotifications.error('Тест ошибки', 'Имитация ошибки выполнена', 3000);
+    }
+}
+
+function debugInfo() {
+    if (!checkAdminMode()) return;
+    
+    console.log(`%c🐛 Отладочная информация:`, 'color: #FFD60A; font-size: 14px;');
+    console.log(`%c   User Agent: ${navigator.userAgent}`, 'color: #FFFFFF; font-size: 11px;');
+    console.log(`%c   Online: ${navigator.onLine}`, 'color: #32D74B;');
+    console.log(`%c   Screen: ${screen.width}x${screen.height}`, 'color: #0A84FF;');
+    console.log(`%c   Viewport: ${window.innerWidth}x${window.innerHeight}`, 'color: #BF5AF2;');
+    console.log(`%c   Cookies: ${navigator.cookieEnabled}`, 'color: #FF9F0A;');
+    console.log(`%c   JavaScript: enabled`, 'color: #FF453A;');
+}
+
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+function checkAdminMode() {
+    if (!adminMode) {
+        console.log(`%c❌ Админ-режим не активирован! Введите %cadmin()%c для доступа.`, 
+            'color: #FF453A;', 'color: #FFD60A;', 'color: #FF453A;');
+        return false;
+    }
+    return true;
+}
+
+// Автоматически предлагаем админ-режим при ошибках
+window.addEventListener('error', function(event) {
+    if (!adminMode) {
+        console.log(`%c🚨 Обнаружена ошибка! Введите %cadmin()%c для отладки.`, 
+            'color: #FF453A;', 'color: #FFD60A;', 'color: #FF453A;');
+    }
+});
