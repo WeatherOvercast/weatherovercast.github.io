@@ -111,18 +111,10 @@
                     <button class="selector-btn" id="units-btn">
                         <span id="current-units">Цельсий (°C)</span>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <div class="selector-dropdown" id="units-dropdown">
-                        <div class="selector-option" data-units="celsius">Цельсий (°C)</div>
-                        <div class="selector-option" data-units="fahrenheit">Фаренгейт (°F)</div>
-                        <div class="selector-option" data-units="kelvin">Кельвин (K)</div>
-                    </div>
                 </div>
             </div>
-            
-
             <div class="settings-item">
                 <a href="#" class="settings-link">Сообщить о баге</a>
             </div>
@@ -434,12 +426,17 @@
                     <div class="info-card">
                         <div class="info-title">
                             <span>●</span>
-                            <span>Луна</span>
+                            <span>Фаза луны</span>
+                        
+                        <div class="info-hint">
+                        <div class="hint-question" id="moon-info-question" title="Что означают фазы луны?">?</div>
+                        </div>
                         </div>
                         <div class="info-content" id="moon-info">
                             <div class="moon-visualization">
                                 <div class="moon-circle">
                                     <div class="moon-phase" id="moon-phase"></div>
+                                    
                                 </div>
                                 <div class="moon-details">
                                     <div class="moon-detail-item" id="moon-phase-text">Фаза: --</div>
@@ -521,6 +518,118 @@
     </div>
     <button class="install-btn" id="install-btn">Установить</button>
   </div>
+</div>
+
+<!-- Панель информации о луне -->
+<div class="settings-overlay" id="moon-info-overlay">
+    <div class="settings-panel moon-info-panel">
+        <div class="settings-header">
+            <span>Фазы луны</span>
+            <div class="mini-moon" id="info-moon-visual">
+                <div class="mini-moon-phase"></div>
+            </div>
+        </div>
+
+        <div class="settings-item">
+            <div class="settings-title">Фазы луны</div>
+            <div class="moon-phases-info">
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 100%)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Новолуние</strong>
+                        <span>Луна не видна, начало цикла</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 75%)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Растущий серп</strong>
+                        <span>Появляется тонкий серп</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 50%)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Первая четверть</strong>
+                        <span>Видна половина растущей луны</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 25%)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Растущая луна</strong>
+                        <span>Больше половины освещено</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 0%)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Полнолуние</strong>
+                        <span>Луна полностью освещена</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 25% 0 0)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Убывающая луна</strong>
+                        <span>Начинает уменьшаться</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 50% 0 0)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Последняя четверть</strong>
+                        <span>Видна половина убывающей луны</span>
+                    </div>
+                </div>
+                <div class="moon-phase-item">
+                    <div class="moon-phase-icon">
+                        <div class="moon-phase-visual" style="clip-path: inset(0 75% 0 0)"></div>
+                    </div>
+                    <div class="moon-phase-text">
+                        <strong>Старый серп</strong>
+                        <span>Перед новолунием</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-item">
+            <div class="settings-title">Текущая фаза</div>
+            <div class="current-moon-info" id="current-moon-readings">
+                <div class="moon-reading-item">
+                    <span>Фаза:</span>
+                    <span class="reading-value" id="info-moon-phase">—</span>
+                </div>
+                <div class="moon-reading-item">
+                    <span>Возраст:</span>
+                    <span class="reading-value" id="info-moon-age">—</span>
+                </div>
+                <div class="moon-reading-item">
+                    <span>Статус:</span>
+                    <span class="reading-value" id="info-moon-status">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-item">
+            <button class="hint-close-btn" id="close-moon-info">Понятно</button>
+        </div>
+    </div>
 </div>
 <!-- Контейнер для уведомлений -->
 <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>

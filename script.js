@@ -16,6 +16,8 @@ let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
 let currentCity = '';
 let currentCityData = null;
 let favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
+let forecastData = null;
+let airQualityData = null;
 const TEMPERATURE_SHIFT = 0;
 
 
@@ -837,12 +839,15 @@ function updateMoonVisualization(phasePercent, isWaning) {
     moonPhase.style.height = '100%';
     moonPhase.style.borderRadius = '50%';
     moonPhase.style.background = '#f1c40f';
-    moonPhase.style.boxShadow = 'inset 0 0 10px rgba(241, 196, 15, 0.8)';
+    moonPhase.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+    moonPhase.style.boxShadow = 'inset 0 0 15px rgba(241, 196, 15, 0.8), 0 0 30px rgba(241, 196, 15, 0.4)';
 
     if (phasePercent === 0) {
         moonPhase.style.clipPath = 'inset(0 0 0 100%)';
     } else if (phasePercent === 100) {
         moonPhase.style.clipPath = 'inset(0 0 0 0%)';
+        // Яркое свечение для полной луны
+        moonPhase.style.background = '#f39c12';
     } else {
         if (isWaning) {
             const visiblePercent = phasePercent;
@@ -850,6 +855,11 @@ function updateMoonVisualization(phasePercent, isWaning) {
         } else {
             const visiblePercent = phasePercent;
             moonPhase.style.clipPath = `inset(0 0 0 ${100 - visiblePercent}%)`;
+        }
+        
+        // Усиленное свечение для почти полной луны
+        if (phasePercent > 80) {
+            moonPhase.style.boxShadow = 'inset 0 0 20px rgba(241, 196, 15, 0.85), 0 0 40px rgba(241, 196, 15, 0.5), 0 0 60px rgba(241, 196, 15, 0.2)';
         }
     }
 }
@@ -1300,7 +1310,6 @@ function loadMoonInfo() {
             console.log('Moon info:', info); 
             
             document.getElementById('moon-phase-text').textContent = `Фаза: ${info.phase}`;
-            // ЗАМЕНА: меняем "Освещённость" на "Статус роста"
             document.getElementById('moon-illumination').textContent = info.isWaning ? 'Статус: Убывание' : 'Статус: Возрастание';
             document.getElementById('moon-age').textContent = `Возраст: ${info.age} дней`;
             document.getElementById('moon-next').textContent = `Следующая фаза: ${info.nextPhase} (через ${info.daysToNext} дней)`;
@@ -2451,4 +2460,493 @@ function hideServicesDetails() {
         normal.style.display = 'block';
         details.style.display = 'none';
     }
+}
+// ========== ДЕБАГ ЛУНЫ В КОНСОЛИ ==========
+function moonDebug(phasePercent = null, isWaning = false) {
+    if (phasePercent === null) {
+        // Показать текущую фазу
+        const moonInfo = calculateMoonInfo();
+        moonInfo.then(info => {
+            console.log('🌙 ТЕКУЩАЯ ФАЗА ЛУНЫ:');
+            console.log(`Фаза: ${info.phase}`);
+            console.log(`Процент фазы: ${info.phasePercent}%`);
+            console.log(`Убывающая: ${info.isWaning}`);
+            console.log(`Возраст: ${info.age} дней`);
+            console.log('---');
+            console.log('Используй moonDebug(percentage, isWaning) для тестирования');
+            console.log('Пример: moonDebug(100, false) - полная луна');
+            console.log('Пример: moonDebug(0, false) - новолуние');
+            console.log('Пример: moonDebug(50, false) - первая четверть');
+            console.log('Пример: moonDebug(50, true) - последняя четверть');
+        });
+    } else {
+        // Установить тестовую фазу
+        console.log(`🌙 УСТАНОВЛЕНА ТЕСТОВАЯ ФАЗА: ${phasePercent}%`);
+        updateMoonVisualization(phasePercent, isWaning);
+        
+        // Обновляем текстовую информацию
+        document.getElementById('moon-phase-text').textContent = `Фаза: Тестовая (${phasePercent}%)`;
+        document.getElementById('moon-illumination').textContent = isWaning ? 'Статус: Убывание' : 'Статус: Возрастание';
+        document.getElementById('moon-age').textContent = `Возраст: тест`;
+        document.getElementById('moon-next').textContent = `Следующая фаза: тест`;
+    }
+}
+
+// Дебаг-команды для быстрого доступа
+window.moonTest = {
+    newMoon: () => moonDebug(0, false),
+    firstQuarter: () => moonDebug(50, false),
+    fullMoon: () => moonDebug(100, false),
+    lastQuarter: () => moonDebug(50, true),
+    waxing: (percent) => moonDebug(percent, false),
+    waning: (percent) => moonDebug(percent, true)
+};
+
+// Автоматически добавляем функцию в глобальную область видимости
+window.moonDebug = moonDebug;
+
+// Показываем подсказку при загрузке (только в development)
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    setTimeout(() => {
+        console.log('🌙 Moon Debug loaded!');
+        console.log('Используй moonDebug() для просмотра текущей фазы');
+        console.log('Используй moonDebug(percentage, isWaning) для тестирования');
+        console.log('Быстрые команды: moonTest.fullMoon(), moonTest.newMoon() и т.д.');
+    }, 2000);
+}
+// Детальный дебаг всех фаз
+function moonDebugAllPhases() {
+    console.log('🌙 ВСЕ ФАЗЫ ЛУНЫ ДЛЯ ТЕСТИРОВАНИЯ:');
+    
+    const testPhases = [
+        { percent: 0, name: 'Новолуние', waning: false },
+        { percent: 25, name: 'Растущий серп', waning: false },
+        { percent: 50, name: 'Первая четверть', waning: false },
+        { percent: 75, name: 'Растущая луна', waning: false },
+        { percent: 100, name: 'Полнолуние', waning: false },
+        { percent: 75, name: 'Убывающая луна', waning: true },
+        { percent: 50, name: 'Последняя четверть', waning: true },
+        { percent: 25, name: 'Старый серп', waning: true }
+    ];
+    
+    testPhases.forEach(phase => {
+        console.log(`moonDebug(${phase.percent}, ${phase.waning}) - ${phase.name}`);
+    });
+}
+
+window.moonDebugAllPhases = moonDebugAllPhases;
+
+// ========== ПОЛНЫЙ ДЕБАГ В КОНСОЛИ ==========
+window.weatherDebug = {
+    // Основная информация
+    info: function() {
+        console.log('🌐 WEATHER OVERCAST - DEBUG INFO');
+        console.log('================================');
+        console.log(`📍 Current City: ${currentCity || 'Not set'}`);
+        console.log(`🌡️ Units: ${currentUnits}`);
+        console.log(`🎨 Theme: ${currentTheme}`);
+        console.log(`⭐ Favorites: ${favorites.length} cities`);
+        console.log(`🗺️ Map: ${map ? 'Loaded' : 'Not loaded'}`);
+        console.log('---');
+    },
+    
+    // API информация
+    api: function() {
+        console.log('📡 API DEBUG INFO');
+        console.log('=================');
+        console.log(`🔑 API Key: ${API_KEY ? 'Set' : 'Not set'}`);
+        console.log(`🌐 Base URL: ${BASE_URL}`);
+        console.log(`💨 Air Quality URL: ${AIR_POLLUTION_URL}`);
+        console.log(`📍 Current City Data:`, currentCityData);
+        console.log('---');
+    },
+    
+    // Производительность
+    performance: function() {
+        console.log('⚡ PERFORMANCE DEBUG');
+        console.log('====================');
+        console.log(`🕒 Load Time: ${Math.round(performance.now())}ms`);
+        console.log(`📊 Memory: ${performance.memory ? `${Math.round(performance.memory.usedJSHeapSize / 1048576)}MB used` : 'N/A'}`);
+        console.log(`🔗 Connections: ${performance.getEntriesByType('navigation')[0]?.nextHopProtocol || 'N/A'}`);
+        console.log('---');
+    },
+    
+    // Локальное хранилище
+    storage: function() {
+        console.log('💾 STORAGE DEBUG');
+        console.log('================');
+        console.log('🎯 Favorites:', favorites);
+        console.log('⚙️ Settings:', {
+            units: localStorage.getItem('weatherUnits'),
+            theme: localStorage.getItem('weatherTheme')
+        });
+        console.log('📱 All localStorage:', { ...localStorage });
+        console.log('---');
+    },
+    
+    // Системная информация
+    system: function() {
+        console.log('🖥️ SYSTEM DEBUG');
+        console.log('===============');
+        console.log(`🌐 Online: ${navigator.onLine}`);
+        console.log(`📱 User Agent: ${navigator.userAgent}`);
+        console.log(`💾 Cookies: ${navigator.cookieEnabled}`);
+        console.log(`📍 Geolocation: ${navigator.geolocation ? 'Available' : 'Not available'}`);
+        console.log(`📦 Storage: ${navigator.storage ? 'Available' : 'Not available'}`);
+        console.log('---');
+    },
+    
+    // Погодные данные
+    weather: function() {
+        console.log('🌤️ WEATHER DATA DEBUG');
+        console.log('=====================');
+        console.log('📍 Current Data:', currentCityData);
+        console.log('📈 Forecast Data:', forecastData || 'Not loaded');
+        console.log('💨 Air Quality:', airQualityData || 'Not loaded');
+        console.log('---');
+    },
+    
+    // Луна
+    moon: function() {
+        calculateMoonInfo().then(moonInfo => {
+            console.log('🌙 MOON DEBUG');
+            console.log('=============');
+            console.log('📊 Moon Info:', moonInfo);
+            console.log('🎛️ Quick Commands:');
+            console.log('  weatherDebug.moonTest(0, false)    - New Moon');
+            console.log('  weatherDebug.moonTest(50, false)   - First Quarter');
+            console.log('  weatherDebug.moonTest(100, false)  - Full Moon');
+            console.log('  weatherDebug.moonTest(50, true)    - Last Quarter');
+            console.log('---');
+        });
+    },
+    
+    // Тестирование луны
+    moonTest: function(phasePercent, isWaning) {
+        console.log(`🌙 Testing Moon Phase: ${phasePercent}% ${isWaning ? '(Waning)' : '(Waxing)'}`);
+        updateMoonVisualization(phasePercent, isWaning);
+        
+        // Обновляем текстовую информацию
+        document.getElementById('moon-phase-text').textContent = `Фаза: Тестовая (${phasePercent}%)`;
+        document.getElementById('moon-illumination').textContent = isWaning ? 'Статус: Убывание' : 'Статус: Возрастание';
+        document.getElementById('moon-age').textContent = `Возраст: тест`;
+        document.getElementById('moon-next').textContent = `Следующая фаза: тест`;
+    },
+    
+    // Все уведомления
+    notifications: function() {
+        console.log('🔔 NOTIFICATIONS DEBUG');
+        console.log('=====================');
+        console.log('📱 iOS Notifications System: Active');
+        console.log('💬 Test Commands:');
+        console.log('  weatherDebug.testNotification("success")');
+        console.log('  weatherDebug.testNotification("error")');
+        console.log('  weatherDebug.testNotification("warning")');
+        console.log('  weatherDebug.testNotification("info")');
+        console.log('---');
+    },
+    
+    // Тестовые уведомления
+    testNotification: function(type = 'info') {
+        const messages = {
+            success: { title: 'Успех!', message: 'Это тестовое успешное уведомление' },
+            error: { title: 'Ошибка!', message: 'Это тестовое уведомление об ошибке' },
+            warning: { title: 'Внимание!', message: 'Это тестовое предупреждение' },
+            info: { title: 'Информация', message: 'Это тестовое информационное уведомление' }
+        };
+        
+        const msg = messages[type] || messages.info;
+        iosNotifications[type](msg.title, msg.message);
+        console.log(`🔔 Sent ${type} notification:`, msg);
+    },
+    
+    // Карта
+    map: function() {
+        console.log('🗺️ MAP DEBUG');
+        console.log('============');
+        console.log(`📍 Map Object:`, map);
+        console.log(`📍 User Placemark:`, userPlacemark);
+        console.log(`🎯 Current Coords:`, userPlacemark ? userPlacemark.geometry.getCoordinates() : 'Not set');
+        console.log('---');
+    },
+    
+    // Полный отчет
+    full: function() {
+        console.clear();
+        console.log('🚀 WEATHER OVERCAST - FULL DEBUG REPORT');
+        console.log('=======================================');
+        this.info();
+        this.api();
+        this.performance();
+        this.storage();
+        this.system();
+        this.weather();
+        this.moon();
+        this.notifications();
+        this.map();
+        
+        console.log('🎮 QUICK COMMANDS:');
+        console.log('  weatherDebug.info()       - Basic info');
+        console.log('  weatherDebug.full()       - Full report');
+        console.log('  weatherDebug.moon()       - Moon data');
+        console.log('  weatherDebug.weather()    - Weather data');
+        console.log('  weatherDebug.storage()    - Storage info');
+        console.log('  weatherDebug.testNotification("success")');
+        console.log('  weatherDebug.moonTest(100, false)');
+    },
+    
+    // Экстренный сброс
+    reset: function() {
+        console.log('🔄 RESETTING APPLICATION...');
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+    },
+    
+    // Тест API
+    testAPI: async function() {
+        console.log('🧪 TESTING API CONNECTIONS...');
+        
+        try {
+            // Test weather API
+            const testResponse = await fetch(`${BASE_URL}/weather?q=London&appid=${API_KEY}&units=metric`);
+            console.log(`🌤️ Weather API: ${testResponse.ok ? '✅ OK' : '❌ FAILED'}`);
+            
+            // Test geolocation
+            if (navigator.geolocation) {
+                console.log('📍 Geolocation: ✅ Available');
+            } else {
+                console.log('📍 Geolocation: ❌ Not available');
+            }
+            
+            console.log('🎯 All tests completed');
+        } catch (error) {
+            console.log('❌ API Test failed:', error);
+        }
+    }
+};
+
+// Автоматически показываем подсказку при загрузке
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    setTimeout(() => {
+        console.log('🐛 Weather Debug loaded! Type "weatherDebug.full()" for complete report');
+        console.log('📚 Available commands: weatherDebug.info(), weatherDebug.api(), weatherDebug.weather(), etc.');
+    }, 3000);
+}
+
+// Глобальные переменные для дебага
+window._weatherGlobals = {
+    currentCity,
+    currentCityData,
+    currentUnits,
+    currentTheme,
+    favorites,
+    map,
+    userPlacemark,
+    forecastData,
+    airQualityData,
+    iosNotifications
+};
+// ========== ПАНЕЛЬ ИНФОРМАЦИИ О ЛУНЕ ==========
+function initMoonInfoPanel() {
+    const questionBtn = document.getElementById('moon-info-question');
+    const overlay = document.getElementById('moon-info-overlay');
+    const closeBtn = document.getElementById('close-moon-info');
+
+    if (!questionBtn || !overlay || !closeBtn) return;
+
+    // Создаем кнопку вопроса если её нет
+    if (!questionBtn) {
+        const moonTile = document.querySelector('#moon-info .tile-header');
+        if (moonTile) {
+            const newQuestionBtn = document.createElement('div');
+            newQuestionBtn.className = 'hint-question';
+            newQuestionBtn.id = 'moon-info-question';
+            newQuestionBtn.textContent = '?';
+            newQuestionBtn.title = 'Что означают фазы луны?';
+            moonTile.appendChild(newQuestionBtn);
+            
+            newQuestionBtn.addEventListener('click', showMoonInfoPanel);
+        }
+    } else {
+        questionBtn.addEventListener('click', showMoonInfoPanel);
+    }
+
+    closeBtn.addEventListener('click', closeMoonInfoPanel);
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeMoonInfoPanel();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.style.display === 'flex') {
+            closeMoonInfoPanel();
+        }
+    });
+}
+
+function showMoonInfoPanel() {
+    const overlay = document.getElementById('moon-info-overlay');
+    if (!overlay) return;
+
+    // Обновляем информацию о текущей фазе
+    updateMoonInfoPanel();
+
+    overlay.style.display = 'flex';
+    document.body.classList.add('settings-open');
+}
+
+function closeMoonInfoPanel() {
+    const overlay = document.getElementById('moon-info-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        document.body.classList.remove('settings-open');
+    }
+}
+
+function updateMoonInfoPanel() {
+    calculateMoonInfo().then(moonInfo => {
+        // Обновляем текстовую информацию
+        document.getElementById('info-moon-phase').textContent = moonInfo.phase;
+        document.getElementById('info-moon-illumination').textContent = `${moonInfo.illumination}%`;
+        document.getElementById('info-moon-age').textContent = `${moonInfo.age} дней`;
+        document.getElementById('info-moon-status').textContent = moonInfo.isWaning ? 'Убывание' : 'Возрастание';
+        document.getElementById('info-moon-next').textContent = `${moonInfo.nextPhase} (через ${moonInfo.daysToNext} д.)`;
+
+        // Обновляем мини-луну
+        updateMiniMoon(moonInfo.phasePercent, moonInfo.isWaning);
+    });
+}
+
+function updateMiniMoon(phasePercent, isWaning) {
+    const miniMoon = document.querySelector('.mini-moon-phase');
+    if (!miniMoon) return;
+
+    miniMoon.style.cssText = '';
+
+    if (phasePercent === 0) {
+        miniMoon.style.clipPath = 'inset(0 0 0 100%)';
+    } else if (phasePercent === 100) {
+        miniMoon.style.clipPath = 'inset(0 0 0 0%)';
+        miniMoon.style.boxShadow = 'inset 0 0 8px rgba(241, 196, 15, 0.8), 0 0 15px rgba(241, 196, 15, 0.5)';
+    } else {
+        if (isWaning) {
+            miniMoon.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
+        } else {
+            miniMoon.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
+        }
+    }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', initMoonInfoPanel);
+
+// ========== УЛУЧШЕННАЯ МИНИ-ЛУНА ==========
+function updateMiniMoon(phasePercent, isWaning) {
+    const miniMoon = document.querySelector('.mini-moon-phase');
+    if (!miniMoon) return;
+
+    // Сбрасываем стили
+    miniMoon.style.cssText = '';
+    miniMoon.style.position = 'absolute';
+    miniMoon.style.top = '0';
+    miniMoon.style.left = '0';
+    miniMoon.style.width = '100%';
+    miniMoon.style.height = '100%';
+    miniMoon.style.borderRadius = '50%';
+    miniMoon.style.background = '#f1c40f';
+    miniMoon.style.transition = 'all 0.5s ease';
+    miniMoon.style.boxShadow = 'inset 0 0 4px rgba(241, 196, 15, 0.6)';
+
+    // Применяем фазу
+    if (phasePercent === 0) {
+        miniMoon.style.clipPath = 'inset(0 0 0 100%)';
+    } else if (phasePercent === 100) {
+        miniMoon.style.clipPath = 'inset(0 0 0 0%)';
+        miniMoon.style.boxShadow = 'inset 0 0 6px rgba(241, 196, 15, 0.8), 0 0 10px rgba(241, 196, 15, 0.4)';
+    } else {
+        if (isWaning) {
+            miniMoon.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
+        } else {
+            miniMoon.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
+        }
+    }
+}
+
+// Функция для обновления всех мини-лун в списке фаз
+function updateAllMiniMoons() {
+    const phases = [
+        { percent: 0, waning: false },    // Новолуние
+        { percent: 25, waning: false },   // Растущий серп
+        { percent: 50, waning: false },   // Первая четверть
+        { percent: 75, waning: false },   // Растущая луна
+        { percent: 100, waning: false },  // Полнолуние
+        { percent: 75, waning: true },    // Убывающая луна
+        { percent: 50, waning: true },    // Последняя четверть
+        { percent: 25, waning: true }     // Старый серп
+    ];
+
+    const moonIcons = document.querySelectorAll('.moon-phase-visual');
+    moonIcons.forEach((icon, index) => {
+        if (phases[index]) {
+            const phase = phases[index];
+            icon.style.cssText = '';
+            icon.style.position = 'absolute';
+            icon.style.top = '0';
+            icon.style.left = '0';
+            icon.style.width = '100%';
+            icon.style.height = '100%';
+            icon.style.borderRadius = '50%';
+            icon.style.background = '#f1c40f';
+            icon.style.boxShadow = 'inset 0 0 3px rgba(241, 196, 15, 0.6)';
+
+            if (phase.percent === 0) {
+                icon.style.clipPath = 'inset(0 0 0 100%)';
+            } else if (phase.percent === 100) {
+                icon.style.clipPath = 'inset(0 0 0 0%)';
+                icon.style.boxShadow = 'inset 0 0 5px rgba(241, 196, 15, 0.8)';
+            } else {
+                if (phase.waning) {
+                    icon.style.clipPath = `inset(0 ${100 - phase.percent}% 0 0)`;
+                } else {
+                    icon.style.clipPath = `inset(0 0 0 ${100 - phase.percent}%)`;
+                }
+            }
+        }
+    });
+}
+
+function updateMoonInfoPanel() {
+    calculateMoonInfo().then(moonInfo => {
+        // Обновляем только существующие элементы
+        const phaseElement = document.getElementById('info-moon-phase');
+        const ageElement = document.getElementById('info-moon-age');
+        const statusElement = document.getElementById('info-moon-status');
+        const nextElement = document.getElementById('info-moon-next');
+        
+        if (phaseElement) phaseElement.textContent = moonInfo.phase;
+        if (ageElement) ageElement.textContent = `${moonInfo.age} дней`;
+        if (statusElement) statusElement.textContent = moonInfo.isWaning ? 'Убывание' : 'Возрастание';
+        if (nextElement) nextElement.textContent = `${moonInfo.nextPhase} (через ${moonInfo.daysToNext} д.)`;
+
+        // Обновляем мини-луну в заголовке
+        updateMiniMoon(moonInfo.phasePercent, moonInfo.isWaning);
+        
+        // Обновляем все мини-луны в списке фаз
+        updateAllMiniMoons();
+    }).catch(error => {
+        console.log('Ошибка обновления панели луны:', error);
+        // Устанавливаем значения по умолчанию при ошибке
+        const phaseElement = document.getElementById('info-moon-phase');
+        const ageElement = document.getElementById('info-moon-age');
+        const statusElement = document.getElementById('info-moon-status');
+        const nextElement = document.getElementById('info-moon-next');
+        
+        if (phaseElement) phaseElement.textContent = 'Не доступно';
+        if (ageElement) ageElement.textContent = '—';
+        if (statusElement) statusElement.textContent = '—';
+        if (nextElement) nextElement.textContent = '—';
+    });
 }
