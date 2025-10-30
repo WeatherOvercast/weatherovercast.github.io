@@ -726,46 +726,45 @@ function calculateSimpleMoonPhase() {
     const knownNewMoon = new Date('2024-12-01T06:21:00Z').getTime();
     const currentTime = now.getTime();
     
-    // Корректируем время: если сейчас до 00:00, используем вчерашнюю дату
-    // чтобы фаза луны обновлялась сразу после полуночи
-    let calculationTime = currentTime;
-    if (now.getHours() < 0) { // После полуночи используем текущее время
-        calculationTime = currentTime;
-    } else {
-        // Для простоты всегда используем текущее время
-        calculationTime = currentTime;
-    }
+    // КОРРЕКТИРОВКА: Используем текущее время без изменений
+    // Фаза луны должна обновляться в реальном времени
+    const calculationTime = currentTime;
     
     // Лунный цикл в миллисекундах (29.53 дня)
     const lunarCycleMs = 29.53 * 24 * 60 * 60 * 1000;
     
     // Возраст луны в днях (0-29.53)
-    const moonAgeDays = ((calculationTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
+    let moonAgeDays = ((calculationTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
+    
+    // Обеспечиваем положительное значение возраста
+    if (moonAgeDays < 0) {
+        moonAgeDays += 29.53;
+    }
     
     // Фаза луны (0-1)
     const phase = moonAgeDays / 29.53;
     
     console.log('Локальный расчет луны:', { 
         currentTime: new Date(currentTime), 
-        calculationTime: new Date(calculationTime),
-        moonAgeDays, 
-        phase 
+        moonAgeDays: moonAgeDays.toFixed(2), 
+        phase: phase.toFixed(3)
     });
     
     return formatMoonPhase(phase);
 }
 
 function formatMoonPhase(phase) {
-    console.log('Phase from calculation:', phase);
+    console.log('Phase from calculation:', phase.toFixed(3));
     
     let phaseName, phasePercent, isWaning;
-    
+    const age = Math.floor(phase * 29.53);
+
     if (phase < 0.02 || phase > 0.98) {
         phaseName = 'Новолуние';
         phasePercent = 0;
         isWaning = false;
     } else if (phase < 0.25) {
-        phaseName = 'Растущая луна';
+        phaseName = 'Молодая луна';
         phasePercent = Math.round(phase * 4 * 25);
         isWaning = false;
     } else if (phase < 0.27) {
@@ -773,7 +772,7 @@ function formatMoonPhase(phase) {
         phasePercent = 50;
         isWaning = false;
     } else if (phase < 0.5) {
-        phaseName = 'Прибывающая луна';
+        phaseName = 'Растущая луна';
         phasePercent = 50 + Math.round((phase - 0.25) * 4 * 25);
         isWaning = false;
     } else if (phase < 0.52) {
@@ -796,21 +795,63 @@ function formatMoonPhase(phase) {
     
     const illumination = Math.round(Math.abs(Math.sin(2 * Math.PI * phase)) * 100);
     
-    console.log('Calculated illumination:', illumination);
+    // Рассчитываем время до следующей фазы
+    const daysToNext = getDaysToNext(phase);
+    const nextPhase = getNextPhase(phaseName);
+    const nextPhaseTime = formatDaysToTime(daysToNext);
+    
+    console.log('Calculated moon data:', { 
+        age: age,
+        phase: phaseName,
+        illumination: illumination,
+        daysToNext: daysToNext,
+        nextPhaseTime: nextPhaseTime
+    });
     
     return {
         phase: phaseName,
         illumination: illumination,
-        age: Math.round(phase * 29.53),
+        age: age,
         phasePercent: phasePercent,
         isWaning: isWaning,
-        nextPhase: getNextPhase(phaseName),
-        daysToNext: getDaysToNext(phase)
+        nextPhase: nextPhase,
+        daysToNext: daysToNext,
+        nextPhaseTime: nextPhaseTime // Добавляем форматированное время
     };
 }
 
+// Новая функция для форматирования времени
+function formatDaysToTime(days) {
+    const totalHours = Math.round(days * 24);
+    const daysPart = Math.floor(totalHours / 24);
+    const hoursPart = totalHours % 24;
+    
+    if (daysPart === 0) {
+        return `${hoursPart}ч`;
+    } else if (hoursPart === 0) {
+        return `${daysPart}д`;
+    } else {
+        return `${daysPart}д ${hoursPart}ч`;
+    }
+}
+
+// Обновляем функцию getDaysToNext для большей точности
+function getDaysToNext(phase) {
+    const lunarCycle = 29.5305882;
+    
+    if (phase < 0.25) {
+        return (0.25 - phase) * lunarCycle;
+    } else if (phase < 0.5) {
+        return (0.5 - phase) * lunarCycle;
+    } else if (phase < 0.75) {
+        return (0.75 - phase) * lunarCycle;
+    } else {
+        return (1 - phase) * lunarCycle;
+    }
+}
+
 function getNextPhase(currentPhase) {
-    const phases = ['Новолуние', 'Растущая луна', 'Первая четверть', 'Прибывающая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
+    const phases = ['Новолуние', 'Молодая луна', 'Первая четверть', 'Растущая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
     const currentIndex = phases.indexOf(currentPhase);
     return phases[(currentIndex + 1) % phases.length];
 }
@@ -1312,7 +1353,7 @@ function loadMoonInfo() {
             document.getElementById('moon-phase-text').textContent = `Фаза: ${info.phase}`;
             document.getElementById('moon-illumination').textContent = info.isWaning ? 'Статус: Убывание' : 'Статус: Возрастание';
             document.getElementById('moon-age').textContent = `Возраст: ${info.age} дней`;
-            document.getElementById('moon-next').textContent = `Следующая фаза: ${info.nextPhase} (через ${info.daysToNext} дней)`;
+            document.getElementById('moon-next').textContent = `Следующая фаза: ${info.nextPhase}`;
 
             updateMoonVisualization(info.phasePercent, info.isWaning);
         });
@@ -2878,14 +2919,14 @@ function updateMiniMoon(phasePercent, isWaning) {
 // Функция для обновления всех мини-лун в списке фаз
 function updateAllMiniMoons() {
     const phases = [
-        { percent: 0, waning: false },    // Новолуние
-        { percent: 25, waning: false },   // Растущий серп
-        { percent: 50, waning: false },   // Первая четверть
-        { percent: 75, waning: false },   // Растущая луна
-        { percent: 100, waning: false },  // Полнолуние
-        { percent: 75, waning: true },    // Убывающая луна
-        { percent: 50, waning: true },    // Последняя четверть
-        { percent: 25, waning: true }     // Старый серп
+        { percent: 0, waning: false, isNew: true },     // Новолуние
+        { percent: 25, waning: false },                 // Растущий серп
+        { percent: 50, waning: false },                 // Первая четверть
+        { percent: 75, waning: false },                 // Растущая луна
+        { percent: 100, waning: false, isFull: true },  // Полнолуние
+        { percent: 75, waning: true },                  // Убывающая луна
+        { percent: 50, waning: true },                  // Последняя четверть
+        { percent: 25, waning: true }                   // Старый серп
     ];
 
     const moonIcons = document.querySelectorAll('.moon-phase-visual');
@@ -2899,16 +2940,26 @@ function updateAllMiniMoons() {
             icon.style.width = '100%';
             icon.style.height = '100%';
             icon.style.borderRadius = '50%';
-            icon.style.background = '#f1c40f';
-            icon.style.boxShadow = 'inset 0 0 3px rgba(241, 196, 15, 0.6)';
+            icon.style.transition = 'all 0.5s ease';
 
-            if (phase.percent === 0) {
+            if (phase.isNew) {
+                // Серое новолуние
+                icon.style.background = 'radial-gradient(circle at 30% 30%, #e0e0e0 0%, #bdbdbd 40%, #9e9e9e 80%)';
+                icon.style.boxShadow = 'inset 0 0 3px rgba(224, 224, 224, 0.3), 0 0 5px rgba(158, 158, 158, 0.3)';
                 icon.style.clipPath = 'inset(0 0 0 100%)';
-            } else if (phase.percent === 100) {
+            } else if (phase.isFull) {
+                // Яркое полнолуние
+                icon.style.background = 'radial-gradient(circle at 30% 30%, #fff9c4 0%, #fff176 25%, #ffeb3b 50%, #fdd835 75%)';
+                icon.style.boxShadow = 'inset 0 0 4px rgba(255, 255, 255, 0.6), inset 0 0 8px rgba(255, 235, 59, 0.4), 0 0 8px rgba(255, 235, 59, 0.6), 0 0 15px rgba(255, 235, 59, 0.3)';
                 icon.style.clipPath = 'inset(0 0 0 0%)';
-                icon.style.boxShadow = 'inset 0 0 5px rgba(241, 196, 15, 0.8)';
             } else {
-                if (phase.waning) {
+                // Обычные фазы
+                icon.style.background = 'radial-gradient(circle at 30% 30%, #fff176 0%, #ffeb3b 30%, #fdd835 60%, #f9a825 90%)';
+                icon.style.boxShadow = 'inset 0 0 3px rgba(255, 255, 255, 0.4), 0 0 5px rgba(241, 196, 15, 0.3)';
+                
+                if (phase.percent === 0) {
+                    icon.style.clipPath = 'inset(0 0 0 100%)';
+                } else if (phase.waning) {
                     icon.style.clipPath = `inset(0 ${100 - phase.percent}% 0 0)`;
                 } else {
                     icon.style.clipPath = `inset(0 0 0 ${100 - phase.percent}%)`;
@@ -2949,4 +3000,11 @@ function updateMoonInfoPanel() {
         if (statusElement) statusElement.textContent = '—';
         if (nextElement) nextElement.textContent = '—';
     });
+}
+function showApiError() {
+  document.getElementById('api-error').style.display = 'block';
+}
+
+function hideApiError() {
+  document.getElementById('api-error').style.display = 'none';
 }
