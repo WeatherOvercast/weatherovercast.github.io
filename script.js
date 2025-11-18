@@ -496,7 +496,7 @@ function updateLoadingText() {
     if (hour >= 5 && hour < 8) {
         loadingText.textContent = "Загружаем сайт, пока вы готовите утренний кофе";
     } else if (hour >= 8 && hour < 15) {
-        loadingText.textContent = "Загружаем сайт пока вы работаете";
+        loadingText.textContent = "Загружаем сайт пока вы заняты";
     } else if (hour >= 15 && hour < 19) {
         const eveningTexts = [
             "Загружаем сайт пока вы наслаждаетесь вечером",
