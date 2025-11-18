@@ -352,8 +352,8 @@ body.night {
   background: linear-gradient(135deg, #0f1b2b 0%, #1a3658 100%);
 }
 body.snow {
-    background: linear-gradient(135deg, #B0C4DE, #D1E0F0, #E8F0F8);
-    color: #4A5568;
+    background: linear-gradient(135deg, #0f1a2c, #1e3a5f, #2d4b7a);
+    color: #e2e8f0;
 }
 
 body.thunderstorm {
