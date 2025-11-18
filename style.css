@@ -352,7 +352,7 @@ body.night {
   background: linear-gradient(135deg, #0f1b2b 0%, #1a3658 100%);
 }
 body.snow {
-    background: linear-gradient(135deg, #0f1a2c, #1e3a5f, #2d4b7a);
+    background: linear-gradient(135deg, #5278cb, #4669ab, #5663a7);
     color: #e2e8f0;
 }
 
@@ -3936,3 +3936,4 @@ body[class*="broken"] {
   opacity: 0.8;
   margin-top: 4px;
 }
+
