@@ -16,184 +16,172 @@
 <link rel="apple-touch-icon" href="maskable_icon_x512.png">
 </head>
 <body>
-    <!-- Экран загрузки -->
-    <div class="loading-screen" id="loading-screen">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <div class="loading-logo">Weather Overcast</div>
-            <div class="loading-text" id="loading-text">Загрузка погоды...</div>
-            <div class="loading-time-text" id="loading-time-text"></div>
-        </div>
+    <!-- Мобильная версия погодного блока -->
+<div class="mobile-weather-container">
+    <!-- Плавающие кнопки для мобильных -->
+    <div class="mobile-floating-buttons">
+    <button class="floating-btn settings-btn">
+        <svg class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="btn-text">Настройки</span>
+    </button>
+    
+    <button class="floating-btn functions-btn">
+        <svg class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+        <span class="btn-text functions-text">Функции</span>
+    </button>
     </div>
-
-    <header>
-        <div class="location-search">
-            <button class="find-me-btn" id="locate-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
-                </svg>
-                <span class="find-me-text">Найти меня</span>
-            </button>
-            <div class="search-container">
-                <input type="text" class="search-bar" id="city-search" placeholder="Поиск мест">
-                <div class="search-suggestions" id="search-suggestions"></div>
-            </div>
-            <button class="favorite-btn" id="favorite-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.04L12 21.35Z" fill="currentColor"/>
-                </svg>
-                <span class="favorite-text">В Избранное</span>
-            </button>
-            <button class="favorites-list-btn" id="favorites-list-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" 
-                          stroke="currentColor" stroke-width="2"/>
-                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2"/>
-                </svg>
-            </button>
+    
+    <div class="mobile-weather-card">
+        <!-- Основная информация -->
+        <div class="mobile-location">
+            <div class="mobile-city" id="mobile-city">Загрузка...</div>
+            <div class="mobile-date" id="mobile-date">--</div>
         </div>
-        <div class="logo">Weather Overcast</div>
-        <div class="header-controls">
-            <button class="icon-btn" id="settings-btn">
-                <div class="burger-icon">
-                    <div class="burger-line"></div>
-                    <div class="burger-line"></div>
-                    <div class="burger-line"></div>
-                </div>
-            </button>
-        </div>
-    </header>
 
-    <!-- ОКОШКО ИЗБРАННОГО -->
-    <div class="favorites-overlay" id="favorites-overlay">
-        <div class="favorites-panel">
-            <div class="favorites-header">
-                <span>Избранные города</span>
-                <button class="close-favorites" id="close-favorites">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+        <div class="mobile-weather-main">
+            <div class="mobile-weather-icon" id="mobile-weather-icon">
+                <!-- Иконка будет подставлена через JS -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2v4M4.93 4.93l2.83 2.83M2 12h4M4.93 19.07l2.83-2.83M12 22v-4M19.07 19.07l-2.83-2.83M22 12h-4M19.07 4.93l-2.83 2.83"/>
+                </svg>
             </div>
-            <div class="favorites-list" id="favorites-list">
-                <!-- Избранные города будут добавляться сюда -->
-            </div>
-            <div class="favorites-empty" id="favorites-empty">
-                Пока нет избранных городов
-            </div>
+            <div class="mobile-temperature" id="mobile-temperature">--°</div>
+            <div class="mobile-description" id="mobile-description">--</div>
         </div>
-    </div>
+        
 
-    <div class="settings-overlay" id="settings-overlay">
-        <div class="settings-panel">
-            <div class="settings-header">Настройки</div>
-            <div class="settings-item">
-                <div class="settings-title">Тема</div>
-                <div class="theme-options">
-                    <div class="theme-option active" data-theme="dynamic">
-                        <div class="theme-selector"></div>
-                        <span class="theme-text">Динамичная</span>
-                    </div>
-                    <div class="theme-option" data-theme="light">
-                        <div class="theme-selector"></div>
-                        <span class="theme-text">Светлая</span>
-                    </div>
-                    <div class="theme-option" data-theme="dark">
-                        <div class="theme-selector"></div>
-                        <span class="theme-text">Тёмная</span>
-                    </div>
+        <!-- Основные метрики -->
+        <div class="mobile-details-grid">
+            <div class="mobile-detail-card mobile-humidity">
+                <div class="mobile-detail-value" id="mobile-humidity">--%</div>
+                <div class="mobile-detail-label">Влажность</div>
+                <div class="mobile-progress-bar">
+                    <div class="mobile-progress-fill" id="mobile-humidity-bar"></div>
                 </div>
             </div>
-
-            <div class="settings-item">
-                <div class="units-selector">
-                    <div class="settings-title">Единицы температуры</div>
-                    <button class="selector-btn" id="units-btn">
-                        <span id="current-units">Цельсий (°C)</span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        </svg>
-                    </button>
+            <div class="mobile-detail-card mobile-wind">
+                <div class="mobile-detail-value" id="mobile-wind">-- км/ч</div>
+                <div class="mobile-detail-label" id="mobile-wind-direction">Ветер --</div>
+                <div class="mobile-progress-bar">
+                    <div class="mobile-progress-fill" id="mobile-wind-bar"></div>
                 </div>
             </div>
-            <div class="settings-item">
-                <a href="#" class="settings-link">Сообщить о баге</a>
+            <div class="mobile-detail-card mobile-pressure">
+                <div class="mobile-detail-value" id="mobile-pressure">-- мм рт.ст.</div>
+                <div class="mobile-detail-label">Давление</div>
+                <div class="mobile-progress-bar">
+                    <div class="mobile-progress-fill" id="mobile-pressure-bar"></div>
+                </div>
             </div>
-
-            <div class="settings-item">
-                <a href="https://t.me/prelude_commit" class="settings-link">Связаться с разработчиком</a>
-            </div>
-
-<!-- Buy me a coffee -->
-<div class="settings-item">
-    <div class="settings-title">Поддержать разработчика</div>
-    <a href="https://buymeacoffee.com/noah" target="_blank" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
-        <span style="font-size: 20px;">☕</span>
-        <span style="font-weight: 600;">Buy me a coffee</span>
-    </a>
-</div>
-
-<!-- Сервисы (переключаемая плашка) -->
-<div class="settings-item">
-    <div class="settings-title">Используемые сервисы</div>
-    <div id="services-container">
-        <!-- Обычное состояние -->
-        <div id="services-normal" class="services-state">
-            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; text-align: center; cursor: pointer;" onclick="showServicesDetails()">
-                <div style="font-size: 14px; margin-bottom: 5px;">● Внешние API</div>
-                <div style="font-size: 12px; opacity: 0.7;">Нажмите для просмотра сервисов</div>
+            <div class="mobile-detail-card mobile-feels-like">
+                <div class="mobile-detail-value" id="mobile-feels-like">--°</div>
+                <div class="mobile-detail-label">Ощущается</div>
             </div>
         </div>
         
-        <!-- Детальное состояние -->
-        <div id="services-details" class="services-state" style="display: none;">
-            <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
-                    <div style="font-weight: 600;">● Используемые сервисы</div>
-                    <button onclick="hideServicesDetails()" style="background: none; border: none; color: var(--text-color); cursor: pointer; padding: 4px; border-radius: 4px;">✕</button>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- OpenWeatherMap -->
-                    <a href="https://openweathermap.org/api" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.3); border-radius: 6px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
-                        <span style="font-size: 16px;">●</span>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 13px;">OpenWeatherMap</div>
-                            <div style="font-size: 11px; opacity: 0.7;">Погодные данные и прогнозы</div>
-                        </div>
-                        <span style="font-size: 12px; opacity: 0.7;">↗</span>
-                    </a>
-                    
-                    <!-- Yandex Maps -->
-                    <a href="https://yandex.ru/dev/maps/" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 6px; color: var(--text-color); text-decoration: none; transition: all 0.3s ease;">
-                        <span style="font-size: 16px;">●</span>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 13px;">Yandex Maps</div>
-                            <div style="font-size: 11px; opacity: 0.7;">Карты и геолокация</div>
-                        </div>
-                        <span style="font-size: 12px; opacity: 0.7;">↗</span>
-                    </a>
-                </div>
-                
-                <div style="margin-top: 12px; padding: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
-                    <div style="font-size: 11px; opacity: 0.7; text-align: center;">
-                        Нажмите на сервис для перехода на сайт API
-                    </div>
-                </div>
+
+<div class="mobile-additional-cards">
+    <!-- 1. Почасовой прогноз -->
+    <div class="mobile-additional-card">
+        <div class="mobile-card-title">
+            <svg class="mobile-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Почасовой прогноз
+        </div>
+        <div class="mobile-hourly-scroll" id="mobile-hourly">
+            <!-- Динамически заполнится через JS -->
+        </div>
+    </div>
+
+    <!-- 2. Прогноз на 5 дней -->
+    <div class="mobile-additional-card">
+        <div class="mobile-card-title">
+            <svg class="mobile-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            </svg>
+            5-дневный прогноз
+        </div>
+        <div class="mobile-forecast-list" id="mobile-forecast">
+            <!-- Динамически заполнится через JS -->
+        </div>
+    </div>
+
+ <div class="mobile-additional-card">
+    <div class="mobile-card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 18a5 5 0 0 0-10 0"/>
+            <line x1="12" y1="2" x2="12" y2="9"/>
+            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/>
+            <line x1="1" y1="18" x2="3" y2="18"/>
+            <line x1="21" y1="18" x2="23" y2="18"/>
+            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/>
+            <line x1="23" y1="22" x2="1" y2="22"/>
+        </svg>
+        <span>Солнце</span>
+    </div>
+    <div class="mobile-sun-moon-grid">
+        <div class="mobile-sun-item">
+            <div class="mobile-sun-icon sunrise">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v8"/>
+                    <path d="m4.93 10.93 1.41 1.41"/>
+                    <path d="M2 18h2"/>
+                    <path d="M20 18h2"/>
+                    <path d="m19.07 10.93-1.41 1.41"/>
+                    <path d="M22 22H2"/>
+                    <path d="m8 6 4-4 4 4"/>
+                    <path d="M16 18a4 4 0 0 0-8 0"/>
+                </svg>
+            </div>
+            <div class="mobile-sun-text">
+                <div class="mobile-sun-time" id="mobile-sunrise">--:--</div>
+                <div class="mobile-sun-label">Рассвет</div>
+            </div>
+        </div>
+        <div class="mobile-sun-item">
+            <div class="mobile-sun-icon sunset">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 18a5 5 0 0 0-10 0"/>
+            <line x1="12" y1="2" x2="12" y2="9"/>
+            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/>
+            <line x1="1" y1="18" x2="3" y2="18"/>
+            <line x1="21" y1="18" x2="23" y2="18"/>
+            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/>
+            <line x1="23" y1="22" x2="1" y2="22"/>
+        </svg>
+            </div>
+            <div class="mobile-sun-text">
+                <div class="mobile-sun-time" id="mobile-sunset">--:--</div>
+                <div class="mobile-sun-label">Закат</div>
             </div>
         </div>
     </div>
 </div>
 
+
+    <!-- 4. Качество воздуха -->
+    <div class="mobile-additional-card">
+        <div class="mobile-card-title">
+            <svg class="mobile-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 2v4M4.93 4.93l2.83 2.83M2 12h4M4.93 19.07l2.83-2.83M12 22v-4M19.07 19.07l-2.83-2.83M22 12h-4M19.07 4.93l-2.83 2.83"/>
+            </svg>
+            Качество воздуха
+        </div>
+        <div class="mobile-air-quality">
+            <div class="mobile-aqi-value" id="mobile-aqi">--</div>
+            <div class="mobile-aqi-label" id="mobile-aqi-label">--</div>
         </div>
     </div>
+</div>
 
-    <div class="container">
-        <div class="main-content">
-            <div class="loading" id="loading">
-                <div class="loading-spinner"></div>
-                <div>Загрузка данных о погоде...</div>
-            </div>
-
+<div>
             <div class="precipitation-map">
                 <div id="map"></div>
                 <div class="map-loading">Загрузка карты осадков...</div>
@@ -204,7 +192,6 @@
                     <div class="temperature-container">
                         <div class="temperature-icon" id="temperature-icon"></div>
                         <div class="temperature" id="current-temp">
-                            <span class="temp-bullet">●</span>
                             <span class="temp-value">--°</span>
                         </div>
                     </div>
@@ -319,7 +306,6 @@
                         <div class="tile">
                             <div class="tile-header">
                                 <div class="tile-title">
-                                    <span>●</span>
                                     <span>Рассвет и Закат</span>
                                 </div>
                             </div>
@@ -344,154 +330,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Обновленный блок советов с каруселью -->
-            <div class="weather-tip-carousel" id="weather-tip-carousel">
-                <div class="tip-slide active">
-                    <div class="tip-title">
-                        <span>●</span>
-                        <span>Совет</span>
-                    </div>
-                    <div class="tip-content" id="tip-text">Загрузка...</div>
-                </div>
-                <div class="tip-slide">
-                    <div class="tip-title">
-                        <span>●</span>
-                        <span>Интересный факт</span>
-                    </div>
-                    <div class="tip-content" id="fact-text">Загрузка...</div>
-                </div>
-                <div class="carousel-dots">
-                    <span class="dot active" data-slide="0"></span>
-                    <span class="dot" data-slide="1"></span>
-                </div>
-            </div>
-
-            <div class="hourly-forecast">
-                <h2 class="section-title">Прогноз на 24 часа <span style="font-size: 14px; opacity: 0.7;">(точность ~75%)</span></h2>
-                <div class="hours-container" id="hourly-forecast">
-                    <!-- Почасовой прогноз будет добавлен динамически -->
-                </div>
-                <div class="accuracy-note-24 italic-text">*Прогноз может незначительно отличаться от фактической погоды</div>
-            </div>
-
-            <div class="weekly-forecast">
-                <h2 class="section-title">Прогноз на неделю <span style="font-size: 14px; opacity: 0.7;">(точность ~80%)</span></h2>
-                <div class="forecast-week" id="forecast-week">
-                    <!-- Прогноз будет добавлен динамически -->
-                </div>
-                <div class="accuracy-note italic-text">*Точность прогноза снижается после 3-го дня</div>
-            </div>
-
-            <div class="additional-info">
-                <h2 class="section-title">Дополнительная информация</h2>
-                <div class="info-grid">
-                    <div class="info-card">
-                        <div class="info-title">
-                            <span>●</span>
-                            <span>Качество воздуха</span>
-                            <span class="hint-question" id="air-quality-question">?</span>
-                        </div>
-                        <div class="info-content" id="air-quality">
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>Индекс AQI: --</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>PM2.5: -- мкг/м³</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>PM10: -- мкг/м³</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>O₃: -- мкг/м³</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>NO₂: -- мкг/м³</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>SO₂: -- мкг/м³</span>
-                            </div>
-                            <div class="tile-content-item">
-                                <span>●</span>
-                                <span>CO: -- мкг/м³</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-title">
-                            <span>●</span>
-                            <span>Фаза луны</span>
-                        
-                        <div class="info-hint">
-                        <div class="hint-question" id="moon-info-question" title="Что означают фазы луны?">?</div>
-                        </div>
-                        </div>
-                        <div class="info-content" id="moon-info">
-                            <div class="moon-visualization">
-                                <div class="moon-circle">
-                                    <div class="moon-phase" id="moon-phase"></div>
-                                    
-                                </div>
-                                <div class="moon-details">
-                                    <div class="moon-detail-item" id="moon-phase-text">Фаза: --</div>
-                                    <div class="moon-detail-item" id="moon-illumination">Статус роста: --%</div>
-                                    <div class="moon-detail-item" id="moon-age">Возраст: -- дней</div>
-                                    <div class="moon-detail-item" id="moon-next">Следующая фаза: --</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accuracy-note italic-text">*Данные о качестве воздуха обновляются каждые 2 часа</div>
-                <div class="accuracy-note italic-text">*Фазы луны рассчитываются при помощи резервного расчёта (точность 80.1%)</div>
-</div>
-        </div>
-    </div>
-<div class="settings-overlay" id="air-quality-overlay">
-    <div class="settings-panel air-quality-panel">
-        <div class="settings-header">Качество воздуха</div>
-
-        <div class="settings-item">
-            <div class="settings-title">Индекс AQI</div>
-            <div class="aqi-levels">
-                <div class="aqi-level">
-                    <span class="aqi-badge aqi-good">1</span>
-                    <span class="aqi-text">Хороший - идеальные условия</span>
-                </div>
-                <div class="aqi-level">
-                    <span class="aqi-badge aqi-moderate">2</span>
-                    <span class="aqi-text">Удовлетворительный - нормально для большинства</span>
-                </div>
-                <div class="aqi-level">
-                    <span class="aqi-badge aqi-unhealthy-sensitive">3</span>
-                    <span class="aqi-text">Умеренный - чувствительным группам быть осторожнее</span>
-                </div>
-                <div class="aqi-level">
-                    <span class="aqi-badge aqi-unhealthy">4</span>
-                    <span class="aqi-text">Плохой - ограничить активность на улице</span>
-                </div>
-                <div class="aqi-level">
-                    <span class="aqi-badge aqi-very-unhealthy">5</span>
-                    <span class="aqi-text">Очень плохой - опасно для здоровья</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="settings-item">
-            <div class="settings-title">Ваши показатели</div>
-            <div class="current-readings" id="air-quality-readings">
-                <!-- Данные будут добавлены динамически -->
-            </div>
-        </div>
-
-        <div class="settings-item">
-            <button class="hint-close-btn" id="close-air-quality-hint">Понятно</button>
         </div>
     </div>
 </div>
@@ -520,128 +358,25 @@
   </div>
 </div>
 
-<!-- Панель информации о луне -->
-<div class="settings-overlay" id="moon-info-overlay">
-    <div class="settings-panel moon-info-panel">
-        <div class="settings-header">
-            <span>Фазы луны</span>
-            <div class="mini-moon" id="info-moon-visual">
-                <div class="mini-moon-phase"></div>
-            </div>
+<div id="pc-error" class="pc-error-overlay">
+    <div class="pc-error-card">
+        <div class="error-icon">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
         </div>
-
-        <div class="settings-item">
-            <div class="settings-title">Фазы луны</div>
-            <div class="moon-phases-info">
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 100%)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Новолуние</strong>
-                        <span>Луна не видна, начало цикла</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 75%)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Растущий серп</strong>
-                        <span>Появляется тонкий серп</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 50%)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Первая четверть</strong>
-                        <span>Видна половина растущей луны</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 25%)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Растущая луна</strong>
-                        <span>Больше половины освещено</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 0 0 0%)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Полнолуние</strong>
-                        <span>Луна полностью освещена</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 25% 0 0)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Убывающая луна</strong>
-                        <span>Начинает уменьшаться</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 50% 0 0)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Последняя четверть</strong>
-                        <span>Видна половина убывающей луны</span>
-                    </div>
-                </div>
-                <div class="moon-phase-item">
-                    <div class="moon-phase-icon">
-                        <div class="moon-phase-visual" style="clip-path: inset(0 75% 0 0)"></div>
-                    </div>
-                    <div class="moon-phase-text">
-                        <strong>Старый серп</strong>
-                        <span>Перед новолунием</span>
-                    </div>
-                </div>
-            </div>
+        <h1 class="error-title">Доступ временно ограничен</h1>
+        <p class="error-message">Извините этот сайт временно не работает на ноутбуках и компьютерах</p>
+        <div class="error-tip">
+             Откройте сайт на телефоне или используйте F12 (DevTools)
         </div>
-
-        <div class="settings-item">
-            <div class="settings-title">Текущая фаза</div>
-            <div class="current-moon-info" id="current-moon-readings">
-                <div class="moon-reading-item">
-                    <span>Фаза:</span>
-                    <span class="reading-value" id="info-moon-phase">—</span>
-                </div>
-                <div class="moon-reading-item">
-                    <span>Возраст:</span>
-                    <span class="reading-value" id="info-moon-age">—</span>
-                </div>
-                <div class="moon-reading-item">
-                    <span>Статус:</span>
-                    <span class="reading-value" id="info-moon-status">—</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="settings-item">
-            <button class="hint-close-btn" id="close-moon-info">Понятно</button>
+        <div class="error-actions">
+            <button class="devtools-btn" onclick="openDevTools()">Проверить снова</button>
         </div>
     </div>
 </div>
-<div class="api-error-message" id="api-error" style="display: none;">
-  <div class="error-icon">🌫️</div>
-  <div class="error-text">
-    <p>Данные временно недоступны</p>
-    <p class="error-subtitle">Луна всё ещё на месте — наблюдайте за настоящим небом</p>
-  </div>
-</div>
-
-<!-- Контейнер для уведомлений -->
-<div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>
     <script src="script.js"></script>
 </body>
-
 </html>

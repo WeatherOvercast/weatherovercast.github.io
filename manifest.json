@@ -2,7 +2,7 @@
   "name": "Weather App",
   "short_name": "Overcast", 
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#5D8AA8",
   "theme_color": "#5D8AA8",
   "icons": [
