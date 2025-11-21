@@ -1920,3 +1920,145 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+function openSettings() {
+    window.location.href = 'settings.html';
+}
+// Функция для применения выбранных единиц измерения
+function applyTemperatureUnits() {
+    const savedUnits = localStorage.getItem('weatherUnits') || 'celsius';
+    currentUnits = savedUnits;
+    
+    // Если есть данные о погоде - обновляем отображение
+    if (currentCityData) {
+        updateAllTemperatures();
+    }
+}
+
+// Вызываем при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    applyTemperatureUnits();
+    
+    // Слушаем сообщения от страницы настроек
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'unitsChanged') {
+            currentUnits = event.data.units;
+            updateAllTemperatures();
+        }
+    });
+});
+// ========== ОБНОВЛЕННАЯ ФУНКЦИЯ ДИНАМИЧЕСКОЙ ТЕМЫ ==========
+function updateThemeByWeather(weatherMain, sys) {
+    const body = document.body;
+    
+    // Если тема не динамическая - выходим
+    if (currentTheme !== 'dynamic') return;
+
+    // Удаляем все погодные классы
+    const weatherClasses = [
+        'clear', 'broken clouds', 'overcast clouds', 'mist', 'fog', 'haze',
+        'rain', 'night', 'snow', 'thunderstorm', 'drizzle'
+    ];
+    
+    weatherClasses.forEach(className => {
+        body.classList.remove(className);
+    });
+
+    // Определяем время для ночной темы
+    const now = new Date();
+    const currentTime = now.getTime();
+    const sunrise = new Date(sys.sunrise * 1000).getTime();
+    const sunset = new Date(sys.sunset * 1000).getTime();
+    const isNight = currentTime < sunrise || currentTime > sunset;
+
+    // Применяем соответствующий класс
+    if (isNight) {
+        body.classList.add('night');
+    } else {
+        // Дневные темы по погоде
+        const weatherClass = getWeatherClass(weatherMain);
+        body.classList.add(weatherClass);
+    }
+    
+    // Обновляем цвета текста для читаемости
+    updateTextColorsForTheme(isNight ? 'night' : weatherMain);
+}
+
+function getWeatherClass(weatherMain) {
+    const classMap = {
+        'Clear': 'clear',
+        'Clouds': 'broken clouds',
+        'Rain': 'rain',
+        'Drizzle': 'drizzle',
+        'Thunderstorm': 'thunderstorm',
+        'Snow': 'snow',
+        'Mist': 'mist',
+        'Fog': 'fog',
+        'Haze': 'haze'
+    };
+    return classMap[weatherMain] || 'clear';
+}
+
+function updateTextColorsForTheme(weatherType) {
+    const isDarkTheme = ['night', 'rain', 'thunderstorm', 'overcast clouds'].includes(weatherType);
+    
+    if (isDarkTheme) {
+        // Для темных тем - светлый текст
+        document.body.style.color = '#FFFFFF';
+        updateMobileTextColors('#FFFFFF', '#A0A0A0');
+    } else {
+        // Для светлых тем - темный текст
+        document.body.style.color = '#2D3748';
+        updateMobileTextColors('#2D3748', '#718096');
+    }
+}
+
+function updateMobileTextColors(primaryColor, secondaryColor) {
+    // Обновляем цвета в мобильной версии
+    const elements = {
+        primary: [
+            '.mobile-city',
+            '.mobile-temperature', 
+            '.mobile-detail-value',
+            '.mobile-hourly-temp',
+            '.mobile-forecast-temp',
+            '.mobile-sun-time',
+            '.mobile-card-title',
+            '.reminder-title'
+        ],
+        secondary: [
+            '.mobile-description',
+            '.mobile-date',
+            '.mobile-detail-label', 
+            '.mobile-hourly-time',
+            '.mobile-forecast-day',
+            '.mobile-sun-label',
+            '.mobile-aqi-label',
+            '.reminder-message'
+        ]
+    };
+    
+    // Применяем цвета
+    elements.primary.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.color = primaryColor;
+        });
+    });
+    
+    elements.secondary.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.color = secondaryColor;
+        });
+    });
+}
+// В функции updateWeatherData добавьте:
+async function updateWeatherData(data, forecastData, airQualityData) {
+    updateMobileWeather(data);
+    await updateAllMobileData(data, forecastData, airQualityData);
+    updateFavoriteButton(isCityInFavorites(data.name));
+    
+    // ВАЖНО: Обновляем тему после получения данных о погоде
+    updateThemeByWeather(data.weather[0].main, data.sys);
+    
+    // Обновляем умные напоминания
+    smartReminders.updateReminder(data, forecastData);
+}

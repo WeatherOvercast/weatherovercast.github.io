@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки - Weather Overcast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5D8AA8">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<style>
+    /* ========== СТРАНИЦА НАСТРОЕК ========== */
+.settings-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    padding: 20px 15px;
+    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pageSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ФИКС СИНИХ ВЫДЕЛЕНИЙ */
+.settings-page * {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.back-button,
+.theme-option,
+button {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.back-button:focus,
+.theme-option:focus,
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.back-button:active,
+.theme-option:active,
+button:active {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Заголовок */
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.back-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.back-button:active {
+    transform: scale(0.95);
+}
+
+/* ОБЫЧНЫЙ ЦВЕТ ДЛЯ ЗАГОЛОВКА */
+.settings-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #ffffff; /* Просто белый цвет */
+    text-align: center;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.header-placeholder {
+    width: 44px;
+}
+
+/* Основной контент */
+.settings-content {
+    max-width: 400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Карточки настроек */
+.settings-card {
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 24px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Заголовок карточки */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: #ffffff;
+    stroke-width: 2;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff; /* Обычный белый */
+    margin: 0;
+}
+
+/* Опции тем */
+.theme-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.theme-option:hover::before {
+    left: 100%;
+}
+
+.theme-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.theme-option.active {
+    border-color: rgba(78, 205, 196, 0.5);
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.theme-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.theme-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    flex: 1;
+}
+
+/* Чекбоксы */
+.theme-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.theme-option.active .theme-check {
+    border-color: #4ecdc4;
+    background: #4ecdc4;
+}
+
+.check-icon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    transform: scale(0);
+    transition: transform 0.3s ease;
+}
+
+.theme-option.active .check-icon {
+    transform: scale(1);
+}
+
+/* Анимации при выборе */
+@keyframes selectPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.theme-option.active {
+    animation: selectPulse 0.4s ease;
+}
+
+/* Текст "скоро больше настроек" */
+.coming-soon-text {
+    text-align: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin-top: 10px;
+    padding: 0 20px;
+    animation: fadeIn 1s ease 0.8s both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .settings-page {
+        padding: 15px 10px;
+    }
+    
+    .settings-header {
+        margin-bottom: 25px;
+    }
+    
+    .settings-title {
+        font-size: 1.6rem;
+    }
+    
+    .settings-card {
+        padding: 15px;
+        border-radius: 20px;
+    }
+    
+    .theme-option {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .theme-preview {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .theme-name {
+        font-size: 0.95rem;
+    }
+    
+    .coming-soon-text {
+        font-size: 0.8rem;
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 380px) {
+    .settings-title {
+        font-size: 1.4rem;
+    }
+    
+    .theme-option {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .theme-preview {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .theme-name {
+        font-size: 0.9rem;
+    }
+    
+    .coming-soon-text {
+        font-size: 0.75rem;
+    }
+}
+/* ========== ФИКСИРОВАННЫЙ ЗАГОЛОВОК И ОТКЛЮЧЕНИЕ СКРОЛЛА ========== */
+
+/* Отключаем скролл на всей странице */
+.settings-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    padding: 20px 15px;
+    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden; /* Отключаем скролл */
+    position: relative;
+}
+
+/* Фиксированный заголовок */
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding: 0 10px;
+    position: sticky; /* Делаем заголовок липким */
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: -10px; /* Компенсируем padding */
+}
+
+/* Основной контент с ограниченной высотой */
+.settings-content {
+    max-width: 400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: calc(100vh - 120px); /* Ограничиваем высоту */
+    overflow-y: auto; /* Разрешаем скролл только внутри контента */
+    padding-right: 5px; /* Место для скроллбара */
+}
+
+/* Скрываем скроллбар для красоты */
+.settings-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Запрещаем горизонтальный скролл */
+body {
+    overflow-x: hidden;
+}
+
+/* Запрещаем выделение текста и перетаскивание */
+.settings-page {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Запрещаем масштабирование на iOS */
+.settings-page {
+    touch-action: pan-y; /* Разрешаем только вертикальные жесты */
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .settings-content {
+        max-height: calc(100vh - 100px);
+        gap: 15px;
+    }
+    
+    .settings-header {
+        margin-bottom: 20px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+</style>
+<body class="night">
+    <!-- Страница настроек -->
+    <div class="settings-page">
+        <!-- Заголовок -->
+        <div class="settings-header">
+            <button class="back-button" onclick="goBack()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5"/>
+                    <path d="M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 class="settings-title">Настройки</h1>
+            <div class="header-placeholder"></div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="settings-content">
+            <!-- Карточка выбора темы -->
+            <div class="settings-card theme-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            <path d="M12 3v1"/>
+                            <path d="M12 20v1"/>
+                            <path d="M3 12h1"/>
+                            <path d="M20 12h1"/>
+                            <path d="m18.364 5.636-.707.707"/>
+                            <path d="m6.343 17.657-.707.707"/>
+                            <path d="m5.636 5.636.707.707"/>
+                            <path d="m17.657 17.657.707.707"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Тема оформления</h2>
+                </div>
+                
+                <div class="theme-options">
+                    <div class="theme-option" data-theme="light">
+                        <div class="theme-preview light-theme">
+                            <div class="preview-sun"></div>
+                            <div class="preview-cloud"></div>
+                        </div>
+                        <span class="theme-name">Светлая</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-preview dark-theme">
+                            <div class="preview-moon"></div>
+                            <div class="preview-star"></div>
+                            <div class="preview-star small"></div>
+                        </div>
+                        <span class="theme-name">Тёмная</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="theme-option active" data-theme="dynamic">
+                        <div class="theme-preview dynamic-theme">
+                            <div class="preview-sun"></div>
+                            <div class="preview-cloud"></div>
+                            <div class="preview-moon"></div>
+                        </div>
+                        <span class="theme-name">Динамическая</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Текст "скоро больше настроек" -->
+        <div class="coming-soon-text">
+            *Здесь скоро будет больше настроек
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+    <script>
+        // Инициализация Lucide иконок
+        lucide.createIcons();
+    </script>
+</body>
+</html>

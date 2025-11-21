@@ -1182,31 +1182,59 @@ body[class*="broken"] {
     z-index: -1;
 }
 
+/* ========== УВЕЛИЧИВАЕМ РАЗМЕРЫ ОСНОВНОЙ ИНФОРМАЦИИ ========== */
+
 .mobile-location {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
+/* Локация - слегка больше */
 .mobile-city {
-    font-size: 1.8rem;
+    font-size: 2rem; /* Было 1.8rem */
     font-weight: 800;
     color: #ffffff;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     background: linear-gradient(135deg, #ffffff, #e3f2fd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+/* Дату делаем крупнее */
 .mobile-date {
     color: #a0a0a0;
-    font-size: 0.9rem;
+    font-size: 1rem; /* Было 0.9rem */
     font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 .mobile-weather-main {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+/* Градусы делаем ОЧЕНЬ большими */
+.mobile-temperature {
+    font-size: 4.5rem; /* Было 3.5rem */
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    margin: 15px 0; /* Увеличили отступ */
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #ffffff, #bbdefb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Тип погоды делаем крупнее */
+.mobile-description {
+    color: #a0a0a0;
+    font-size: 1.3rem; /* Было 1.1rem */
+    text-transform: capitalize;
+    font-weight: 600;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
 }
 
 .mobile-weather-icon {
@@ -1626,8 +1654,6 @@ body[class*="broken"] {
 }
 
 /* ========== ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНОЙ ВЕРСИИ ========== */
-
-/* Горизонтальное расположение рассвета/заката */
 .mobile-sun-moon-grid {
     display: flex !important;
     justify-content: space-around !important;
@@ -1655,23 +1681,6 @@ body[class*="broken"] {
     width: 32px !important;
     height: 32px !important;
     flex-shrink: 0 !important;
-}
-
-.mobile-moon-item {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-.mobile-moon-visual {
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    background: #1a1a2e !important;
-    position: relative !important;
-    overflow: hidden !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Исправление маленьких иконок */
@@ -2834,4 +2843,167 @@ button:focus {
 
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
+}
+
+/* ========== СВЕТЛАЯ ТЕМА - ПОЛНАЯ РЕАЛИЗАЦИЯ ========== */
+body.light-theme {
+    background: linear-gradient(135deg, #87CEEB, #E0F7FA) !important;
+    color: #2D3748 !important;
+}
+
+/* Светлая тема для мобильной карточки */
+body.light-theme .mobile-weather-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(40px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    color: #2D3748 !important;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Текст в светлой теме */
+body.light-theme .mobile-city {
+    background: linear-gradient(135deg, #2c5282, #2b6cb0) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.light-theme .mobile-temperature {
+    background: linear-gradient(135deg, #2d3748, #4a5568) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.light-theme .mobile-card-title {
+    background: linear-gradient(135deg, #2d3748, #4a5568) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* Детали в светлой теме */
+body.light-theme .mobile-detail-card,
+body.light-theme .mobile-additional-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: #2D3748 !important;
+}
+
+/* Текст второстепенный в светлой теме */
+body.light-theme .mobile-detail-label,
+body.light-theme .mobile-description,
+body.light-theme .mobile-date,
+body.light-theme .mobile-sun-label,
+body.light-theme .mobile-hourly-time,
+body.light-theme .mobile-forecast-day,
+body.light-theme .mobile-aqi-label {
+    color: #718096 !important;
+}
+
+/* Основной текст в светлой теме */
+body.light-theme .mobile-detail-value,
+body.light-theme .mobile-hourly-temp,
+body.light-theme .mobile-forecast-temp,
+body.light-theme .mobile-sun-time {
+    color: #2D3748 !important;
+}
+
+/* Кнопки в светлой теме */
+body.light-theme .floating-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.7) !important;
+    color: #2D3748 !important;
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.1),
+        0 6px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Напоминания в светлой теме */
+body.light-theme .reminder-card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    color: #2D3748 !important;
+}
+
+body.light-theme .reminder-title {
+    background: linear-gradient(135deg, #2c5282, #2b6cb0) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.light-theme .reminder-message {
+    color: #718096 !important;
+}
+
+/* Прогресс-бары в светлой теме */
+body.light-theme .mobile-progress-bar {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Солнце в светлой теме */
+body.light-theme .sunrise-icon,
+body.light-theme .sunset-icon {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ошибка ПК в светлой теме */
+body.light-theme .pc-error-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #2D3748 !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+}
+
+body.light-theme .error-title {
+    background: linear-gradient(135deg, #e53e3e, #c53030) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.light-theme .error-message {
+    color: #718096 !important;
+}
+
+body.light-theme .error-tip {
+    background: rgba(245, 101, 101, 0.1) !important;
+    border: 1px solid rgba(245, 101, 101, 0.3) !important;
+    color: #e53e3e !important;
+}
+/* Гарантируем читаемость текста во всех темах */
+body.clear,
+body.broken\ clouds,
+body.overcast\ clouds,
+body.rain,
+body.night,
+body.snow,
+body.thunderstorm,
+body.drizzle,
+body.mist,
+body.fog,
+body.haze {
+    color: #FFFFFF !important;
+}
+
+/* Для светлых тем переопределяем цвет текста */
+body.clear .mobile-weather-card,
+body.broken\ clouds .mobile-weather-card {
+    color: #2D3748 !important;
+}
+
+/* Контрастные тени для текста */
+.mobile-city,
+.mobile-temperature,
+.mobile-card-title,
+.mobile-detail-value {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Для светлых тем - темные тени */
+body.clear .mobile-city,
+body.clear .mobile-temperature,
+body.clear .mobile-card-title,
+body.broken\ clouds .mobile-city,
+body.broken\ clouds .mobile-temperature,
+body.broken\ clouds .mobile-card-title {
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
