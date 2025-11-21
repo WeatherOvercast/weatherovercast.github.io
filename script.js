@@ -1527,3 +1527,396 @@ function updateMobileAirQualityData(airQualityData) {
         aqiLabel.textContent = 'Качество воздуха';
     }
 }
+// ========== СИСТЕМА УМНЫХ НАПОМИНАНИЙ ==========
+
+class SmartReminders {
+    constructor() {
+        this.reminderElement = document.getElementById('weather-reminder');
+        this.titleElement = document.getElementById('reminder-title');
+        this.messageElement = document.getElementById('reminder-message');
+        this.timeElement = document.getElementById('reminder-time');
+        this.currentReminder = null;
+    }
+
+    // В классе SmartReminders добавляем:
+
+// Расчет вероятности снега
+calculateSnowProbability(forecastData) {
+    const next12Hours = forecastData.list.slice(0, 4);
+    let snowChance = 0;
+    let snowCount = 0;
+
+    next12Hours.forEach(hour => {
+        const weather = hour.weather[0].main.toLowerCase();
+        const description = hour.weather[0].description.toLowerCase();
+        
+        if (weather.includes('snow') || description.includes('snow')) {
+            snowCount++;
+        }
+        // Проверяем температуру для возможного снега
+        if (hour.main.temp <= 2 && (weather.includes('rain') || description.includes('shower'))) {
+            snowCount += 0.5; // Возможен мокрый снег
+        }
+    });
+
+    return {
+        high: snowCount >= 2,
+        medium: snowCount >= 1,
+        snowCount: snowCount
+    };
+}
+
+// Проверка актуальности для снежного напоминания
+isRelevantTimeForSnow(currentHour) {
+    // Напоминаем утром и днем, когда люди планируют день
+    return (currentHour >= 6 && currentHour <= 14);
+}
+
+// Создание напоминания о снеге
+createSnowReminder(snowProbability) {
+    const messages = [
+        "Наслаждайтесь снегом! ❄️",
+        "Идеальное время для снежных забав",
+        "Можно слепить снеговика! ⛄",
+        "Прекрасный снежный день!",
+        "Волшебство снегопада начинается! ✨"
+    ];
+    
+    const intensity = snowProbability.high ? "сильный" : "небольшой";
+    
+    return {
+        type: 'snow',
+        title: `Возможен ${intensity} снег`,
+        message: messages[Math.floor(Math.random() * messages.length)],
+        time: `Снегопад ожидается`,
+        className: 'snow-reminder important',
+        icon: 'snow'
+    };
+}
+
+// Обновляем анализ погоды - добавляем снег с высоким приоритетом
+analyzeWeatherForReminders(weatherData, forecastData) {
+    if (!weatherData || !forecastData) return null;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentWeather = weatherData.weather[0].main.toLowerCase();
+    
+    const rainProbability = this.calculateRainProbability(forecastData);
+    const snowProbability = this.calculateSnowProbability(forecastData);
+    
+    // НОВЫЙ ПРИОРИТЕТ: Снег идет перед дождем
+    if (snowProbability.high && this.isRelevantTimeForSnow(currentHour)) {
+        return this.createSnowReminder(snowProbability);
+    }
+    
+    return this.createDefaultReminder(weatherData);
+}
+
+    // Анализ погодных данных для напоминаний
+    analyzeWeatherForReminders(weatherData, forecastData) {
+        if (!weatherData || !forecastData) return null;
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentWeather = weatherData.weather[0].main.toLowerCase();
+        const rainProbability = this.calculateRainProbability(forecastData);
+        
+        // Приоритеты: 1) Дождь, 2) Рассвет, 3) Закат
+        if (rainProbability.high && this.isRelevantTimeForRain(currentHour)) {
+            return this.createRainReminder(rainProbability);
+        }
+        
+        const sunTimes = this.getSunTimes(weatherData);
+        if (this.isTimeForSunriseReminder(currentHour, sunTimes.sunrise)) {
+            return this.createSunriseReminder(sunTimes.sunrise);
+        }
+        
+        if (this.isTimeForSunsetReminder(currentHour, sunTimes.sunset)) {
+            return this.createSunsetReminder(sunTimes.sunset);
+        }
+        
+        return this.createDefaultReminder(weatherData);
+    }
+
+    // Расчет вероятности дождя
+    calculateRainProbability(forecastData) {
+        const next12Hours = forecastData.list.slice(0, 4); // Следующие 12 часов
+        let rainChance = 0;
+        let rainCount = 0;
+
+        next12Hours.forEach(hour => {
+            const weather = hour.weather[0].main.toLowerCase();
+            if (weather.includes('rain') || weather.includes('drizzle')) {
+                rainCount++;
+            }
+            if (hour.pop) { // Probability of precipitation
+                rainChance = Math.max(rainChance, hour.pop * 100);
+            }
+        });
+
+        return {
+            high: rainCount >= 2 || rainChance > 60,
+            medium: rainCount >= 1 || rainChance > 30,
+            chance: rainChance,
+            rainCount: rainCount
+        };
+    }
+
+    // Проверка актуальности времени для напоминания о дожде
+    isRelevantTimeForRain(currentHour) {
+        // Напоминаем утром (6-10) и вечером (16-20)
+        return (currentHour >= 6 && currentHour <= 10) || 
+               (currentHour >= 16 && currentHour <= 20);
+    }
+
+    // Получение времени восхода/заката
+    getSunTimes(weatherData) {
+        return {
+            sunrise: new Date(weatherData.sys.sunrise * 1000),
+            sunset: new Date(weatherData.sys.sunset * 1000)
+        };
+    }
+
+    // Проверка времени для напоминания о рассвете
+    isTimeForSunriseReminder(currentHour, sunrise) {
+        const sunriseHour = sunrise.getHours();
+        // Напоминаем за 1-2 часа до рассвета
+        return currentHour >= (sunriseHour - 2) && currentHour < sunriseHour;
+    }
+
+    // Проверка времени для напоминания о закате
+    isTimeForSunsetReminder(currentHour, sunset) {
+        const sunsetHour = sunset.getHours();
+        // Напоминаем за 1-2 часа до заката
+        return currentHour >= (sunsetHour - 2) && currentHour < sunsetHour;
+    }
+
+    // Создание напоминания о дожде
+    createRainReminder(rainProbability) {
+        const messages = [
+            "Возьмите зонт 🌂",
+            "Лучше надеть дождевик",
+            "Ожидаются осадки",
+            "Не забудьте зонтик!"
+        ];
+        
+        const intensity = rainProbability.high ? "сильный" : "небольшой";
+        
+        return {
+            type: 'rain',
+            title: `Возможен ${intensity} дождь`,
+            message: messages[Math.floor(Math.random() * messages.length)],
+            time: `Вероятность: ${Math.round(rainProbability.chance)}%`,
+            className: 'rain-warning important',
+            icon: 'umbrella'
+        };
+    }
+
+    // Создание напоминания о рассвете
+    createSunriseReminder(sunrise) {
+        const sunriseTime = this.formatTime(sunrise);
+        
+        return {
+            type: 'sunrise',
+            title: 'Не пропустите рассвет!',
+            message: 'Идеальное время для утренних фото 🌅',
+            time: `В ${sunriseTime}`,
+            className: 'sunrise-reminder',
+            icon: 'sunrise'
+        };
+    }
+
+    // Создание напоминания о закате
+    createSunsetReminder(sunset) {
+        const sunsetTime = this.formatTime(sunset);
+        
+        return {
+            type: 'sunset',
+            title: 'Время заката приближается',
+            message: 'Отличный момент для вечерней прогулки 🌇',
+            time: `В ${sunsetTime}`,
+            className: 'sunset-reminder',
+            icon: 'sunset'
+        };
+    }
+
+    // Напоминание по умолчанию
+    createDefaultReminder(weatherData) {
+        const descriptions = {
+            'clear': 'Идеальный день для прогулок!',
+            'clouds': 'Отличная погода для активного отдыха',
+            'snow': 'Можно слепить снеговика! ⛄',
+            'thunderstorm': 'Лучше остаться дома'
+        };
+        
+        const weatherType = weatherData.weather[0].main.toLowerCase();
+        const message = descriptions[weatherType] || 'Хорошего дня!';
+        
+        return {
+            type: 'default',
+            title: 'Совет на сегодня',
+            message: message,
+            time: this.getNextUpdateTime(),
+            className: '',
+            icon: 'sun'
+        };
+    }
+
+    // Форматирование времени
+    formatTime(date) {
+        return date.toLocaleTimeString('ru-RU', { 
+            hour: '2-digit', 
+            minute: '2-digit'
+        });
+    }
+
+    // Время следующего обновления
+    getNextUpdateTime() {
+        const nextUpdate = new Date(Date.now() + 30 * 60 * 1000); // +30 минут
+        return `Обновление: ${this.formatTime(nextUpdate)}`;
+    }
+
+    // Показать напоминание
+    showReminder(reminderData) {
+        if (!this.reminderElement || !reminderData) return;
+
+        this.currentReminder = reminderData;
+        
+        // Обновляем контент
+        this.titleElement.textContent = reminderData.title;
+        this.messageElement.textContent = reminderData.message;
+        this.timeElement.textContent = reminderData.time;
+        
+        // Обновляем классы и иконку
+        this.reminderElement.className = `reminder-card ${reminderData.className}`;
+        this.updateReminderIcon(reminderData.icon);
+        
+        // Показываем элемент
+        this.reminderElement.style.display = 'flex';
+        
+        // Логируем для отладки
+        console.log('Показано напоминание:', reminderData);
+    }
+
+    // Обновление иконки напоминания
+    updateReminderIcon(iconType) {
+        const iconSvg = this.getReminderIcon(iconType);
+        const iconContainer = this.reminderElement.querySelector('.reminder-icon');
+        if (iconContainer) {
+            iconContainer.innerHTML = iconSvg;
+        }
+    }
+
+    // Получение SVG иконок для напоминаний
+    getReminderIcon(iconType) {
+        const icons = {
+            umbrella: `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                </svg>
+            `,
+            sunrise: `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2v8"></path>
+                    <path d="m4.93 10.93 1.41 1.41"></path>
+                    <path d="M2 18h2"></path>
+                    <path d="M20 18h2"></path>
+                    <path d="m19.07 10.93-1.41 1.41"></path>
+                    <path d="M22 22H2"></path>
+                    <path d="m8 6 4-4 4 4"></path>
+                    <path d="M16 18a4 4 0 0 0-8 0"></path>
+                </svg>
+            `,
+                    snow: `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
+                <line x1="8" y1="16" x2="8.01" y2="16"></line>
+                <line x1="8" y1="20" x2="8.01" y2="20"></line>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                <line x1="12" y1="22" x2="12.01" y2="22"></line>
+                <line x1="16" y1="16" x2="16.01" y2="16"></line>
+                <line x1="16" y1="20" x2="16.01" y2="20"></line>
+            </svg>
+        `,
+            sunset: `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 10v8"></path>
+                    <path d="m4.93 18.93 1.41-1.41"></path>
+                    <path d="M2 12h2"></path>
+                    <path d="M20 12h2"></path>
+                    <path d="m19.07 5.93-1.41-1.41"></path>
+                    <path d="M22 22H2"></path>
+                    <path d="m16 6-4 4-4-4"></path>
+                    <path d="M16 18a4 4 0 0 0-8 0"></path>
+                </svg>
+            `,
+            sun: `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            `
+        };
+        
+        return icons[iconType] || icons.sun;
+    }
+
+    // Скрыть напоминание
+    hideReminder() {
+        if (this.reminderElement) {
+            this.reminderElement.style.display = 'none';
+        }
+    }
+
+    // Обновить напоминание на основе новых данных
+    updateReminder(weatherData, forecastData) {
+        const reminder = this.analyzeWeatherForReminders(weatherData, forecastData);
+        if (reminder) {
+            this.showReminder(reminder);
+        } else {
+            this.hideReminder();
+        }
+    }
+}
+
+// Инициализация системы напоминаний
+const smartReminders = new SmartReminders();
+
+// Интеграция с основной функцией обновления погоды
+async function updateWeatherData(data, forecastData, airQualityData) {
+    // Существующий код обновления погоды...
+    updateMobileWeather(data);
+    await updateAllMobileData(data, forecastData, airQualityData);
+    
+    // НОВОЕ: Обновляем умные напоминания
+    smartReminders.updateReminder(data, forecastData);
+    
+    // Существующий код...
+    updateFavoriteButton(isCityInFavorites(data.name));
+    updateThemeByWeather(data.weather[0].main, data.sys);
+}
+// Убираем стандартный фокус у всех кнопок
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => {
+        btn.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+        
+        btn.addEventListener('focus', function() {
+            this.blur();
+        });
+    });
+});

@@ -2611,3 +2611,227 @@ body.pc-detected {
     color: #a0a0a0;
     font-weight: 600;
 }
+/* Стили для умных напоминаний */
+.smart-reminders-container {
+    position: relative;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 400px;
+    animation: slideInReminder 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reminder-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.reminder-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #4ecdc4, #44a08d);
+    opacity: 0.8;
+}
+
+.reminder-card.rain-warning::before {
+    background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+}
+
+.reminder-card.sunrise-reminder::before {
+    background: linear-gradient(90deg, #ffd93d, #ff9a3d);
+}
+
+.reminder-card.sunset-reminder::before {
+    background: linear-gradient(90deg, #ff9a3d, #ff6b6b);
+}
+
+.reminder-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.reminder-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+.reminder-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.reminder-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #ffffff;
+    margin-bottom: 3px;
+    background: linear-gradient(135deg, #ffffff, #e3f2fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.reminder-message {
+    font-size: 13px;
+    color: #a0a0a0;
+    line-height: 1.3;
+    font-weight: 500;
+}
+
+.reminder-time {
+    font-size: 12px;
+    color: #4ecdc4;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 4px 8px;
+    background: rgba(78, 205, 196, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.rain-warning .reminder-time {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+/* Анимации */
+@keyframes slideInReminder {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 8px 30px rgba(78, 205, 196, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+}
+
+.reminder-card.important {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .reminder-card {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .reminder-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .reminder-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .reminder-title {
+        font-size: 14px;
+    }
+    
+    .reminder-message {
+        font-size: 12px;
+    }
+    
+    .reminder-time {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+/* ФИКС СИНЕГО ПРЯМОУГОЛЬНИКА ПРИ ФОКУСЕ */
+.floating-btn {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.floating-btn:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.floating-btn:focus-visible {
+    outline: none !important;
+    box-shadow: 
+        0 16px 50px rgba(0, 0, 0, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Для всех кнопок в приложении */
+button {
+    outline: none;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: none;
+}
+/* Стиль для снежного напоминания */
+.reminder-card.snow-reminder::before {
+    background: linear-gradient(90deg, #74b9ff, #0984e3);
+}
+
+.snow-reminder .reminder-time {
+    color: #74b9ff;
+    background: rgba(116, 185, 255, 0.1);
+    border-color: rgba(116, 185, 255, 0.2);
+}
+
+/* Анимация снежинок для важных снежных напоминаний */
+@keyframes snowFall {
+    0%, 100% {
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 8px 30px rgba(116, 185, 255, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            0 0 20px rgba(116, 185, 255, 0.3);
+    }
+}
+
+.snow-reminder.important {
+    animation: snowFall 3s ease-in-out infinite;
+}
