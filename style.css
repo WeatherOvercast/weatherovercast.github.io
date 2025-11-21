@@ -1421,22 +1421,49 @@ body[class*="broken"] {
 }
 
 /* КАЧЕСТВО ВОЗДУХА */
+/* Мягкое свечение как у других элементов */
 .mobile-air-quality {
     text-align: center;
+    padding: 15px 0;
 }
 
-.mobile-aqi-value {
-    font-size: 2.2rem;
-    font-weight: 300;
+.mobile-aqi-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 4px currentColor);
+}
+
+/* Цвета как у других элементов */
+.aqi-good {
     color: #10b981;
-    margin-bottom: 3px;
-    text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+.aqi-moderate {
+    color: #4ecdc4;
+}
+
+.aqi-unhealthy-sensitive {
+    color: #ffe66d;
+}
+
+.aqi-unhealthy {
+    color: #ff9e6d;
+}
+
+.aqi-very-unhealthy {
+    color: #ff6b6b;
 }
 
 .mobile-aqi-label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: #a0a0a0;
     font-weight: 600;
+    margin-top: 5px;
 }
 
 /* ВРЕМЯ ВОСХОДА/ЗАКАТА */
@@ -2336,4 +2363,251 @@ body.pc-detected #ios-notifications-container {
 
 body.pc-detected {
     overflow: hidden;
+}
+/* Убираем точки */
+.temp-bullet,
+.desc-bullet,
+.date-bullet {
+    display: none;
+}
+
+/* Возвращаем обычное выравнивание */
+.mobile-temperature {
+    display: block; /* Убираем flex */
+}
+
+.mobile-description {
+    display: block; /* Убираем flex */
+}
+
+.mobile-date {
+    display: block; /* Убираем flex */
+}
+
+/* Выравниваем размеры плиток в прогнозах */
+.mobile-hourly-item {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 75px; /* Фиксированная ширина */
+    padding: 10px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-forecast-item {
+    text-align: center;
+    flex: 1;
+    min-width: 0; /* Разрешаем сжатие */
+    padding: 10px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Делаем одинаковые шрифты */
+.mobile-hourly-time,
+.mobile-forecast-day {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.mobile-hourly-temp,
+.mobile-forecast-temp {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.mobile-hourly-desc,
+.mobile-forecast-desc {
+    font-size: 0.7rem;
+    color: #a0a0a0;
+    font-weight: 500;
+    line-height: 1.2;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Убедимся что контейнеры одинаковые */
+.mobile-hourly-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 5px 5px 10px 5px;
+    margin: 0 -3px;
+}
+
+.mobile-forecast-list {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 3px;
+}
+/* Увеличиваем плитки 5-дневного прогноза по горизонтали */
+.mobile-forecast-item {
+    text-align: center;
+    flex: 1;
+    min-width: 80px; /* Увеличили минимальную ширину */
+    padding: 10px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Увеличиваем шрифты в 5-дневном прогнозе */
+.mobile-forecast-day {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.mobile-forecast-temp {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.mobile-forecast-desc {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    font-weight: 500;
+    line-height: 1.2;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Увеличиваем расстояние между плитками в 5-дневном */
+.mobile-forecast-list {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px; /* Увеличили расстояние по горизонтали */
+    padding: 0 5px;
+}
+
+/* Почасовой прогноз оставляем как есть */
+.mobile-hourly-item {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 75px;
+    padding: 10px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-hourly-time {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.mobile-hourly-temp {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.mobile-hourly-desc {
+    font-size: 0.7rem;
+    color: #a0a0a0;
+    font-weight: 500;
+    line-height: 1.2;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-hourly-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 5px 5px 10px 5px;
+    margin: 0 -3px;
+}
+
+/* Стили для мини-солнц в плитке рассвет/закат */
+.mobile-sun-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sunrise-icon {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+}
+
+.sunset-icon {
+    background: linear-gradient(135deg, #ff6b6b, #ff8c00, #ff4757);
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.7);
+}
+
+.mobile-sun-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.sunrise-icon::after {
+    background: #ffeb3b;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+}
+
+.sunset-icon::after {
+    background: #ff7f50;
+    box-shadow: 0 0 10px rgba(255, 127, 80, 0.8);
+}
+
+/* Обновляем расположение элементов */
+.mobile-sun-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-width: 130px !important;
+}
+
+.mobile-sun-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+.mobile-sun-time {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2px;
+}
+
+.mobile-sun-label {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    font-weight: 600;
 }

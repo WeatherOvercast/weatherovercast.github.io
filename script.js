@@ -1061,13 +1061,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
-            iosNotifications.info('Настройки', 'Раздел в разработке', 2000);
         });
     }
 
     if (functionsBtn) {
         functionsBtn.addEventListener('click', () => {
-            iosNotifications.info('Функции', 'Раздел в разработке', 2000);
         });
     }
 
@@ -1284,5 +1282,248 @@ function checkDevice() {
     } else {
         console.log(`${deviceType === 'tablet' ? 'Tablet' : 'PC'} detected - showing error`);
         showDeviceError(deviceType);
+    }
+}
+// Функция для получения короткого описания погоды
+function getShortWeatherDescription(weatherCode) {
+    const descriptions = {
+        '01d': 'Ясно',
+        '01n': 'Ясно',
+        '02d': 'Мало облаков',
+        '02n': 'Мало облаков',
+        '03d': 'Облачно',
+        '03n': 'Облачно',
+        '04d': 'Пасмурно',
+        '04n': 'Пасмурно',
+        '09d': 'Дождь',
+        '09n': 'Дождь',
+        '10d': 'Дождь',
+        '10n': 'Дождь',
+        '11d': 'Гроза',
+        '11n': 'Гроза',
+        '13d': 'Снег',
+        '13n': 'Снег',
+        '50d': 'Туман',
+        '50n': 'Туман'
+    };
+    
+    return descriptions[weatherCode] || 'Ясно';
+}
+
+// Обновляем почасовой прогноз
+function updateMobileHourlyData(forecastData) {
+    const hourlyContainer = document.getElementById('mobile-hourly');
+    if (!hourlyContainer || !forecastData?.list) return;
+    
+    try {
+        const hourlyItems = forecastData.list.slice(0, 8);
+        let hourlyHTML = '';
+        
+        hourlyItems.forEach((hour, index) => {
+            const time = new Date(hour.dt * 1000);
+            const timeString = index === 0 ? 'Сейчас' : formatTime(time);
+            const temp = Math.round(hour.main.temp);
+            const weatherDesc = getShortWeatherDescription(hour.weather[0].icon);
+            
+            hourlyHTML += `
+                <div class="mobile-hourly-item">
+                    <div class="mobile-hourly-time">${timeString}</div>
+                    <div class="mobile-hourly-temp">${temp}°</div>
+                    <div class="mobile-hourly-desc">${weatherDesc}</div>
+                </div>
+            `;
+        });
+        
+        hourlyContainer.innerHTML = hourlyHTML;
+        
+    } catch (error) {
+        console.log('Ошибка обновления почасового прогноза:', error);
+        hourlyContainer.innerHTML = '<div class="mobile-hourly-item">—</div>'.repeat(8);
+    }
+}
+
+// Обновляем 5-дневный прогноз
+function updateMobileForecastData(forecastData) {
+    const forecastContainer = document.getElementById('mobile-forecast');
+    if (!forecastContainer || !forecastData?.list) return;
+    
+    try {
+        const dailyForecasts = {};
+        const dayNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+        
+        forecastData.list.forEach(item => {
+            const date = new Date(item.dt * 1000);
+            const dayKey = date.toDateString();
+            
+            if (!dailyForecasts[dayKey] && Object.keys(dailyForecasts).length < 5) {
+                dailyForecasts[dayKey] = {
+                    day: dayNames[date.getDay()],
+                    temp: Math.round(item.main.temp),
+                    weatherDesc: getShortWeatherDescription(item.weather[0].icon)
+                };
+            }
+        });
+        
+        let forecastHTML = '';
+        Object.values(dailyForecasts).forEach(dayData => {
+            forecastHTML += `
+                <div class="mobile-forecast-item">
+                    <div class="mobile-forecast-day">${dayData.day}</div>
+                    <div class="mobile-forecast-temp">${dayData.temp}°</div>
+                    <div class="mobile-forecast-desc">${dayData.weatherDesc}</div>
+                </div>
+            `;
+        });
+        
+        forecastContainer.innerHTML = forecastHTML;
+        
+    } catch (error) {
+        console.log('Ошибка обновления прогноза:', error);
+        forecastContainer.innerHTML = '<div class="mobile-forecast-item">—</div>'.repeat(5);
+    }
+}
+
+// Обновляем основную функцию для добавления точек
+function updateMobileWeather(data) {
+    if (!data) return;
+    
+    try {
+        document.getElementById('mobile-city').textContent = data.name;
+        
+        // Добавляем точку к дате
+        const currentDate = new Date().toLocaleDateString('ru-RU', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        document.getElementById('mobile-date').innerHTML = `
+            <span class="date-bullet">●</span>
+            <span>${currentDate}</span>
+        `;
+        
+        // Добавляем точку к температуре
+        document.getElementById('mobile-temperature').innerHTML = `
+            <span class="temp-bullet">●</span>
+            <span>${Math.round(data.main.temp)}°</span>
+        `;
+        
+        // Добавляем точку к описанию
+        document.getElementById('mobile-description').innerHTML = `
+            <span class="desc-bullet">●</span>
+            <span>${data.weather[0].description}</span>
+        `;
+        
+        document.getElementById('mobile-feels-like').textContent = Math.round(data.main.feels_like) + '°';
+        document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
+        document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
+        document.getElementById('mobile-wind-direction').textContent = 'Ветер ' + getWindDirection(data.wind.deg);
+        document.getElementById('mobile-pressure').textContent = Math.round(data.main.pressure * 0.750062) + ' мм';
+        
+        document.getElementById('mobile-humidity-bar').style.width = data.main.humidity + '%';
+        document.getElementById('mobile-wind-bar').style.width = Math.min(data.wind.speed / 20 * 100, 100) + '%';
+        document.getElementById('mobile-pressure-bar').style.width = Math.min(((data.main.pressure - 950) / (1050 - 950) * 100), 100) + '%';
+        
+        updateWeatherGlow(data);
+        
+    } catch (error) {
+        console.log('Ошибка обновления мобильного блока:', error);
+    }
+}
+// Обновляем функцию без точек
+function updateMobileWeather(data) {
+    if (!data) return;
+    
+    try {
+        document.getElementById('mobile-city').textContent = data.name;
+        
+        // Без точки
+        const currentDate = new Date().toLocaleDateString('ru-RU', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        document.getElementById('mobile-date').textContent = currentDate;
+        
+        // Без точки
+        document.getElementById('mobile-temperature').textContent = Math.round(data.main.temp) + '°';
+        
+        // Без точки
+        document.getElementById('mobile-description').textContent = data.weather[0].description;
+        
+        document.getElementById('mobile-feels-like').textContent = Math.round(data.main.feels_like) + '°';
+        document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
+        document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
+        document.getElementById('mobile-wind-direction').textContent = 'Ветер ' + getWindDirection(data.wind.deg);
+        document.getElementById('mobile-pressure').textContent = Math.round(data.main.pressure * 0.750062) + ' мм';
+        
+        document.getElementById('mobile-humidity-bar').style.width = data.main.humidity + '%';
+        document.getElementById('mobile-wind-bar').style.width = Math.min(data.wind.speed / 20 * 100, 100) + '%';
+        document.getElementById('mobile-pressure-bar').style.width = Math.min(((data.main.pressure - 950) / (1050 - 950) * 100), 100) + '%';
+        
+        updateWeatherGlow(data);
+        
+    } catch (error) {
+        console.log('Ошибка обновления мобильного блока:', error);
+    }
+}
+function updateMobileSunData(data) {
+    if (!data?.sys) return;
+    
+    try {
+        const sunrise = new Date(data.sys.sunrise * 1000);
+        const sunset = new Date(data.sys.sunset * 1000);
+        
+        document.getElementById('mobile-sunrise').textContent = formatTime(sunrise);
+        document.getElementById('mobile-sunset').textContent = formatTime(sunset);
+        
+    } catch (error) {
+        console.log('Ошибка обновления времени солнца:', error);
+        document.getElementById('mobile-sunrise').textContent = '--:--';
+        document.getElementById('mobile-sunset').textContent = '--:--';
+    }
+}
+// Функция для получения текстового описания качества воздуха
+function getAirQualityText(aqi) {
+    const levels = {
+        1: { text: 'Отлично', class: 'aqi-good' },
+        2: { text: 'Хорошо', class: 'aqi-moderate' },
+        3: { text: 'Умеренно', class: 'aqi-unhealthy-sensitive' },
+        4: { text: 'Плохо', class: 'aqi-unhealthy' },
+        5: { text: 'Очень плохо', class: 'aqi-very-unhealthy' }
+    };
+    
+    return levels[aqi] || levels[1];
+}
+    
+// Обновляем функцию отображения качества воздуха
+function updateMobileAirQualityData(airQualityData) {
+    const aqiElement = document.getElementById('mobile-aqi');
+    const aqiLabel = document.getElementById('mobile-aqi-label');
+    
+    if (!aqiElement || !aqiLabel || !airQualityData?.list?.[0]) return;
+    
+    try {
+        const aqi = airQualityData.list[0].main.aqi;
+        const airQualityInfo = getAirQualityText(aqi);
+        
+        // Убираем цифру, показываем только текст
+        aqiElement.innerHTML = `
+            <div class="mobile-aqi-text ${airQualityInfo.class}">
+                ${airQualityInfo.text}
+            </div>
+        `;
+        
+        aqiLabel.textContent = 'Качество воздуха';
+        
+    } catch (error) {
+        console.log('Ошибка обновления качества воздуха:', error);
+        aqiElement.innerHTML = `
+            <div class="mobile-aqi-text aqi-moderate">
+                Нет данных
+            </div>
+        `;
+        aqiLabel.textContent = 'Качество воздуха';
     }
 }
