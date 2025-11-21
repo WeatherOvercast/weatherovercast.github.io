@@ -12,428 +12,1299 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <style>
+    
     /* ========== СТРАНИЦА НАСТРОЕК ========== */
-.settings-page {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
-    padding: 20px 15px;
-    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
+    .settings-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+        padding: 20px 15px;
+        animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+    }
 
-@keyframes pageSlideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    /* ФИКС СИНИХ ВЫДЕЛЕНИЙ */
+    .settings-page * {
+        -webkit-tap-highlight-color: transparent !important;
+    }
 
-/* ФИКС СИНИХ ВЫДЕЛЕНИЙ */
-.settings-page * {
-    -webkit-tap-highlight-color: transparent !important;
-}
+    .back-button,
+    .theme-option,
+    button {
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
 
-.back-button,
-.theme-option,
-button {
-    outline: none !important;
-    -webkit-tap-highlight-color: transparent !important;
-}
+    .back-button:focus,
+    .theme-option:focus,
+    button:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
 
-.back-button:focus,
-.theme-option:focus,
-button:focus {
-    outline: none !important;
-    box-shadow: none !important;
-}
+    .back-button:active,
+    .theme-option:active,
+    button:active {
+        -webkit-tap-highlight-color: transparent !important;
+    }
 
-.back-button:active,
-.theme-option:active,
-button:active {
-    -webkit-tap-highlight-color: transparent !important;
-}
+    /* Заголовок */
+    .settings-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        padding: 0 10px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+        padding-top: 10px;
+        padding-bottom: 10px;
+        margin-top: -10px;
+    }
 
-/* Заголовок */
-.settings-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    padding: 0 10px;
-}
+    .back-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
 
-.back-button {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
+    .back-button:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
 
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-}
+    .back-button:active {
+        transform: scale(0.95);
+    }
 
-.back-button:active {
-    transform: scale(0.95);
-}
+    /* ОБЫЧНЫЙ ЦВЕТ ДЛЯ ЗАГОЛОВКА */
+    .settings-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #ffffff;
+        text-align: center;
+        margin: 0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
 
-/* ОБЫЧНЫЙ ЦВЕТ ДЛЯ ЗАГОЛОВКА */
-.settings-title {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #ffffff; /* Просто белый цвет */
-    text-align: center;
-    margin: 0;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
+    .header-placeholder {
+        width: 44px;
+    }
 
-.header-placeholder {
-    width: 44px;
-}
+    /* Основной контент */
+    .settings-content {
+        max-width: 400px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        padding-right: 5px;
+    }
 
-/* Основной контент */
-.settings-content {
-    max-width: 400px;
-    margin: 0 auto;
+    /* Скрываем скроллбар для красоты */
+    .settings-content::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .settings-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .settings-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+    }
+
+    .settings-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Карточки настроек */
+    .settings-card {
+        background: rgba(26, 26, 26, 0.85);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border-radius: 24px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    @keyframes cardSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Заголовок карточки */
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: #ffffff;
+        stroke-width: 2;
+    }
+
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Опции тем */
+    .theme-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .theme-option {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .theme-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .theme-option:hover::before {
+        left: 100%;
+    }
+
+    .theme-option:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .theme-option.active {
+        border-color: rgba(78, 205, 196, 0.5);
+        background: rgba(78, 205, 196, 0.1);
+    }
+
+    .theme-preview {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        position: relative;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+    }
+
+    .theme-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        flex: 1;
+    }
+
+    /* Чекбоксы */
+    .theme-check {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .theme-option.active .theme-check {
+        border-color: #4ecdc4;
+        background: #4ecdc4;
+    }
+
+    .check-icon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
+        transform: scale(0);
+        transition: transform 0.3s ease;
+    }
+
+    .theme-option.active .check-icon {
+        transform: scale(1);
+    }
+
+    /* Анимации при выборе */
+    @keyframes selectPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .theme-option.active {
+        animation: selectPulse 0.4s ease;
+    }
+
+    /* ========== ИНФОРМАЦИЯ О САЙТЕ ========== */
+    .info-section {
+        margin-bottom: 20px;
+    }
+
+    .info-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-title svg {
+        width: 18px;
+        height: 18px;
+        opacity: 0.8;
+    }
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+        color: #ffffff;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .info-value.api {
+        color: #4ecdc4;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+
+    .info-value.status {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .status-development {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-ready {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .status-planned {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid rgba(33, 150, 243, 0.3);
+    }
+
+    /* Разделы в разработке */
+    .development-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .development-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffc107;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .development-title svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .development-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .development-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+    }
+
+    .development-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        background: rgba(255, 193, 7, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .development-icon svg {
+        width: 12px;
+        height: 12px;
+        stroke: #ffc107;
+    }
+
+    .development-text {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.4;
+    }
+
+    /* Текст "скоро больше настроек" */
+    .coming-soon-text {
+        text-align: center;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+        margin-top: 10px;
+        padding: 0 20px;
+        animation: fadeIn 1s ease 0.8s both;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Адаптивность */
+    @media (max-width: 480px) {
+        .settings-page {
+            padding: 15px 10px;
+        }
+        
+        .settings-header {
+            margin-bottom: 25px;
+        }
+        
+        .settings-title {
+            font-size: 1.6rem;
+        }
+        
+        .settings-card {
+            padding: 15px;
+            border-radius: 20px;
+        }
+        
+        .theme-option {
+            padding: 12px;
+            gap: 12px;
+        }
+        
+        .theme-preview {
+            width: 45px;
+            height: 45px;
+        }
+        
+        .theme-name {
+            font-size: 0.95rem;
+        }
+        
+        .info-item {
+            padding: 8px 0;
+        }
+        
+        .info-label,
+        .info-value {
+            font-size: 0.85rem;
+        }
+        
+        .development-text {
+            font-size: 0.8rem;
+        }
+        
+        .coming-soon-text {
+            font-size: 0.8rem;
+            padding: 0 15px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .settings-title {
+            font-size: 1.4rem;
+        }
+        
+        .theme-option {
+            padding: 10px;
+            gap: 10px;
+        }
+        
+        .theme-preview {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .theme-name {
+            font-size: 0.9rem;
+        }
+        
+        .coming-soon-text {
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Светлая тема для настроек */
+    body.light-theme .settings-page {
+        background: linear-gradient(135deg, #87CEEB, #E0F7FA) !important;
+    }
+
+    body.light-theme .settings-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        color: #2D3748 !important;
+    }
+
+    body.light-theme .card-title,
+    body.light-theme .info-title,
+    body.light-theme .info-value,
+    body.light-theme .theme-name {
+        color: #2D3748 !important;
+    }
+
+    body.light-theme .info-label,
+    body.light-theme .development-text,
+    body.light-theme .coming-soon-text {
+        color: #718096 !important;
+    }
+
+    body.light-theme .theme-option {
+        background: rgba(0, 0, 0, 0.05) !important;
+    }
+
+    body.light-theme .info-item {
+        border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body.light-theme .development-section {
+        border-top-color: rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body.light-theme .back-button {
+        background: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        color: #2D3748 !important;
+    }
+/* ========== РАЗДЕЛ РАЗРАБОТЧИКОВ ========== */
+.developers-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-}
-
-/* Карточки настроек */
-.settings-card {
-    background: rgba(26, 26, 26, 0.85);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border-radius: 24px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes cardSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Заголовок карточки */
-.card-header {
-    display: flex;
-    align-items: center;
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.card-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.card-icon svg {
-    width: 20px;
-    height: 20px;
-    stroke: #ffffff;
-    stroke-width: 2;
-}
-
-.card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #ffffff; /* Обычный белый */
-    margin: 0;
-}
-
-/* Опции тем */
-.theme-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.theme-option {
+.developer-card {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px;
+    padding: 16px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
-    border: 2px solid transparent;
-    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: developerSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.theme-option::before {
+.developer-card:nth-child(1) { animation-delay: 0.1s; }
+.developer-card:nth-child(2) { animation-delay: 0.2s; }
+.developer-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes developerSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.developer-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
     transition: left 0.6s ease;
 }
 
-.theme-option:hover::before {
+.developer-card:hover::before {
     left: 100%;
 }
 
-.theme-option:hover {
+.developer-card:hover {
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-.theme-option.active {
-    border-color: rgba(78, 205, 196, 0.5);
-    background: rgba(78, 205, 196, 0.1);
-}
-
-.theme-preview {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    position: relative;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-}
-
-.theme-name {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
-    flex: 1;
-}
-
-/* Чекбоксы */
-.theme-check {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+/* Аватары разработчиков */
+.developer-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    position: relative;
     flex-shrink: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    border: 3px solid;
 }
 
-.theme-option.active .theme-check {
-    border-color: #4ecdc4;
-    background: #4ecdc4;
+.avatar-text {
+    z-index: 2;
 }
 
-.check-icon {
-    width: 8px;
-    height: 8px;
+/* ОБНОВЛЕННЫЕ ЦВЕТА АВАТАРОВ */
+.developer-avatar.noah {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: white;
+}
+
+.developer-avatar.sergey {
+    background: linear-gradient(135deg, #10b981, #047857);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
+.developer-avatar.cat {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: white;
+    font-size: 1.8rem;
+    animation: catPurr 3s ease-in-out infinite, catFloat 4s ease-in-out infinite;
+}
+
+/* Статусы */
+.avatar-status {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: white;
-    transform: scale(0);
-    transition: transform 0.3s ease;
+    border: 2px solid rgba(26, 26, 26, 0.9);
+    z-index: 3;
 }
 
-.theme-option.active .check-icon {
-    transform: scale(1);
+.avatar-status.online {
+    background: #4ecdc4;
+    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
 }
 
-/* Анимации при выборе */
-@keyframes selectPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+.avatar-status.busy {
+    background: #ffd93d;
+    box-shadow: 0 0 0 2px rgba(255, 217, 61, 0.3);
+    animation: pulseBusy 2s infinite;
 }
 
-.theme-option.active {
-    animation: selectPulse 0.4s ease;
+@keyframes pulseBusy {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
 }
 
-/* Текст "скоро больше настроек" */
-.coming-soon-text {
-    text-align: center;
+/* Информация о разработчике */
+.developer-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.developer-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.developer-role {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
-    margin-top: 10px;
-    padding: 0 20px;
-    animation: fadeIn 1s ease 0.8s both;
+    font-weight: 600;
+    color: #4ecdc4;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.developer-desc {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.3;
 }
 
-/* Адаптивность */
+/* Бейджи разработчиков */
+.developer-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid;
+}
+
+.developer-badge.primary {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.developer-badge.mentor {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.developer-badge.mood {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #8b5cf6;
+}
+
+/* Статистика команды */
+.team-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0 5px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #4ecdc4;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+}
+
+/* Анимации для котика */
+@keyframes catPurr {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    75% { transform: rotate(-2deg); }
+}
+
+@keyframes catFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Эффект при наведении на котика */
+.developer-card:last-child:hover .developer-avatar.cat {
+    animation: catPurr 0.5s ease-in-out infinite, catFloat 0.8s ease-in-out infinite;
+}
+
+/* Адаптивность для разработчиков */
 @media (max-width: 480px) {
-    .settings-page {
-        padding: 15px 10px;
-    }
-    
-    .settings-header {
-        margin-bottom: 25px;
-    }
-    
-    .settings-title {
-        font-size: 1.6rem;
-    }
-    
-    .settings-card {
-        padding: 15px;
-        border-radius: 20px;
-    }
-    
-    .theme-option {
-        padding: 12px;
+    .developer-card {
+        padding: 14px;
         gap: 12px;
     }
     
-    .theme-preview {
-        width: 45px;
-        height: 45px;
+    .developer-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        font-size: 1.3rem;
     }
     
-    .theme-name {
-        font-size: 0.95rem;
+    .developer-avatar.cat {
+        font-size: 1.5rem;
     }
     
-    .coming-soon-text {
+    .developer-name {
+        font-size: 1rem;
+    }
+    
+    .developer-role {
         font-size: 0.8rem;
-        padding: 0 15px;
+    }
+    
+    .developer-desc {
+        font-size: 0.75rem;
+    }
+    
+    .developer-badge {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .developer-badge svg {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .stat-number {
+        font-size: 1.2rem;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
     }
 }
 
 @media (max-width: 380px) {
-    .settings-title {
-        font-size: 1.4rem;
-    }
-    
-    .theme-option {
-        padding: 10px;
+    .developer-card {
+        padding: 12px;
         gap: 10px;
     }
     
-    .theme-preview {
-        width: 40px;
-        height: 40px;
+    .developer-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        font-size: 1.2rem;
     }
     
-    .theme-name {
-        font-size: 0.9rem;
+    .developer-avatar.cat {
+        font-size: 1.3rem;
     }
     
-    .coming-soon-text {
-        font-size: 0.75rem;
+    .developer-info {
+        min-width: 0;
+    }
+    
+    .developer-desc {
+        font-size: 0.7rem;
     }
 }
-/* ========== ФИКСИРОВАННЫЙ ЗАГОЛОВОК И ОТКЛЮЧЕНИЕ СКРОЛЛА ========== */
 
-/* Отключаем скролл на всей странице */
-.settings-page {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
-    padding: 20px 15px;
-    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden; /* Отключаем скролл */
+/* Светлая тема для разработчиков */
+body.light-theme .developer-card {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-theme .developer-card:hover {
+    background: rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+body.light-theme .developer-name {
+    color: #2D3748 !important;
+}
+
+body.light-theme .developer-desc {
+    color: #718096 !important;
+}
+
+body.light-theme .team-stats {
+    border-top-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-theme .stat-label {
+    color: #718096 !important;
+}
+
+body.light-theme .avatar-status {
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+/* ========== ОГРОМНАЯ КНОПКА "КУПИ МНЕ КОФЕ" ========== */
+.coffee-card {
+    background: linear-gradient(135deg, rgba(120, 53, 15, 0.9), rgba(180, 110, 70, 0.8)) !important;
+    backdrop-filter: blur(40px) !important;
+    border: 2px solid rgba(255, 165, 0, 0.6) !important;
     position: relative;
+    overflow: hidden;
+    padding: 30px 25px !important;
+    margin: 10px 0 !important;
 }
 
-/* Фиксированный заголовок */
-.settings-header {
+.coffee-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 140, 0, 0.2), rgba(255, 215, 0, 0.1));
+    opacity: 1;
+}
+
+.coffee-card::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0%, 100% {
+        transform: rotate(45deg) translate(-100%, -100%);
+    }
+    50% {
+        transform: rotate(45deg) translate(100%, 100%);
+    }
+}
+
+.coffee-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    padding: 0 10px;
-    position: sticky; /* Делаем заголовок липким */
-    top: 0;
-    z-index: 100;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-    padding-top: 10px;
-    padding-bottom: 10px;
-    margin-top: -10px; /* Компенсируем padding */
+    gap: 25px;
+    position: relative;
+    z-index: 2;
 }
 
-/* Основной контент с ограниченной высотой */
-.settings-content {
-    max-width: 400px;
-    margin: 0 auto;
+.coffee-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #8B4513, #CD853F);
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-height: calc(100vh - 120px); /* Ограничиваем высоту */
-    overflow-y: auto; /* Разрешаем скролл только внутри контента */
-    padding-right: 5px; /* Место для скроллбара */
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 215, 0, 0.6);
+    box-shadow: 
+        0 15px 35px rgba(139, 69, 19, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 165, 0, 0.5);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    animation: float 3s ease-in-out infinite;
 }
 
-/* Скрываем скроллбар для красоты */
-.settings-content::-webkit-scrollbar {
-    width: 4px;
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
 }
 
-.settings-content::-webkit-scrollbar-track {
-    background: transparent;
+.coffee-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
-.settings-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+.coffee-icon svg {
+    stroke: #FFD700;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+    width: 40px;
+    height: 40px;
 }
 
-.settings-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+.coffee-text {
+    flex: 1;
+    min-width: 0;
 }
 
-/* Запрещаем горизонтальный скролл */
-body {
-    overflow-x: hidden;
+.coffee-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    margin: 0 0 12px 0;
+    text-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 165, 0, 0.6);
+    background: linear-gradient(135deg, #FFD700, #FFA500, #FF8C00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
 }
 
-/* Запрещаем выделение текста и перетаскивание */
-.settings-page {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+.coffee-desc {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    line-height: 1.4;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Запрещаем масштабирование на iOS */
-.settings-page {
-    touch-action: pan-y; /* Разрешаем только вертикальные жесты */
+.coffee-button {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 35px;
+    background: linear-gradient(135deg, #FF8C00, #FFA500, #FFD700);
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    color: #FFFFFF;
+    font-weight: 900;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 
+        0 15px 40px rgba(255, 140, 0, 0.6),
+        0 8px 25px rgba(255, 215, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
 }
 
-/* Адаптивность */
+.coffee-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.8s ease;
+}
+
+.coffee-button:hover::before {
+    left: 100%;
+}
+
+.coffee-button:hover {
+    transform: translateY(-5px) scale(1.08);
+    box-shadow: 
+        0 20px 50px rgba(255, 140, 0, 0.8),
+        0 12px 30px rgba(255, 215, 0, 0.6),
+        0 0 30px rgba(255, 255, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #FFA500, #FFB347, #FFD93D);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.coffee-button:active {
+    transform: translateY(0) scale(1);
+    box-shadow: 
+        0 8px 25px rgba(255, 140, 0, 0.6),
+        0 4px 15px rgba(255, 215, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.coffee-button svg {
+    stroke: #FFFFFF;
+    transition: all 0.3s ease;
+    width: 25px;
+    height: 25px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.coffee-button:hover svg {
+    transform: translateX(8px) scale(1.1);
+}
+
+/* Улучшенная анимация пара */
+.coffee-steam {
+    position: absolute;
+    top: 20px;
+    left: 75px;
+    z-index: 3;
+}
+
+.steam {
+    position: absolute;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
+    border-radius: 50%;
+    animation: steamAnimation 4s infinite ease-in-out;
+    filter: blur(2px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.steam-1 {
+    width: 12px;
+    height: 12px;
+    left: 8px;
+    animation-delay: 0s;
+}
+
+.steam-2 {
+    width: 10px;
+    height: 10px;
+    left: 20px;
+    top: -5px;
+    animation-delay: 1s;
+}
+
+.steam-3 {
+    width: 11px;
+    height: 11px;
+    left: 32px;
+    animation-delay: 2s;
+}
+
+.steam-4 {
+    width: 9px;
+    height: 9px;
+    left: 15px;
+    top: -8px;
+    animation-delay: 0.5s;
+}
+
+@keyframes steamAnimation {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-25px) scale(1.3);
+    }
+    80% {
+        opacity: 0.2;
+    }
+    100% {
+        transform: translateY(-50px) scale(1.8);
+        opacity: 0;
+    }
+}
+
+/* Анимация появления */
+.coffee-card {
+    opacity: 0;
+    transform: translateY(40px) scale(0.9);
+    animation: coffeeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.6s;
+}
+
+@keyframes coffeeSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Адаптивность для ОГРОМНОЙ кнопки кофе */
 @media (max-width: 480px) {
-    .settings-content {
-        max-height: calc(100vh - 100px);
-        gap: 15px;
+    .coffee-card {
+        padding: 25px 20px !important;
+        margin: 8px 0 !important;
     }
     
-    .settings-header {
-        margin-bottom: 20px;
-        padding-top: 5px;
-        padding-bottom: 5px;
+    .coffee-content {
+        gap: 20px;
+        flex-direction: column;
+        text-align: center;
     }
+    
+    .coffee-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+    }
+    
+    .coffee-icon svg {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .coffee-title {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+    
+    .coffee-desc {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+    
+    .coffee-button {
+        padding: 18px 30px;
+        font-size: 1.3rem;
+        gap: 12px;
+        min-width: 180px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .coffee-button svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .coffee-steam {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 25px;
+    }
+}
+
+@media (max-width: 380px) {
+    .coffee-card {
+        padding: 20px 15px !important;
+    }
+    
+    .coffee-icon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .coffee-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .coffee-title {
+        font-size: 1.4rem;
+    }
+    
+    .coffee-desc {
+        font-size: 1rem;
+    }
+    
+    .coffee-button {
+        padding: 16px 25px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Светлая тема для ОГРОМНОЙ кнопки кофе */
+body.light-theme .coffee-card {
+    background: linear-gradient(135deg, rgba(210, 180, 140, 0.95), rgba(205, 133, 63, 0.9)) !important;
+    border: 2px solid rgba(139, 69, 19, 0.6) !important;
+}
+
+body.light-theme .coffee-card::before {
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.2), rgba(160, 82, 45, 0.1));
+}
+
+body.light-theme .coffee-icon {
+    background: linear-gradient(135deg, #A0522D, #CD853F);
+    border: 3px solid rgba(139, 69, 19, 0.5);
+    box-shadow: 
+        0 15px 35px rgba(160, 82, 45, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+body.light-theme .coffee-icon svg {
+    stroke: #8B4513;
+}
+
+body.light-theme .coffee-title {
+    background: linear-gradient(135deg, #8B4513, #A0522D, #CD853F);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .coffee-desc {
+    color: #5D4037;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .coffee-button {
+    background: linear-gradient(135deg, #8B4513, #A0522D, #CD853F);
+    border: 3px solid rgba(139, 69, 19, 0.4);
+    color: #FFFFFF;
+    box-shadow: 
+        0 15px 40px rgba(139, 69, 19, 0.5),
+        0 8px 25px rgba(160, 82, 45, 0.3);
+}
+
+body.light-theme .coffee-button:hover {
+    background: linear-gradient(135deg, #A0522D, #CD853F, #D2B48C);
+    border-color: rgba(139, 69, 19, 0.6);
+}
+
+body.light-theme .steam {
+    background: linear-gradient(to bottom, rgba(139, 69, 19, 0.6), rgba(160, 82, 45, 0.3));
 }
 </style>
 <body class="night">
@@ -509,11 +1380,212 @@ body {
                     </div>
                 </div>
             </div>
+
+            <!-- Карточка информации о сайте -->
+            <div class="settings-card info-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Информация о сайте</h2>
+                </div>
+
+                <!-- Используемые API -->
+                <div class="info-section">
+                    <h3 class="info-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                        Используемые API
+                    </h3>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">Погодные данные</span>
+                            <span class="info-value api">OpenWeatherMap</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Качество воздуха</span>
+                            <span class="info-value api">OpenWeather Air Pollution</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статус разработки -->
+                <div class="info-section">
+                    <h3 class="info-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                        </svg>
+                        Статус разработки
+                    </h3>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">Мобильная версия</span>
+                            <span class="info-value status status-ready">Готово</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">PWA</span>
+                            <span class="info-value status status-ready">Готово</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Темы оформления</span>
+                            <span class="info-value status status-development">В разработке</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Десктоп версия</span>
+                            <span class="info-value status status-planned">Запланировано</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- В разработке -->
+                <div class="development-section">
+                    <h3 class="development-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m10 20-4.5-4.5L10 11"/>
+                            <path d="M13 20V4a2 2 0 0 1 2-2h5"/>
+                            <path d="m13 20 4.5-4.5L13 11"/>
+                            <path d="M10 4V2h11v18h-3"/>
+                        </svg>
+                        В активной разработке
+                    </h3>
+                    <div class="development-list">
+                        <div class="development-item">
+                            <div class="development-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                            </div>
+                            <span class="development-text">Стабилизация светлой темы</span>
+                        </div>
+                        <div class="development-item">
+                            <div class="development-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                            </div>
+                            <span class="development-text">Динамические темы под погоду</span>
+                        </div>
+                        <div class="development-item">
+                            <div class="development-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                            </div>
+                            <span class="development-text">Система уведомлений iOS-стиль</span>
+                        </div>
+                        <div class="development-item">
+                            <div class="development-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                            </div>
+                            <span class="development-text">Адаптация под планшеты</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- В разделе с settings-content, после карточки информации о сайте добавим: -->
+
+<!-- Карточка разработчиков -->
+<div class="settings-card developers-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
         </div>
+        <h2 class="card-title">Команда разработчиков</h2>
+    </div>
+
+    <div class="developers-grid">
+        <!-- Noah - Основной разработчик -->
+        <div class="developer-card">
+            <div class="developer-avatar noah">
+                <span class="avatar-text">N</span>
+                <div class="avatar-status online"></div>
+            </div>
+            <div class="developer-info">
+                <h3 class="developer-name">Noah</h3>
+                <p class="developer-role">Lead Developer</p>
+                <p class="developer-desc">Full-snack разработчик, архитектор проекта</p>
+            </div>
+            <div class="developer-badge primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Sergey - Ментор -->
+        <div class="developer-card">
+            <div class="developer-avatar sergey">
+                <span class="avatar-text">S</span>
+                <div class="avatar-status online"></div>
+            </div>
+            <div class="developer-info">
+                <h3 class="developer-name">Sergey</h3>
+                <p class="developer-role">Tech Mentor</p>
+                <p class="developer-desc">Наставник, code review, архитектурные решения</p>
+            </div>
+            <div class="developer-badge mentor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="7"></circle>
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Cat - Настроение -->
+        <div class="developer-card">
+            <div class="developer-avatar cat">
+                <span class="avatar-text">C</span>
+                <div class="avatar-status busy"></div>
+            </div>
+            <div class="developer-info">
+                <h3 class="developer-name">Cat</h3>
+                <p class="developer-role">Mood Manager</p>
+                <p class="developer-desc">Мурчит и настраивает на хорошее настроение</p>
+            </div>
+            <div class="developer-badge mood">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="team-stats">
+        <div class="stat-item">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Участника</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Идей</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Энтузиазма</div>
+        </div>
+    </div>
+</div>
 
         <!-- Текст "скоро больше настроек" -->
         <div class="coming-soon-text">
-            *Здесь скоро будет больше настроек
+            *Здесь скоро будет больше настроек и функций
         </div>
     </div>
 
