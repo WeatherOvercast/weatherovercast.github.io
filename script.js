@@ -1860,3 +1860,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// Функция применения подсветки из настроек
+function applyLightingFromSettings() {
+    const savedColor = localStorage.getItem('weatherLighting') || 'green';
+    const body = document.body;
+    
+    // Удаляем все старые классы подсветки
+    body.classList.remove(
+        'accent-green', 'accent-warm', 'accent-white', 
+        'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
+    );
+    
+    // Добавляем новый класс подсветки
+    body.classList.add(`accent-${savedColor}`);
+    
+    console.log('Applied lighting:', savedColor);
+}
+
+// Применяем при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    applyLightingFromSettings();
+});
+
+// Также применяем при возврате из настроек
+window.addEventListener('storage', function(e) {
+    if (e.key === 'weatherLighting') {
+        applyLightingFromSettings();
+    }
+});
+
+// Если открываем из настроек - сразу применяем
+if (window.location.search.includes('fromSettings=true')) {
+    applyLightingFromSettings();
+}

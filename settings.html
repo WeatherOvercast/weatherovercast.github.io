@@ -12,7 +12,16 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <style>
+    /* Скрываем скроллбар */
+    ::-webkit-scrollbar {
+        display: none;
+    }
     
+    * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
     /* ========== СТРАНИЦА НАСТРОЕК ========== */
     .settings-page {
         min-height: 100vh;
@@ -114,24 +123,6 @@
         padding-right: 5px;
     }
 
-    /* Скрываем скроллбар для красоты */
-    .settings-content::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .settings-content::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .settings-content::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-    }
-
-    .settings-content::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
     /* Карточки настроек */
     .settings-card {
         background: rgba(26, 26, 26, 0.85);
@@ -190,18 +181,18 @@
         margin: 0;
     }
 
-    /* Опции тем */
+    /* ОБНОВЛЕННЫЕ ОПЦИИ ТЕМ - БЕЗ КВАДРАТИКОВ */
     .theme-options {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
     }
 
     .theme-option {
         display: flex;
         align-items: center;
         gap: 15px;
-        padding: 15px;
+        padding: 16px 20px;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 16px;
         border: 2px solid transparent;
@@ -236,20 +227,30 @@
         background: rgba(78, 205, 196, 0.1);
     }
 
+    /* ПЛАШКИ "В РАЗРАБОТКЕ" */
+    .theme-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: 8px;
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    /* УБИРАЕМ ПРЕВЬЮ ТЕМ */
     .theme-preview {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        position: relative;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        flex-shrink: 0;
+        display: none;
     }
 
     .theme-name {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: #ffffff;
         flex: 1;
+        display: flex;
+        align-items: center;
     }
 
     /* Чекбоксы */
@@ -283,13 +284,100 @@
         transform: scale(1);
     }
 
+    /* НОВАЯ КАРТОЧКА ПОДСВЕТКИ */
+    .lighting-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .lighting-option {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .lighting-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .lighting-option:hover::before {
+        left: 100%;
+    }
+
+    .lighting-option:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .lighting-option.active {
+        border-color: rgba(78, 205, 196, 0.5);
+        background: rgba(78, 205, 196, 0.1);
+    }
+
+    .color-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .lighting-option.active .color-indicator {
+        border-color: rgba(255, 255, 255, 0.8);
+        transform: scale(1.1);
+    }
+
+    .lighting-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ffffff;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Подпись "(стандартный)" */
+    .standard-badge {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-left: 6px;
+        font-weight: 500;
+    }
+
+    /* Цвета для подсветки */
+    .color-green { background: #4CAF50; }
+    .color-warm { background: #FF9800; }
+    .color-white { background: #FFFFFF; }
+    .color-blue { background: #2196F3; }
+    .color-pink { background:  #feacba; }
+    .color-orange { background: #FF5722; }
+    .color-red { background: #F44336; }
+
     /* Анимации при выборе */
     @keyframes selectPulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.05); }
     }
 
-    .theme-option.active {
+    .theme-option.active,
+    .lighting-option.active {
         animation: selectPulse 0.4s ease;
     }
 
@@ -469,18 +557,24 @@
             border-radius: 20px;
         }
         
-        .theme-option {
-            padding: 12px;
+        .theme-option,
+        .lighting-option {
+            padding: 14px 16px;
             gap: 12px;
         }
         
-        .theme-preview {
-            width: 45px;
-            height: 45px;
+        .theme-name,
+        .lighting-name {
+            font-size: 1rem;
         }
         
-        .theme-name {
-            font-size: 0.95rem;
+        .theme-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+        
+        .standard-badge {
+            font-size: 0.8rem;
         }
         
         .info-item {
@@ -507,18 +601,24 @@
             font-size: 1.4rem;
         }
         
-        .theme-option {
-            padding: 10px;
+        .theme-option,
+        .lighting-option {
+            padding: 12px 14px;
             gap: 10px;
         }
         
-        .theme-preview {
-            width: 40px;
-            height: 40px;
+        .theme-name,
+        .lighting-name {
+            font-size: 0.95rem;
         }
         
-        .theme-name {
-            font-size: 0.9rem;
+        .theme-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+        }
+        
+        .standard-badge {
+            font-size: 0.75rem;
         }
         
         .coming-soon-text {
@@ -540,7 +640,8 @@
     body.light-theme .card-title,
     body.light-theme .info-title,
     body.light-theme .info-value,
-    body.light-theme .theme-name {
+    body.light-theme .theme-name,
+    body.light-theme .lighting-name {
         color: #2D3748 !important;
     }
 
@@ -550,7 +651,8 @@
         color: #718096 !important;
     }
 
-    body.light-theme .theme-option {
+    body.light-theme .theme-option,
+    body.light-theme .lighting-option {
         background: rgba(0, 0, 0, 0.05) !important;
     }
 
@@ -567,752 +669,356 @@
         border: 1px solid rgba(255, 255, 255, 0.5) !important;
         color: #2D3748 !important;
     }
-/* ========== РАЗДЕЛ РАЗРАБОТЧИКОВ ========== */
-.developers-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
 
-.developer-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: developerSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.developer-card:nth-child(1) { animation-delay: 0.1s; }
-.developer-card:nth-child(2) { animation-delay: 0.2s; }
-.developer-card:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes developerSlideIn {
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    body.light-theme .theme-badge {
+        background: rgba(255, 193, 7, 0.15) !important;
+        color: #d97706 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
     }
-}
 
-.developer-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    transition: left 0.6s ease;
-}
+    body.light-theme .standard-badge {
+        color: #718096 !important;
+    }
 
-.developer-card:hover::before {
-    left: 100%;
-}
-
-.developer-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Аватары разработчиков */
-.developer-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
-    font-weight: 700;
-    font-size: 1.5rem;
-    border: 3px solid;
-}
-
-.avatar-text {
-    z-index: 2;
-}
-
-/* ОБНОВЛЕННЫЕ ЦВЕТА АВАТАРОВ */
-.developer-avatar.noah {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: white;
-}
-
-.developer-avatar.sergey {
-    background: linear-gradient(135deg, #10b981, #047857);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: white;
-}
-
-.developer-avatar.cat {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    border-color: rgba(139, 92, 246, 0.3);
-    color: white;
-    font-size: 1.8rem;
-    animation: catPurr 3s ease-in-out infinite, catFloat 4s ease-in-out infinite;
-}
-
-/* Статусы */
-.avatar-status {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid rgba(26, 26, 26, 0.9);
-    z-index: 3;
-}
-
-.avatar-status.online {
-    background: #4ecdc4;
-    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
-}
-
-.avatar-status.busy {
-    background: #ffd93d;
-    box-shadow: 0 0 0 2px rgba(255, 217, 61, 0.3);
-    animation: pulseBusy 2s infinite;
-}
-
-@keyframes pulseBusy {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-/* Информация о разработчике */
-.developer-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.developer-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin: 0 0 4px 0;
-    line-height: 1.2;
-}
-
-.developer-role {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #4ecdc4;
-    margin: 0 0 6px 0;
-    line-height: 1.2;
-}
-
-.developer-desc {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0;
-    line-height: 1.3;
-}
-
-/* Бейджи разработчиков */
-.developer-badge {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border: 2px solid;
-}
-
-.developer-badge.primary {
-    background: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: #3b82f6;
-}
-
-.developer-badge.mentor {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: #10b981;
-}
-
-.developer-badge.mood {
-    background: rgba(139, 92, 246, 0.1);
-    border-color: rgba(139, 92, 246, 0.3);
-    color: #8b5cf6;
-}
-
-/* Статистика команды */
-.team-stats {
-    display: flex;
-    justify-content: space-around;
-    padding: 15px 0 5px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-item {
-    text-align: center;
-    flex: 1;
-}
-
-.stat-number {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #4ecdc4;
-    margin-bottom: 4px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 600;
-}
-
-/* Анимации для котика */
-@keyframes catPurr {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(2deg); }
-    75% { transform: rotate(-2deg); }
-}
-
-@keyframes catFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-}
-
-/* Эффект при наведении на котика */
-.developer-card:last-child:hover .developer-avatar.cat {
-    animation: catPurr 0.5s ease-in-out infinite, catFloat 0.8s ease-in-out infinite;
-}
-
-/* Адаптивность для разработчиков */
-@media (max-width: 480px) {
-    .developer-card {
-        padding: 14px;
+    /* ========== РАЗДЕЛ РАЗРАБОТЧИКОВ ========== */
+    .developers-grid {
+        display: flex;
+        flex-direction: column;
         gap: 12px;
+        margin-bottom: 20px;
     }
-    
-    .developer-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 14px;
-        font-size: 1.3rem;
-    }
-    
-    .developer-avatar.cat {
-        font-size: 1.5rem;
-    }
-    
-    .developer-name {
-        font-size: 1rem;
-    }
-    
-    .developer-role {
-        font-size: 0.8rem;
-    }
-    
-    .developer-desc {
-        font-size: 0.75rem;
-    }
-    
-    .developer-badge {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .developer-badge svg {
-        width: 12px;
-        height: 12px;
-    }
-    
-    .stat-number {
-        font-size: 1.2rem;
-    }
-    
-    .stat-label {
-        font-size: 0.7rem;
-    }
-}
 
-@media (max-width: 380px) {
     .developer-card {
-        padding: 12px;
-        gap: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: developerSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
-    
+
+    .developer-card:nth-child(1) { animation-delay: 0.1s; }
+    .developer-card:nth-child(2) { animation-delay: 0.2s; }
+    .developer-card:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes developerSlideIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .developer-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .developer-card:hover::before {
+        left: 100%;
+    }
+
+    .developer-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Аватары разработчиков */
     .developer-avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        font-size: 1.2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        flex-shrink: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
+        border: 3px solid;
     }
-    
+
+    .avatar-text {
+        z-index: 2;
+    }
+
+    /* ОБНОВЛЕННЫЕ ЦВЕТА АВАТАРОВ */
+    .developer-avatar.noah {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: white;
+    }
+
+    .developer-avatar.sergey {
+        background: linear-gradient(135deg, #10b981, #047857);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+
     .developer-avatar.cat {
-        font-size: 1.3rem;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        border-color: rgba(139, 92, 246, 0.3);
+        color: white;
+        font-size: 1.8rem;
+        animation: catPurr 3s ease-in-out infinite, catFloat 4s ease-in-out infinite;
     }
-    
+
+    /* Статусы */
+    .avatar-status {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(26, 26, 26, 0.9);
+        z-index: 3;
+    }
+
+    .avatar-status.online {
+        background: #4ecdc4;
+        box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
+    }
+
+    .avatar-status.busy {
+        background: #ffd93d;
+        box-shadow: 0 0 0 2px rgba(255, 217, 61, 0.3);
+        animation: pulseBusy 2s infinite;
+    }
+
+    @keyframes pulseBusy {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Информация о разработчике */
     .developer-info {
+        flex: 1;
         min-width: 0;
     }
-    
-    .developer-desc {
-        font-size: 0.7rem;
-    }
-}
 
-/* Светлая тема для разработчиков */
-body.light-theme .developer-card {
-    background: rgba(0, 0, 0, 0.05) !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
-}
-
-body.light-theme .developer-card:hover {
-    background: rgba(0, 0, 0, 0.08) !important;
-    border-color: rgba(0, 0, 0, 0.2) !important;
-}
-
-body.light-theme .developer-name {
-    color: #2D3748 !important;
-}
-
-body.light-theme .developer-desc {
-    color: #718096 !important;
-}
-
-body.light-theme .team-stats {
-    border-top-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-body.light-theme .stat-label {
-    color: #718096 !important;
-}
-
-body.light-theme .avatar-status {
-    border-color: rgba(255, 255, 255, 0.9) !important;
-}
-/* ========== ОГРОМНАЯ КНОПКА "КУПИ МНЕ КОФЕ" ========== */
-.coffee-card {
-    background: linear-gradient(135deg, rgba(120, 53, 15, 0.9), rgba(180, 110, 70, 0.8)) !important;
-    backdrop-filter: blur(40px) !important;
-    border: 2px solid rgba(255, 165, 0, 0.6) !important;
-    position: relative;
-    overflow: hidden;
-    padding: 30px 25px !important;
-    margin: 10px 0 !important;
-}
-
-.coffee-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, rgba(255, 140, 0, 0.2), rgba(255, 215, 0, 0.1));
-    opacity: 1;
-}
-
-.coffee-card::after {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: -100%;
-    width: 300%;
-    height: 300%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transform: rotate(45deg);
-    animation: shine 3s ease-in-out infinite;
-}
-
-@keyframes shine {
-    0%, 100% {
-        transform: rotate(45deg) translate(-100%, -100%);
-    }
-    50% {
-        transform: rotate(45deg) translate(100%, 100%);
-    }
-}
-
-.coffee-content {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    position: relative;
-    z-index: 2;
-}
-
-.coffee-icon {
-    width: 90px;
-    height: 90px;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #8B4513, #CD853F);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid rgba(255, 215, 0, 0.6);
-    box-shadow: 
-        0 15px 35px rgba(139, 69, 19, 0.6),
-        inset 0 2px 0 rgba(255, 255, 255, 0.3),
-        0 0 20px rgba(255, 165, 0, 0.5);
-    flex-shrink: 0;
-    position: relative;
-    overflow: hidden;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.coffee-icon::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-}
-
-.coffee-icon svg {
-    stroke: #FFD700;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-    width: 40px;
-    height: 40px;
-}
-
-.coffee-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.coffee-title {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #FFFFFF;
-    margin: 0 0 12px 0;
-    text-shadow: 
-        0 4px 8px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(255, 165, 0, 0.6);
-    background: linear-gradient(135deg, #FFD700, #FFA500, #FF8C00);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1.2;
-}
-
-.coffee-desc {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    line-height: 1.4;
-    font-weight: 600;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.coffee-button {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px 35px;
-    background: linear-gradient(135deg, #FF8C00, #FFA500, #FFD700);
-    border: 3px solid rgba(255, 255, 255, 0.4);
-    border-radius: 20px;
-    color: #FFFFFF;
-    font-weight: 900;
-    font-size: 1.4rem;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 
-        0 15px 40px rgba(255, 140, 0, 0.6),
-        0 8px 25px rgba(255, 215, 0, 0.4),
-        inset 0 2px 0 rgba(255, 255, 255, 0.3);
-    flex-shrink: 0;
-    position: relative;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    min-width: 200px;
-}
-
-.coffee-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left 0.8s ease;
-}
-
-.coffee-button:hover::before {
-    left: 100%;
-}
-
-.coffee-button:hover {
-    transform: translateY(-5px) scale(1.08);
-    box-shadow: 
-        0 20px 50px rgba(255, 140, 0, 0.8),
-        0 12px 30px rgba(255, 215, 0, 0.6),
-        0 0 30px rgba(255, 255, 0, 0.4),
-        inset 0 2px 0 rgba(255, 255, 255, 0.4);
-    background: linear-gradient(135deg, #FFA500, #FFB347, #FFD93D);
-    border-color: rgba(255, 255, 255, 0.6);
-}
-
-.coffee-button:active {
-    transform: translateY(0) scale(1);
-    box-shadow: 
-        0 8px 25px rgba(255, 140, 0, 0.6),
-        0 4px 15px rgba(255, 215, 0, 0.4),
-        inset 0 2px 0 rgba(255, 255, 255, 0.2);
-}
-
-.coffee-button svg {
-    stroke: #FFFFFF;
-    transition: all 0.3s ease;
-    width: 25px;
-    height: 25px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.coffee-button:hover svg {
-    transform: translateX(8px) scale(1.1);
-}
-
-/* Улучшенная анимация пара */
-.coffee-steam {
-    position: absolute;
-    top: 20px;
-    left: 75px;
-    z-index: 3;
-}
-
-.steam {
-    position: absolute;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
-    border-radius: 50%;
-    animation: steamAnimation 4s infinite ease-in-out;
-    filter: blur(2px);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-.steam-1 {
-    width: 12px;
-    height: 12px;
-    left: 8px;
-    animation-delay: 0s;
-}
-
-.steam-2 {
-    width: 10px;
-    height: 10px;
-    left: 20px;
-    top: -5px;
-    animation-delay: 1s;
-}
-
-.steam-3 {
-    width: 11px;
-    height: 11px;
-    left: 32px;
-    animation-delay: 2s;
-}
-
-.steam-4 {
-    width: 9px;
-    height: 9px;
-    left: 15px;
-    top: -8px;
-    animation-delay: 0.5s;
-}
-
-@keyframes steamAnimation {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 0;
-    }
-    20% {
-        opacity: 0.9;
-    }
-    50% {
-        opacity: 0.7;
-        transform: translateY(-25px) scale(1.3);
-    }
-    80% {
-        opacity: 0.2;
-    }
-    100% {
-        transform: translateY(-50px) scale(1.8);
-        opacity: 0;
-    }
-}
-
-/* Анимация появления */
-.coffee-card {
-    opacity: 0;
-    transform: translateY(40px) scale(0.9);
-    animation: coffeeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.6s;
-}
-
-@keyframes coffeeSlideIn {
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Адаптивность для ОГРОМНОЙ кнопки кофе */
-@media (max-width: 480px) {
-    .coffee-card {
-        padding: 25px 20px !important;
-        margin: 8px 0 !important;
-    }
-    
-    .coffee-content {
-        gap: 20px;
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .coffee-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 20px;
-    }
-    
-    .coffee-icon svg {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .coffee-title {
-        font-size: 1.6rem;
-        margin-bottom: 8px;
-    }
-    
-    .coffee-desc {
+    .developer-name {
         font-size: 1.1rem;
-        margin-bottom: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 4px 0;
+        line-height: 1.2;
     }
-    
-    .coffee-button {
-        padding: 18px 30px;
-        font-size: 1.3rem;
-        gap: 12px;
-        min-width: 180px;
-        width: 100%;
+
+    .developer-role {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4ecdc4;
+        margin: 0 0 6px 0;
+        line-height: 1.2;
+    }
+
+    .developer-desc {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    /* Бейджи разработчиков */
+    .developer-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+        border: 2px solid;
     }
-    
-    .coffee-button svg {
-        width: 22px;
-        height: 22px;
-    }
-    
-    .coffee-steam {
-        left: 50%;
-        transform: translateX(-50%);
-        top: 25px;
-    }
-}
 
-@media (max-width: 380px) {
-    .coffee-card {
-        padding: 20px 15px !important;
+    .developer-badge.primary {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
     }
-    
-    .coffee-icon {
-        width: 70px;
-        height: 70px;
+
+    .developer-badge.mentor {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #10b981;
     }
-    
-    .coffee-icon svg {
-        width: 30px;
-        height: 30px;
+
+    .developer-badge.mood {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.3);
+        color: #8b5cf6;
     }
-    
-    .coffee-title {
+
+    /* Статистика команды */
+    .team-stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 15px 0 5px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+
+    .stat-number {
         font-size: 1.4rem;
+        font-weight: 800;
+        color: #4ecdc4;
+        margin-bottom: 4px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
-    
-    .coffee-desc {
-        font-size: 1rem;
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
     }
-    
-    .coffee-button {
-        padding: 16px 25px;
-        font-size: 1.2rem;
+
+    /* Анимации для котика */
+    @keyframes catPurr {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(2deg); }
+        75% { transform: rotate(-2deg); }
     }
-}
 
-/* Светлая тема для ОГРОМНОЙ кнопки кофе */
-body.light-theme .coffee-card {
-    background: linear-gradient(135deg, rgba(210, 180, 140, 0.95), rgba(205, 133, 63, 0.9)) !important;
-    border: 2px solid rgba(139, 69, 19, 0.6) !important;
-}
+    @keyframes catFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+    }
 
-body.light-theme .coffee-card::before {
-    background: linear-gradient(45deg, rgba(139, 69, 19, 0.2), rgba(160, 82, 45, 0.1));
-}
+    /* Эффект при наведении на котика */
+    .developer-card:last-child:hover .developer-avatar.cat {
+        animation: catPurr 0.5s ease-in-out infinite, catFloat 0.8s ease-in-out infinite;
+    }
 
-body.light-theme .coffee-icon {
-    background: linear-gradient(135deg, #A0522D, #CD853F);
-    border: 3px solid rgba(139, 69, 19, 0.5);
-    box-shadow: 
-        0 15px 35px rgba(160, 82, 45, 0.5),
-        inset 0 2px 0 rgba(255, 255, 255, 0.3);
-}
+    /* Адаптивность для разработчиков */
+    @media (max-width: 480px) {
+        .developer-card {
+            padding: 14px;
+            gap: 12px;
+        }
+        
+        .developer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            font-size: 1.3rem;
+        }
+        
+        .developer-avatar.cat {
+            font-size: 1.5rem;
+        }
+        
+        .developer-name {
+            font-size: 1rem;
+        }
+        
+        .developer-role {
+            font-size: 0.8rem;
+        }
+        
+        .developer-desc {
+            font-size: 0.75rem;
+        }
+        
+        .developer-badge {
+            width: 28px;
+            height: 28px;
+        }
+        
+        .developer-badge svg {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+        }
+    }
 
-body.light-theme .coffee-icon svg {
-    stroke: #8B4513;
-}
+    @media (max-width: 380px) {
+        .developer-card {
+            padding: 12px;
+            gap: 10px;
+        }
+        
+        .developer-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .developer-avatar.cat {
+            font-size: 1.3rem;
+        }
+        
+        .developer-info {
+            min-width: 0;
+        }
+        
+        .developer-desc {
+            font-size: 0.7rem;
+        }
+    }
 
-body.light-theme .coffee-title {
-    background: linear-gradient(135deg, #8B4513, #A0522D, #CD853F);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+    /* Светлая тема для разработчиков */
+    body.light-theme .developer-card {
+        background: rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
 
-body.light-theme .coffee-desc {
-    color: #5D4037;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
+    body.light-theme .developer-card:hover {
+        background: rgba(0, 0, 0, 0.08) !important;
+        border-color: rgba(0, 0, 0, 0.2) !important;
+    }
 
-body.light-theme .coffee-button {
-    background: linear-gradient(135deg, #8B4513, #A0522D, #CD853F);
-    border: 3px solid rgba(139, 69, 19, 0.4);
-    color: #FFFFFF;
-    box-shadow: 
-        0 15px 40px rgba(139, 69, 19, 0.5),
-        0 8px 25px rgba(160, 82, 45, 0.3);
-}
+    body.light-theme .developer-name {
+        color: #2D3748 !important;
+    }
 
-body.light-theme .coffee-button:hover {
-    background: linear-gradient(135deg, #A0522D, #CD853F, #D2B48C);
-    border-color: rgba(139, 69, 19, 0.6);
-}
+    body.light-theme .developer-desc {
+        color: #718096 !important;
+    }
 
-body.light-theme .steam {
-    background: linear-gradient(to bottom, rgba(139, 69, 19, 0.6), rgba(160, 82, 45, 0.3));
-}
+    body.light-theme .team-stats {
+        border-top-color: rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body.light-theme .stat-label {
+        color: #718096 !important;
+    }
+
+    body.light-theme .avatar-status {
+        border-color: rgba(255, 255, 255, 0.9) !important;
+    }
 </style>
 <body class="night">
     <!-- Страница настроек -->
     <div class="settings-page">
         <!-- Заголовок -->
         <div class="settings-header">
-            <button class="back-button" onclick="goBack()">
+            <button class="back-button" onclick="goToMain()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5"/>
                     <path d="M12 19l-7-7 7-7"/>
@@ -1345,35 +1051,97 @@ body.light-theme .steam {
                 
                 <div class="theme-options">
                     <div class="theme-option" data-theme="light">
-                        <div class="theme-preview light-theme">
-                            <div class="preview-sun"></div>
-                            <div class="preview-cloud"></div>
-                        </div>
-                        <span class="theme-name">Светлая</span>
+                        <span class="theme-name">
+                            Светлая
+                            <span class="theme-badge">В разработке</span>
+                        </span>
                         <div class="theme-check">
                             <div class="check-icon"></div>
                         </div>
                     </div>
                     
-                    <div class="theme-option" data-theme="dark">
-                        <div class="theme-preview dark-theme">
-                            <div class="preview-moon"></div>
-                            <div class="preview-star"></div>
-                            <div class="preview-star small"></div>
-                        </div>
+                    <div class="theme-option active" data-theme="dark">
                         <span class="theme-name">Тёмная</span>
                         <div class="theme-check">
                             <div class="check-icon"></div>
                         </div>
                     </div>
                     
-                    <div class="theme-option active" data-theme="dynamic">
-                        <div class="theme-preview dynamic-theme">
-                            <div class="preview-sun"></div>
-                            <div class="preview-cloud"></div>
-                            <div class="preview-moon"></div>
+                    <div class="theme-option" data-theme="dynamic">
+                        <span class="theme-name">
+                            Динамическая
+                            <span class="theme-badge">В разработке</span>
+                        </span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
                         </div>
-                        <span class="theme-name">Динамическая</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- НОВАЯ КАРТОЧКА ПОДСВЕТКИ -->
+            <div class="settings-card lighting-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                    </div>
+                    <h2 class="card-title">Настройки подсветки</h2>
+                </div>
+                
+                <div class="lighting-options">
+                    <div class="lighting-option active" data-color="green">
+                        <div class="color-indicator color-green"></div>
+                        <span class="lighting-name">
+                            Зелёный
+                            <span class="standard-badge">(стандартный)</span>
+                        </span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="warm">
+                        <div class="color-indicator color-warm"></div>
+                        <span class="lighting-name">Тёплый</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="white">
+                        <div class="color-indicator color-white"></div>
+                        <span class="lighting-name">Белый</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="blue">
+                        <div class="color-indicator color-blue"></div>
+                        <span class="lighting-name">Синий</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="pink">
+                        <div class="color-indicator color-pink"></div>
+                        <span class="lighting-name">Нежный розовый</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="orange">
+                        <div class="color-indicator color-orange"></div>
+                        <span class="lighting-name">Оранжевый</span>
+                        <div class="theme-check">
+                            <div class="check-icon"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lighting-option" data-color="red">
+                        <div class="color-indicator color-red"></div>
+                        <span class="lighting-name">Красный</span>
                         <div class="theme-check">
                             <div class="check-icon"></div>
                         </div>
@@ -1491,106 +1259,340 @@ body.light-theme .steam {
                     </div>
                 </div>
             </div>
-            <!-- В разделе с settings-content, после карточки информации о сайте добавим: -->
 
-<!-- Карточка разработчиков -->
-<div class="settings-card developers-card">
-    <div class="card-header">
-        <div class="card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
+            <!-- Карточка разработчиков -->
+            <div class="settings-card developers-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Команда разработчиков</h2>
+                </div>
+
+                <div class="developers-grid">
+                    <!-- Noah - Основной разработчик -->
+                    <div class="developer-card">
+                        <div class="developer-avatar noah">
+                            <span class="avatar-text">N</span>
+                            <div class="avatar-status online"></div>
+                        </div>
+                        <div class="developer-info">
+                            <h3 class="developer-name">Noah</h3>
+                            <p class="developer-role">Lead Developer</p>
+                            <p class="developer-desc">Full-snack разработчик, архитектор проекта</p>
+                        </div>
+                        <div class="developer-badge primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Sergey - Ментор -->
+                    <div class="developer-card">
+                        <div class="developer-avatar sergey">
+                            <span class="avatar-text">S</span>
+                            <div class="avatar-status online"></div>
+                        </div>
+                        <div class="developer-info">
+                            <h3 class="developer-name">Sergey</h3>
+                            <p class="developer-role">Tech Mentor</p>
+                            <p class="developer-desc">Наставник, code review, архитектурные решения</p>
+                        </div>
+                        <div class="developer-badge mentor">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Cat - Настроение -->
+                    <div class="developer-card">
+                        <div class="developer-avatar cat">
+                            <span class="avatar-text">C</span>
+                            <div class="avatar-status busy"></div>
+                        </div>
+                        <div class="developer-info">
+                            <h3 class="developer-name">Cat</h3>
+                            <p class="developer-role">Mood Manager</p>
+                            <p class="developer-desc">Мурчит и настраивает на хорошее настроение</p>
+                        </div>
+                        <div class="developer-badge mood">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Участника</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Идей</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Энтузиазма</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Текст "скоро больше настроек" -->
+            <div class="coming-soon-text">
+                *Здесь скоро будет больше настроек и функций
+            </div>
         </div>
-        <h2 class="card-title">Команда разработчиков</h2>
     </div>
 
-    <div class="developers-grid">
-        <!-- Noah - Основной разработчик -->
-        <div class="developer-card">
-            <div class="developer-avatar noah">
-                <span class="avatar-text">N</span>
-                <div class="avatar-status online"></div>
-            </div>
-            <div class="developer-info">
-                <h3 class="developer-name">Noah</h3>
-                <p class="developer-role">Lead Developer</p>
-                <p class="developer-desc">Full-snack разработчик, архитектор проекта</p>
-            </div>
-            <div class="developer-badge primary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Sergey - Ментор -->
-        <div class="developer-card">
-            <div class="developer-avatar sergey">
-                <span class="avatar-text">S</span>
-                <div class="avatar-status online"></div>
-            </div>
-            <div class="developer-info">
-                <h3 class="developer-name">Sergey</h3>
-                <p class="developer-role">Tech Mentor</p>
-                <p class="developer-desc">Наставник, code review, архитектурные решения</p>
-            </div>
-            <div class="developer-badge mentor">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="8" r="7"></circle>
-                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Cat - Настроение -->
-        <div class="developer-card">
-            <div class="developer-avatar cat">
-                <span class="avatar-text">C</span>
-                <div class="avatar-status busy"></div>
-            </div>
-            <div class="developer-info">
-                <h3 class="developer-name">Cat</h3>
-                <p class="developer-role">Mood Manager</p>
-                <p class="developer-desc">Мурчит и настраивает на хорошее настроение</p>
-            </div>
-            <div class="developer-badge mood">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
-                </svg>
-            </div>
-        </div>
-    </div>
-
-    <div class="team-stats">
-        <div class="stat-item">
-            <div class="stat-number">3</div>
-            <div class="stat-label">Участника</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">∞</div>
-            <div class="stat-label">Идей</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">100%</div>
-            <div class="stat-label">Энтузиазма</div>
-        </div>
-    </div>
-</div>
-
-        <!-- Текст "скоро больше настроек" -->
-        <div class="coming-soon-text">
-            *Здесь скоро будет больше настроек и функций
-        </div>
-    </div>
-
-    <script src="settings.js"></script>
     <script>
+        // ========== ПРОСТЫЕ НАСТРОЙКИ ==========
+
+        function goToMain() {
+            // Возврат на главную страницу
+            window.location.href = 'index.html'; // Замените на ваш главный файл
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentTheme();
+            loadCurrentLighting();
+            setupEventListeners();
+            
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        function loadCurrentTheme() {
+            const currentTheme = localStorage.getItem('weatherTheme') || 'dark'; // По умолчанию тёмная
+            const themeOptions = document.querySelectorAll('.theme-option');
+            
+            themeOptions.forEach(option => {
+                option.classList.toggle('active', option.dataset.theme === currentTheme);
+            });
+            
+            applyTheme(currentTheme);
+        }
+
+        function loadCurrentLighting() {
+            const currentLighting = localStorage.getItem('weatherLighting') || 'green'; // По умолчанию зелёный
+            const lightingOptions = document.querySelectorAll('.lighting-option');
+            
+            lightingOptions.forEach(option => {
+                option.classList.toggle('active', option.dataset.color === currentLighting);
+            });
+            
+            applyLighting(currentLighting);
+        }
+
+        function setupEventListeners() {
+            // Обработчики для тем
+            const themeOptions = document.querySelectorAll('.theme-option');
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedTheme = this.dataset.theme;
+                    
+                    // Проверяем, не в разработке ли тема
+                    if (selectedTheme === 'light' || selectedTheme === 'dynamic') {
+                        showNotification('Эта тема находится в разработке 🛠️');
+                        return;
+                    }
+                    
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    localStorage.setItem('weatherTheme', selectedTheme);
+                    applyTheme(selectedTheme);
+                    showNotification(`Тема: ${getThemeName(selectedTheme)}`);
+                });
+            });
+
+            // Обработчики для подсветки
+            const lightingOptions = document.querySelectorAll('.lighting-option');
+            lightingOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedColor = this.dataset.color;
+                    
+                    lightingOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    localStorage.setItem('weatherLighting', selectedColor);
+                    applyLighting(selectedColor);
+                    showNotification(`Подсветка: ${getLightingName(selectedColor)}`);
+                });
+            });
+            
+            // Убираем все выделения
+            const elements = document.querySelectorAll('button, .theme-option, .lighting-option');
+            elements.forEach(el => {
+                el.addEventListener('mousedown', e => e.preventDefault());
+                el.addEventListener('focus', () => {
+                    el.style.outline = 'none';
+                    el.style.boxShadow = 'none';
+                });
+            });
+        }
+
+        function applyTheme(theme) {
+            const body = document.body;
+            
+            // Удаляем все тематические классы
+            body.classList.remove('light-theme', 'dark-theme');
+            
+            switch(theme) {
+                case 'light':
+                    body.classList.add('light-theme');
+                    break;
+                    
+                case 'dark':
+                    body.classList.add('dark-theme');
+                    break;
+                    
+                case 'dynamic':
+                default:
+                    // Для динамической темы используем стандартный фон
+                    body.style.background = 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%)';
+                    body.style.color = '#FFFFFF';
+                    break;
+            }
+        }
+
+function applyLighting(color) {
+    const colors = {
+        'green': '#4CAF50',
+        'warm': '#FF9800',
+        'white': '#FFFFFF',
+        'blue': '#2196F3',
+        'pink': '#E91E63',
+        'orange': '#FF5722',
+        'red': '#F44336'
+    };
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('weatherLighting', color);
+    
+    // Применяем в текущей странице (если это главная)
+    if (typeof applyLightingFromSettings === 'function') {
+        applyLightingFromSettings();
+    }
+    
+    // Синхронизируем с главной страницей
+    window.dispatchEvent(new StorageEvent('storage', {
+        key: 'weatherLighting',
+        newValue: color
+    }));
+    
+    console.log('Applied lighting color:', color);
+}
+
+        function getThemeName(theme) {
+            return {
+                'light': 'Светлая',
+                'dark': 'Тёмная', 
+                'dynamic': 'Динамическая'
+            }[theme] || 'Тёмная';
+        }
+
+        function getLightingName(color) {
+            return {
+                'green': 'Зелёный',
+                'warm': 'Тёплый',
+                'white': 'Белый',
+                'blue': 'Синий',
+                'pink': 'Розовый',
+                'orange': 'Оранжевый',
+                'red': 'Красный'
+            }[color] || 'Зелёный';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(26, 26, 26, 0.95);
+                backdrop-filter: blur(20px);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                font-weight: 600;
+                z-index: 10000;
+                animation: notificationSlideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 2000);
+        }
+
+        // Добавляем стили для уведомлений
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes notificationSlideIn {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes notificationSlideOut {
+                from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            }
+            body { opacity: 0; transition: opacity 0.3s ease; }
+            * { -webkit-tap-highlight-color: transparent !important; }
+        `;
+        document.head.appendChild(style);
+
+        // ========== ЗАПРЕТ СКРОЛЛА И ДВИЖЕНИЯ ==========
+
+        // Запрещаем скролл всей страницы
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // Запрещаем масштабирование
+        document.addEventListener('touchmove', function(e) {
+            // Разрешаем скролл только внутри .settings-content
+            if (!e.target.closest('.settings-content')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Запрещаем горизонтальный скролл
+        document.addEventListener('wheel', function(e) {
+            if (e.deltaX !== 0) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Запрещаем жесты масштабирования
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
         // Инициализация Lucide иконок
         lucide.createIcons();
     </script>

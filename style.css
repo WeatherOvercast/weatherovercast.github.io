@@ -4,6 +4,56 @@
     box-sizing: border-box;
 }
 
+/* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ПОДСВЕТКИ ========== */
+:root {
+  --accent-color: #4CAF50; /* Зелёный по умолчанию */
+  --accent-glow: rgba(76, 175, 80, 0.3); /* Свечение по умолчанию */
+  --accent-hover: rgba(76, 175, 80, 0.5);
+}
+
+/* Цветовые схемы для подсветки */
+.accent-green {
+  --accent-color: #4CAF50;
+  --accent-glow: rgba(76, 175, 80, 0.3);
+  --accent-hover: rgba(76, 175, 80, 0.5);
+}
+
+.accent-warm {
+  --accent-color: #FFA726; /* Тёплый янтарный */
+  --accent-glow: rgba(255, 167, 38, 0.3);
+  --accent-hover: rgba(255, 167, 38, 0.5);
+}
+.accent-white {
+  --accent-color: #FFFFFF;
+  --accent-glow: rgba(255, 255, 255, 0.3);
+  --accent-hover: rgba(255, 255, 255, 0.5);
+}
+
+.accent-blue {
+  --accent-color: #2196F3;
+  --accent-glow: rgba(33, 150, 243, 0.3);
+  --accent-hover: rgba(33, 150, 243, 0.5);
+}
+
+.accent-pink {
+  --accent-color: #feacba; /* Нежный розовый */
+  --accent-glow: rgba(254, 172, 186, 0.3);
+  --accent-hover: rgba(254, 172, 186, 0.5);
+}
+
+
+.accent-orange {
+  --accent-color: #FF5722;
+  --accent-glow: rgba(255, 87, 34, 0.3);
+  --accent-hover: rgba(255, 87, 34, 0.5);
+}
+
+.accent-red {
+  --accent-color: #F44336;
+  --accent-glow: rgba(244, 67, 54, 0.3);
+  --accent-hover: rgba(244, 67, 54, 0.5);
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow-x: hidden;
@@ -1159,7 +1209,7 @@ body[class*="broken"] {
         0 25px 50px rgba(0, 0, 0, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 30px rgba(76, 175, 80, 0.3);
+        0 0 30px var(--accent-glow); /* Используем переменную */
     border: 1px solid rgba(255, 255, 255, 0.12);
     position: relative;
     overflow: hidden;
@@ -1181,7 +1231,42 @@ body[class*="broken"] {
     filter: blur(12px);
     z-index: -1;
 }
+/* СВЕЧЕНИЕ ДЛЯ ЭЛЕМЕНТОВ С ПОДСВЕТКОЙ */
+.mobile-humidity .mobile-detail-value,
+.mobile-humidity .mobile-progress-fill {
+    color: var(--accent-color);
+    filter: drop-shadow(0 0 3px var(--accent-color)) drop-shadow(0 0 6px var(--accent-glow));
+}
 
+.mobile-humidity .mobile-progress-fill { 
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
+}
+
+/* Свечение для температуры */
+.mobile-temperature {
+    filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+/* Свечение для кнопок */
+.floating-btn:hover {
+    border: 1.5px solid var(--accent-color);
+    box-shadow: 
+        0 16px 50px rgba(0, 0, 0, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 15px var(--accent-glow);
+}
+
+/* Свечение для напоминаний */
+.reminder-card::before {
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
+}
+
+.reminder-time {
+    color: var(--accent-color);
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-color);
+}
 /* ========== УВЕЛИЧИВАЕМ РАЗМЕРЫ ОСНОВНОЙ ИНФОРМАЦИИ ========== */
 
 .mobile-location {
