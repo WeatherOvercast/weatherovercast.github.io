@@ -1383,91 +1383,6 @@ function updateMobileForecastData(forecastData) {
     }
 }
 
-// Обновляем основную функцию для добавления точек
-function updateMobileWeather(data) {
-    if (!data) return;
-    
-    try {
-        document.getElementById('mobile-city').textContent = data.name;
-        
-        // Добавляем точку к дате
-        const currentDate = new Date().toLocaleDateString('ru-RU', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-        document.getElementById('mobile-date').innerHTML = `
-            <span class="date-bullet">●</span>
-            <span>${currentDate}</span>
-        `;
-        
-        // Добавляем точку к температуре
-        document.getElementById('mobile-temperature').innerHTML = `
-            <span class="temp-bullet">●</span>
-            <span>${Math.round(data.main.temp)}°</span>
-        `;
-        
-        // Добавляем точку к описанию
-        document.getElementById('mobile-description').innerHTML = `
-            <span class="desc-bullet">●</span>
-            <span>${data.weather[0].description}</span>
-        `;
-        
-        document.getElementById('mobile-feels-like').textContent = Math.round(data.main.feels_like) + '°';
-        document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
-        document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
-        document.getElementById('mobile-wind-direction').textContent = 'Ветер ' + getWindDirection(data.wind.deg);
-        document.getElementById('mobile-pressure').textContent = Math.round(data.main.pressure * 0.750062) + ' мм';
-        
-        document.getElementById('mobile-humidity-bar').style.width = data.main.humidity + '%';
-        document.getElementById('mobile-wind-bar').style.width = Math.min(data.wind.speed / 20 * 100, 100) + '%';
-        document.getElementById('mobile-pressure-bar').style.width = Math.min(((data.main.pressure - 950) / (1050 - 950) * 100), 100) + '%';
-        
-        updateWeatherGlow(data);
-        
-    } catch (error) {
-        console.log('Ошибка обновления мобильного блока:', error);
-    }
-}
-// Обновляем функцию без точек
-function updateMobileWeather(data) {
-    if (!data) return;
-    
-    try {
-        document.getElementById('mobile-city').textContent = data.name;
-        
-        // Без точки
-        const currentDate = new Date().toLocaleDateString('ru-RU', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-        document.getElementById('mobile-date').textContent = currentDate;
-        
-        // Без точки
-        document.getElementById('mobile-temperature').textContent = Math.round(data.main.temp) + '°';
-        
-        // Без точки
-        document.getElementById('mobile-description').textContent = data.weather[0].description;
-        
-        document.getElementById('mobile-feels-like').textContent = Math.round(data.main.feels_like) + '°';
-        document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
-        document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
-        document.getElementById('mobile-wind-direction').textContent = 'Ветер ' + getWindDirection(data.wind.deg);
-        document.getElementById('mobile-pressure').textContent = Math.round(data.main.pressure * 0.750062) + ' мм';
-        
-        document.getElementById('mobile-humidity-bar').style.width = data.main.humidity + '%';
-        document.getElementById('mobile-wind-bar').style.width = Math.min(data.wind.speed / 20 * 100, 100) + '%';
-        document.getElementById('mobile-pressure-bar').style.width = Math.min(((data.main.pressure - 950) / (1050 - 950) * 100), 100) + '%';
-        
-        updateWeatherGlow(data);
-        
-    } catch (error) {
-        console.log('Ошибка обновления мобильного блока:', error);
-    }
-}
 function updateMobileSunData(data) {
     if (!data?.sys) return;
     
@@ -1575,11 +1490,10 @@ isRelevantTimeForSnow(currentHour) {
 // Создание напоминания о снеге
 createSnowReminder(snowProbability) {
     const messages = [
-        "Наслаждайтесь снегом! ❄️",
+        "Наслаждайтесь снегом!",
         "Идеальное время для снежных забав",
-        "Можно слепить снеговика! ⛄",
+        "Можно слепить снеговика",
         "Прекрасный снежный день!",
-        "Волшебство снегопада начинается! ✨"
     ];
     
     const intensity = snowProbability.high ? "сильный" : "небольшой";
@@ -1695,7 +1609,7 @@ analyzeWeatherForReminders(weatherData, forecastData) {
     // Создание напоминания о дожде
     createRainReminder(rainProbability) {
         const messages = [
-            "Возьмите зонт 🌂",
+            "Возьмите зонт",
             "Лучше надеть дождевик",
             "Ожидаются осадки",
             "Не забудьте зонтик!"
@@ -1720,7 +1634,7 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         return {
             type: 'sunrise',
             title: 'Не пропустите рассвет!',
-            message: 'Идеальное время для утренних фото 🌅',
+            message: 'Идеальное время для утренних фото',
             time: `В ${sunriseTime}`,
             className: 'sunrise-reminder',
             icon: 'sunrise'
@@ -1744,9 +1658,9 @@ analyzeWeatherForReminders(weatherData, forecastData) {
     // Напоминание по умолчанию
     createDefaultReminder(weatherData) {
         const descriptions = {
-            'clear': 'Идеальный день для прогулок!',
-            'clouds': 'Отличная погода для активного отдыха',
-            'snow': 'Можно слепить снеговика! ⛄',
+            'clear': 'Можно погулять',
+            'clouds': 'Можно остаться дома или погулять',
+            'snow': 'Наслаждайтесь снегом',
             'thunderstorm': 'Лучше остаться дома'
         };
         
@@ -1773,7 +1687,7 @@ analyzeWeatherForReminders(weatherData, forecastData) {
 
     // Время следующего обновления
     getNextUpdateTime() {
-        const nextUpdate = new Date(Date.now() + 30 * 60 * 1000); // +30 минут
+        const nextUpdate = new Date(Date.now());
         return `Обновление: ${this.formatTime(nextUpdate)}`;
     }
 
