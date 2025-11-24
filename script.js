@@ -1491,3 +1491,32 @@ window.addEventListener('storage', function(e) {
 if (window.location.search.includes('fromSettings=true')) {
     applyLightingFromSettings();
 }
+// КОНТРОЛЬ СКОРОСТИ ПРОКРУТКИ
+function initializeSmoothScroll() {
+    const container = document.querySelector('.mobile-weather-container');
+    if (!container) return;
+    
+    let isScrolling = false;
+    
+    container.addEventListener('scroll', function() {
+        if (!isScrolling) {
+            window.requestAnimationFrame(function() {
+                // Ограничиваем скорость прокрутки
+                const scrollTop = container.scrollTop;
+                container.scrollTop = scrollTop * 0.7; // замедляем
+                isScrolling = false;
+            });
+            isScrolling = true;
+        }
+    });
+    
+    // Альтернатива - отключаем быструю прокрутку
+    container.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = Math.max(-1, Math.min(1, (e.deltaY || -e.detail)));
+        container.scrollTop += delta * 50; // ограничиваем шаг прокрутки
+    }, { passive: false });
+}
+
+// Вызываем при загрузке
+document.addEventListener('DOMContentLoaded', initializeSmoothScroll);
