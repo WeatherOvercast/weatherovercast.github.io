@@ -4,6 +4,20 @@
     box-sizing: border-box;
 }
 
+/* ОТКЛЮЧАЕМ ИНЕРЦИЮ И ОГРАНИЧИВАЕМ СКОРОСТЬ */
+.mobile-weather-container {
+    -webkit-overflow-scrolling: auto; /* вместо touch */
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    /* Ограничиваем максимальную скорость */
+    scroll-snap-type: y proximity;
+}
+
+/* Создаем точки привязки для контроля скорости */
+.mobile-weather-card {
+    scroll-snap-align: start;
+}
+
 /* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ПОДСВЕТКИ ========== */
 :root {
   --accent-color: #4CAF50; /* Зелёный по умолчанию */
