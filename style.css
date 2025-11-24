@@ -4,18 +4,31 @@
     box-sizing: border-box;
 }
 
-/* ОТКЛЮЧАЕМ ИНЕРЦИЮ И ОГРАНИЧИВАЕМ СКОРОСТЬ */
+/* ПЛАВНАЯ ПРОКРУТКА БЕЗ РЫВКОВ */
 .mobile-weather-container {
-    -webkit-overflow-scrolling: auto; /* вместо touch */
     overflow-y: scroll;
     scroll-behavior: smooth;
-    /* Ограничиваем максимальную скорость */
-    scroll-snap-type: y proximity;
+    /* Ограничиваем физику прокрутки */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: auto;
 }
 
-/* Создаем точки привязки для контроля скорости */
-.mobile-weather-card {
-    scroll-snap-align: start;
+/* Создаем эффект "тяжелой" прокрутки */
+.mobile-weather-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 90%,
+        rgba(0,0,0,0.1) 100%
+    );
+    z-index: 1000;
 }
 
 /* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ПОДСВЕТКИ ========== */
