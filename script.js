@@ -54,136 +54,6 @@ let forecastData = null;
 let airQualityData = null;
 const TEMPERATURE_SHIFT = 0;
 
-// ========== СИСТЕМА УВЕДОМЛЕНИЙ ==========
-let isFirstLoad = true;
-
-class IOSNotifications {
-    constructor() {
-        this.notificationQueue = [];
-        this.isShowing = false;
-        this.init();
-    }
-
-    init() {
-        const container = document.createElement('div');
-        container.id = 'ios-notifications-container';
-        container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 0;
-            z-index: 10000;
-            pointer-events: none;
-        `;
-        document.body.appendChild(container);
-    }
-
-    show(options) {
-        return new Promise((resolve) => {
-            const notification = {
-                id: Date.now().toString(),
-                type: options.type || 'info',
-                title: options.title || '',
-                message: options.message || '',
-                duration: options.duration || 3000,
-                onClose: resolve
-            };
-
-            this.notificationQueue.push(notification);
-            this.processQueue();
-        });
-    }
-
-    processQueue() {
-        if (this.isShowing || this.notificationQueue.length === 0) return;
-        this.isShowing = true;
-        const notification = this.notificationQueue.shift();
-        this.createNotificationElement(notification);
-    }
-
-    createNotificationElement(notification) {
-        const container = document.getElementById('ios-notifications-container');
-        const notificationEl = document.createElement('div');
-        notificationEl.className = `ios-notification ${notification.type}`;
-        notificationEl.id = `notification-${notification.id}`;
-
-        const timeString = new Date().toLocaleTimeString('ru-RU', {
-            hour: '2-digit', 
-            minute: '2-digit'
-        });
-
-        notificationEl.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-app">
-                    <div class="app-icon">W</div>
-                    <span>Weather Overcast</span>
-                </div>
-                <div class="notification-time">${timeString}</div>
-            </div>
-            <div class="notification-title">${notification.title}</div>
-            <div class="notification-message">${notification.message}</div>
-        `;
-
-        container.appendChild(notificationEl);
-
-        requestAnimationFrame(() => {
-            notificationEl.classList.add('show');
-        });
-
-        setTimeout(() => {
-            this.hideNotification(notification.id, notification.onClose);
-        }, notification.duration);
-    }
-
-    hideNotification(id, onClose) {
-        const notificationEl = document.getElementById(`notification-${id}`);
-        if (!notificationEl) {
-            this.isShowing = false;
-            this.processQueue();
-            if (onClose) onClose();
-            return;
-        }
-
-        notificationEl.classList.remove('show');
-        notificationEl.classList.add('hide');
-
-        setTimeout(() => {
-            notificationEl.remove();
-            this.isShowing = false;
-            this.processQueue();
-            if (onClose) onClose();
-        }, 500);
-    }
-
-    success(title, message, duration = 2000) {
-        return this.show({ type: 'success', title, message, duration });
-    }
-
-    warning(title, message, duration = 4000) {
-        return this.show({ type: 'warning', title, message, duration });
-    }
-
-    error(title, message, duration = 5000) {
-        return this.show({ type: 'error', title, message, duration });
-    }
-
-    info(title, message, duration = 3000) {
-        return this.show({ type: 'info', title, message, duration });
-    }
-}
-
-const iosNotifications = new IOSNotifications();
-
-function showNotification(message, type = 'info') {
-    switch(type) {
-        case 'error': iosNotifications.error('Ошибка', message); break;
-        case 'warning': iosNotifications.warning('Внимание', message); break;
-        case 'success': iosNotifications.success('Успешно', message); break;
-        default: iosNotifications.info('Информация', message);
-    }
-}
-
 // Переводы погодных условий
 const weatherTranslations = {
     'clear sky': 'Ясно',
@@ -263,178 +133,133 @@ function updateAllTemperatures() {
     }
 }
 
-// ========== ФУНКЦИИ ИЗБРАННОГО ==========
-function addToFavorites(cityData) {
-    if (!isCityInFavorites(cityData.name)) {
-        const favoriteCity = {
-            name: cityData.name,
-            country: cityData.sys.country,
-            lat: cityData.coord.lat,
-            lon: cityData.coord.lon,
-            timestamp: Date.now()
-        };
-        favorites.push(favoriteCity);
-        saveFavorites();
-        updateFavoriteButton(true);
-        iosNotifications.success('Добавлено', `${cityData.name} в избранном`, 2000);
-    }
-}
-
-function removeFromFavorites(cityName) {
-    favorites = favorites.filter(fav => fav.name !== cityName);
-    saveFavorites();
-    if (currentCity === cityName) {
-        updateFavoriteButton(false);
-    }
-    iosNotifications.info('Удалено', `${cityName} из избранного`, 2000);
-}
-
-function saveFavorites() {
-    localStorage.setItem('weatherFavorites', JSON.stringify(favorites));
-}
-
-function isCityInFavorites(cityName) {
-    return favorites.some(fav => fav.name === cityName);
-}
-
-function updateFavoriteButton(isFavorite) {
-    const favoriteBtn = document.querySelector('.floating-btn');
-    if (!favoriteBtn) return;
-
-    if (isFavorite) {
-        favoriteBtn.classList.add('active');
-    } else {
-        favoriteBtn.classList.remove('active');
-    }
-}
-
 // ========== ФУНКЦИИ ДЛЯ ЛУНЫ ==========
-async function calculateMoonInfo() {
-    try {
-        return calculateSimpleMoonPhase();
-    } catch (error) {
-        console.log('Ошибка расчета луны:', error);
-        return {
-            phase: 'Растущая луна',
-            illumination: 45,
-            age: 7,
-            phasePercent: 45,
-            isWaning: false,
-            nextPhase: 'Первая четверть', 
-            daysToNext: 2
-        };
-    }
-}
+// async function calculateMoonInfo() {
+//     try {
+//         return calculateSimpleMoonPhase();
+//     } catch (error) {
+//         console.log('Ошибка расчета луны:', error);
+//         return {
+//             phase: 'Растущая луна',
+//             illumination: 45,
+//             age: 7,
+//             phasePercent: 45,
+//             isWaning: false,
+//             nextPhase: 'Первая четверть', 
+//             daysToNext: 2
+//         };
+//     }
+// }
 
-function calculateSimpleMoonPhase() {
-    const now = new Date();
-    const knownNewMoon = new Date('2024-12-01T06:21:00Z').getTime();
-    const currentTime = now.getTime();
-    const calculationTime = currentTime;
-    const lunarCycleMs = 29.53 * 24 * 60 * 60 * 1000;
+// function calculateSimpleMoonPhase() {
+//     const now = new Date();
+//     const knownNewMoon = new Date('2024-12-01T06:21:00Z').getTime();
+//     const currentTime = now.getTime();
+//     const calculationTime = currentTime;
+//     const lunarCycleMs = 29.53 * 24 * 60 * 60 * 1000;
     
-    let moonAgeDays = ((calculationTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
+//     let moonAgeDays = ((calculationTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
     
-    if (moonAgeDays < 0) {
-        moonAgeDays += 29.53;
-    }
+//     if (moonAgeDays < 0) {
+//         moonAgeDays += 29.53;
+//     }
     
-    const phase = moonAgeDays / 29.53;
-    return formatMoonPhase(phase);
-}
+//     const phase = moonAgeDays / 29.53;
+//     return formatMoonPhase(phase);
+// }
 
-function formatMoonPhase(phase) {
-    let phaseName, phasePercent, isWaning;
-    const age = Math.floor(phase * 29.53);
+// function formatMoonPhase(phase) {
+//     let phaseName, phasePercent, isWaning;
+//     const age = Math.floor(phase * 29.53);
 
-    if (phase < 0.02 || phase > 0.98) {
-        phaseName = 'Новолуние';
-        phasePercent = 0;
-        isWaning = false;
-    } else if (phase < 0.25) {
-        phaseName = 'Молодая луна';
-        phasePercent = Math.round(phase * 4 * 25);
-        isWaning = false;
-    } else if (phase < 0.27) {
-        phaseName = 'Первая четверть';
-        phasePercent = 50;
-        isWaning = false;
-    } else if (phase < 0.5) {
-        phaseName = 'Растущая луна';
-        phasePercent = 50 + Math.round((phase - 0.25) * 4 * 25);
-        isWaning = false;
-    } else if (phase < 0.52) {
-        phaseName = 'Полнолуние';
-        phasePercent = 100;
-        isWaning = false;
-    } else if (phase < 0.75) {
-        phaseName = 'Убывающая луна';
-        phasePercent = 100 - Math.round((phase - 0.5) * 4 * 25);
-        isWaning = true;
-    } else if (phase < 0.77) {
-        phaseName = 'Последняя четверть';
-        phasePercent = 50;
-        isWaning = true;
-    } else {
-        phaseName = 'Старая луна';
-        phasePercent = 50 - Math.round((phase - 0.75) * 4 * 25);
-        isWaning = true;
-    }
+//     if (phase < 0.02 || phase > 0.98) {
+//         phaseName = 'Новолуние';
+//         phasePercent = 0;
+//         isWaning = false;
+//     } else if (phase < 0.25) {
+//         phaseName = 'Молодая луна';
+//         phasePercent = Math.round(phase * 4 * 25);
+//         isWaning = false;
+//     } else if (phase < 0.27) {
+//         phaseName = 'Первая четверть';
+//         phasePercent = 50;
+//         isWaning = false;
+//     } else if (phase < 0.5) {
+//         phaseName = 'Растущая луна';
+//         phasePercent = 50 + Math.round((phase - 0.25) * 4 * 25);
+//         isWaning = false;
+//     } else if (phase < 0.52) {
+//         phaseName = 'Полнолуние';
+//         phasePercent = 100;
+//         isWaning = false;
+//     } else if (phase < 0.75) {
+//         phaseName = 'Убывающая луна';
+//         phasePercent = 100 - Math.round((phase - 0.5) * 4 * 25);
+//         isWaning = true;
+//     } else if (phase < 0.77) {
+//         phaseName = 'Последняя четверть';
+//         phasePercent = 50;
+//         isWaning = true;
+//     } else {
+//         phaseName = 'Старая луна';
+//         phasePercent = 50 - Math.round((phase - 0.75) * 4 * 25);
+//         isWaning = true;
+//     }
     
-    const illumination = Math.round(Math.abs(Math.sin(2 * Math.PI * phase)) * 100);
-    const daysToNext = getDaysToNext(phase);
-    const nextPhase = getNextPhase(phaseName);
+//     const illumination = Math.round(Math.abs(Math.sin(2 * Math.PI * phase)) * 100);
+//     const daysToNext = getDaysToNext(phase);
+//     const nextPhase = getNextPhase(phaseName);
     
-    return {
-        phase: phaseName,
-        illumination: illumination,
-        age: age,
-        phasePercent: phasePercent,
-        isWaning: isWaning,
-        nextPhase: nextPhase,
-        daysToNext: daysToNext
-    };
-}
+//     return {
+//         phase: phaseName,
+//         illumination: illumination,
+//         age: age,
+//         phasePercent: phasePercent,
+//         isWaning: isWaning,
+//         nextPhase: nextPhase,
+//         daysToNext: daysToNext
+//     };
+// }
 
-function getDaysToNext(phase) {
-    if (phase < 0.25) return Math.round((0.25 - phase) * 29.53);
-    if (phase < 0.5) return Math.round((0.5 - phase) * 29.53);
-    if (phase < 0.75) return Math.round((0.75 - phase) * 29.53);
-    return Math.round((1 - phase) * 29.53);
-}
+// function getDaysToNext(phase) {
+//     if (phase < 0.25) return Math.round((0.25 - phase) * 29.53);
+//     if (phase < 0.5) return Math.round((0.5 - phase) * 29.53);
+//     if (phase < 0.75) return Math.round((0.75 - phase) * 29.53);
+//     return Math.round((1 - phase) * 29.53);
+// }
 
-function getNextPhase(currentPhase) {
-    const phases = ['Новолуние', 'Молодая луна', 'Первая четверть', 'Растущая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
-    const currentIndex = phases.indexOf(currentPhase);
-    return phases[(currentIndex + 1) % phases.length];
-}
+// function getNextPhase(currentPhase) {
+//     const phases = ['Новолуние', 'Молодая луна', 'Первая четверть', 'Растущая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
+//     const currentIndex = phases.indexOf(currentPhase);
+//     return phases[(currentIndex + 1) % phases.length];
+// }
 
-function updateMoonVisualization(phasePercent, isWaning) {
-    const moonPhase = document.getElementById('moon-phase');
-    if (!moonPhase) return;
+// function updateMoonVisualization(phasePercent, isWaning) {
+//     const moonPhase = document.getElementById('moon-phase');
+//     if (!moonPhase) return;
 
-    moonPhase.style.cssText = '';
-    moonPhase.style.position = 'absolute';
-    moonPhase.style.top = '0';
-    moonPhase.style.left = '0';
-    moonPhase.style.width = '100%';
-    moonPhase.style.height = '100%';
-    moonPhase.style.borderRadius = '50%';
-    moonPhase.style.background = '#f1c40f';
-    moonPhase.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+//     moonPhase.style.cssText = '';
+//     moonPhase.style.position = 'absolute';
+//     moonPhase.style.top = '0';
+//     moonPhase.style.left = '0';
+//     moonPhase.style.width = '100%';
+//     moonPhase.style.height = '100%';
+//     moonPhase.style.borderRadius = '50%';
+//     moonPhase.style.background = '#f1c40f';
+//     moonPhase.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
 
-    if (phasePercent === 0) {
-        moonPhase.style.clipPath = 'inset(0 0 0 100%)';
-    } else if (phasePercent === 100) {
-        moonPhase.style.clipPath = 'inset(0 0 0 0%)';
-    } else {
-        if (isWaning) {
-            moonPhase.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
-        } else {
-            moonPhase.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
-        }
-    }
-}
+//     if (phasePercent === 0) {
+//         moonPhase.style.clipPath = 'inset(0 0 0 100%)';
+//     } else if (phasePercent === 100) {
+//         moonPhase.style.clipPath = 'inset(0 0 0 0%)';
+//     } else {
+//         if (isWaning) {
+//             moonPhase.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
+//         } else {
+//             moonPhase.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
+//         }
+//     }
+// }
 
 // ========== ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О ПОГОДЕ ==========
 async function getAirQuality(lat, lon) {
@@ -905,23 +730,6 @@ function showLoadingScreen() {
         loadingScreen.style.display = 'flex';
     }
 }
-
-function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (!loadingScreen) return;
-
-    loadingScreen.classList.add('fade-out');
-
-    setTimeout(() => {
-        loadingScreen.style.display = 'none';
-
-        if (isFirstLoad) {
-            iosNotifications.success('Готово', 'Weather Overcast загружен', 3000);
-            isFirstLoad = false;
-        }
-    }, 500);
-}
-
 // ========== ФУНКЦИИ ДЛЯ ТЕМ ==========
 function updateThemeByWeather(weatherMain, sys) {
     if (currentTheme !== 'dynamic') return;
@@ -1076,214 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.log('SW registration failed'));
     }
 });
-// Функция проверки устройства
-function isMobileDevice() {
-    // Проверяем различные признаки мобильного устройства
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const screenWidth = window.screen.width;
-    
-    // Если это DevTools в мобильном режиме - разрешаем
-    const isDevTools = window.outerWidth !== window.innerWidth;
-    
-    return isMobile || isTouchDevice || screenWidth < 768 || isDevTools;
-}
 
-// Функция показа ошибки ПК
-function showPCError() {
-    const errorOverlay = document.getElementById('pc-error');
-    const mobileContainer = document.querySelector('.mobile-weather-container');
-    
-    if (errorOverlay && mobileContainer) {
-        mobileContainer.style.display = 'none';
-        errorOverlay.style.display = 'flex';
-        
-        // Добавляем класс для анимации
-        setTimeout(() => {
-            errorOverlay.classList.add('show');
-        }, 100);
-    }
-}
-
-// Функция скрытия ошибки
-function hidePCError() {
-    const errorOverlay = document.getElementById('pc-error');
-    const mobileContainer = document.querySelector('.mobile-weather-container');
-    
-    if (errorOverlay && mobileContainer) {
-        errorOverlay.style.display = 'none';
-        mobileContainer.style.display = 'flex';
-    }
-}
-
-// Функция проверки устройства (для кнопки)
-function checkDevice() {
-    if (isMobileDevice()) {
-        hidePCError();
-        iosNotifications.success('Успех!', 'Мобильное устройство обнаружено', 2000);
-    } else {
-        showPCError();
-    }
-}
-
-// Функция для открытия DevTools (подсказка)
-function openDevTools() {
-    iosNotifications.info('DevTools', 'Нажмите F12 или Ctrl+Shift+I', 3000);
-}
-
-// Проверка при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    // Даем немного времени на загрузку, затем проверяем
-    setTimeout(() => {
-        if (!isMobileDevice()) {
-            showPCError();
-        } else {
-            // Показываем мобильный интерфейс
-            const mobileContainer = document.querySelector('.mobile-weather-container');
-            if (mobileContainer) {
-                mobileContainer.style.display = 'flex';
-            }
-            
-            // Загружаем погоду
-            showLoadingScreen();
-            loadSettings();
-            getUserLocation();
-        }
-    }, 500);
-});
-
-// Также проверяем при изменении размера окна (на случай эмуляции мобильного в DevTools)
-window.addEventListener('resize', () => {
-    if (isMobileDevice()) {
-        hidePCError();
-    }
-})
-// Функция проверки устройства (строгая - только телефоны)
-function isMobileDevice() {
-    // User Agent проверка
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isPhone = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-    const isTablet = /ipad|tablet|playbook|silk/i.test(userAgent);
-    
-    // Проверяем touch события
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    // Размеры экрана
-    const screenWidth = window.screen.width;
-    const screenHeight = window.screen.height;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // Плотность пикселей (планшеты часто имеют меньшую плотность)
-    const pixelRatio = window.devicePixelRatio || 1;
-    
-    // Соотношение сторон
-    const aspectRatio = Math.max(screenWidth, screenHeight) / Math.min(screenWidth, screenHeight);
-    
-    // Определяем тип устройства по комбинации факторов
-    let deviceType = 'desktop';
-    
-    // Если это явно телефон по User Agent
-    if (isPhone && !isTablet) {
-        deviceType = 'phone';
-    }
-    // Если это явно планшет по User Agent
-    else if (isTablet) {
-        deviceType = 'tablet';
-    }
-    // Если нет User Agent, определяем по характеристикам
-    else {
-        // Телефоны обычно имеют:
-        // - ширину экрана до 480px
-        // - высокую плотность пикселей (> 1.5)
-        // - соотношение сторон > 1.5 (высокое)
-        
-        const maxPhoneWidth = 480;
-        const isSmallScreen = screenWidth <= maxPhoneWidth && viewportWidth <= maxPhoneWidth;
-        const isHighDensity = pixelRatio >= 1.5;
-        const isTallScreen = aspectRatio >= 1.6;
-        
-        if (isSmallScreen && isTouchDevice && (isHighDensity || isTallScreen)) {
-            deviceType = 'phone';
-        } else if (isTouchDevice && screenWidth > 480 && screenWidth <= 1024) {
-            deviceType = 'tablet';
-        }
-    }
-    
-    // DevTools в мобильном режиме
-    const isDevToolsMobile = viewportWidth < 768 && window.outerWidth !== window.innerWidth;
-    
-    console.log('Device detection:', {
-        userAgent: userAgent,
-        isPhone: isPhone,
-        isTablet: isTablet,
-        screenWidth: screenWidth,
-        screenHeight: screenHeight,
-        viewportWidth: viewportWidth,
-        pixelRatio: pixelRatio,
-        aspectRatio: aspectRatio,
-        deviceType: deviceType,
-        isDevToolsMobile: isDevToolsMobile
-    });
-    
-    // Разрешаем только телефоны и DevTools в мобильном режиме
-    return deviceType === 'phone' || isDevToolsMobile;
-}
-
-// Функция показа ошибки для ПК и планшетов
-function showDeviceError(deviceType) {
-    console.log(`Showing error for: ${deviceType}`);
-    
-    const errorOverlay = document.getElementById('pc-error');
-    const errorTitle = document.querySelector('.error-title');
-    const errorMessage = document.querySelector('.error-message');
-    const errorTip = document.querySelector('.error-tip');
-}
-
-// Улучшенная функция проверки устройства
-function checkDevice() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isTablet = /ipad|tablet|playbook|silk|android(?!.*mobile)/i.test(userAgent);
-    const screenWidth = window.screen.width;
-    const viewportWidth = window.innerWidth;
-    
-    // Определяем тип устройства
-    let deviceType = 'desktop';
-    
-    if (isMobileDevice()) {
-        if (isTablet || screenWidth > 768 || viewportWidth > 768) {
-            deviceType = 'tablet';
-        } else {
-            deviceType = 'phone';
-        }
-    }
-    
-    console.log('Final device type:', deviceType);
-    
-    if (deviceType === 'phone') {
-        console.log('Phone detected - showing weather app');
-        hideDeviceError();
-        
-        // Инициализируем приложение
-        const mobileContainer = document.querySelector('.mobile-weather-container');
-        if (mobileContainer) {
-            mobileContainer.style.display = 'flex';
-        }
-        
-        // Загружаем погоду только если это первая загрузка
-        if (!window.appInitialized) {
-            showLoadingScreen();
-            loadSettings();
-            getUserLocation();
-            window.appInitialized = true;
-        }
-        
-    } else {
-        console.log(`${deviceType === 'tablet' ? 'Tablet' : 'PC'} detected - showing error`);
-        showDeviceError(deviceType);
-    }
-}
 // Функция для получения короткого описания погоды
 function getShortWeatherDescription(weatherCode) {
     const descriptions = {
@@ -1453,8 +1054,6 @@ class SmartReminders {
         this.currentReminder = null;
     }
 
-    // В классе SmartReminders добавляем:
-
 // Расчет вероятности снега
 calculateSnowProbability(forecastData) {
     const next12Hours = forecastData.list.slice(0, 4);
@@ -1610,7 +1209,6 @@ analyzeWeatherForReminders(weatherData, forecastData) {
     createRainReminder(rainProbability) {
         const messages = [
             "Возьмите зонт",
-            "Лучше надеть дождевик",
             "Ожидаются осадки",
             "Не забудьте зонтик!"
         ];
@@ -1648,7 +1246,7 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         return {
             type: 'sunset',
             title: 'Время заката приближается',
-            message: 'Отличный момент для вечерней прогулки 🌇',
+            message: 'Отличный момент для вечерней прогулки',
             time: `В ${sunsetTime}`,
             className: 'sunset-reminder',
             icon: 'sunset'
