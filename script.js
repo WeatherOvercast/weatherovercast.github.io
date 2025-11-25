@@ -1491,32 +1491,49 @@ window.addEventListener('storage', function(e) {
 if (window.location.search.includes('fromSettings=true')) {
     applyLightingFromSettings();
 }
-// КОНТРОЛЬ СКОРОСТИ ПРОКРУТКИ
-function initializeSmoothScroll() {
-    const container = document.querySelector('.mobile-weather-container');
-    if (!container) return;
+class LimitedSmoothScroll {
+  constructor() {
+    this.targetScrollY = window.scrollY;
+    this.currentScrollY = this.targetScrollY;
+    this.rafId = null;
+    this.maxSpeed = 30; // Максимальная скорость (пикселей за кадр)
     
-    let isScrolling = false;
+    this.init();
+  }
+  
+  init() {
+    // Отслеживаем нативный скролл
+    window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
+    // Запускаем анимацию
+    this.animate();
+  }
+  
+  handleScroll() {
+    // Фиксируем целевую позицию
+    this.targetScrollY = window.scrollY;
+  }
+  
+  animate() {
+    const diff = this.targetScrollY - this.currentScrollY;
     
-    container.addEventListener('scroll', function() {
-        if (!isScrolling) {
-            window.requestAnimationFrame(function() {
-                // Ограничиваем скорость прокрутки
-                const scrollTop = container.scrollTop;
-                container.scrollTop = scrollTop * 0.7; // замедляем
-                isScrolling = false;
-            });
-            isScrolling = true;
-        }
-    });
+    // Ограничиваем скорость
+    const limitedDiff = Math.sign(diff) * Math.min(Math.abs(diff), this.maxSpeed);
     
-    // Альтернатива - отключаем быструю прокрутку
-    container.addEventListener('wheel', function(e) {
-        e.preventDefault();
-        const delta = Math.max(-1, Math.min(1, (e.deltaY || -e.detail)));
-        container.scrollTop += delta * 50; // ограничиваем шаг прокрутки
-    }, { passive: false });
+    if (Math.abs(limitedDiff) > 0.1) {
+      this.currentScrollY += limitedDiff;
+      window.scrollTo(0, this.currentScrollY);
+    }
+    
+    this.rafId = requestAnimationFrame(this.animate.bind(this));
+  }
+  
+  destroy() {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    window.removeEventListener('scroll', this.handleScroll);
+  }
 }
 
-// Вызываем при загрузке
-document.addEventListener('DOMContentLoaded', initializeSmoothScroll);
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+  const smoothScroll = new LimitedSmoothScroll();
+});
