@@ -1491,36 +1491,43 @@ window.addEventListener('storage', function(e) {
 if (window.location.search.includes('fromSettings=true')) {
     applyLightingFromSettings();
 }
-class LimitedSmoothScroll {
+
+
+class UniformScroll {
   constructor() {
     this.targetScrollY = window.scrollY;
     this.currentScrollY = this.targetScrollY;
     this.rafId = null;
-    this.maxSpeed = 30; // Максимальная скорость (пикселей за кадр)
+    this.scrollSpeed = 2; // Пикселей за кадр (меняй от 1 до 5)
     
     this.init();
   }
   
   init() {
-    // Отслеживаем нативный скролл
     window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
-    // Запускаем анимацию
     this.animate();
+    
+    // Блокируем нативный скролл
+    document.addEventListener('wheel', this.preventNativeScroll, { passive: false });
+    document.addEventListener('touchmove', this.preventNativeScroll, { passive: false });
   }
   
-  handleScroll() {
-    // Фиксируем целевую позицию
+  handleScroll(e) {
+    // Игнорируем нативный скролл, используем только для получения направления
     this.targetScrollY = window.scrollY;
+  }
+  
+  preventNativeScroll(e) {
+    e.preventDefault();
   }
   
   animate() {
     const diff = this.targetScrollY - this.currentScrollY;
     
-    // Ограничиваем скорость
-    const limitedDiff = Math.sign(diff) * Math.min(Math.abs(diff), this.maxSpeed);
-    
-    if (Math.abs(limitedDiff) > 0.1) {
-      this.currentScrollY += limitedDiff;
+    if (Math.abs(diff) > 0.1) {
+      // Всегда двигаемся с постоянной скоростью к цели
+      const direction = Math.sign(diff);
+      this.currentScrollY += direction * this.scrollSpeed;
       window.scrollTo(0, this.currentScrollY);
     }
     
@@ -1528,12 +1535,12 @@ class LimitedSmoothScroll {
   }
   
   destroy() {
-    if (this.rafId) cancelAnimationFrame(this.rafId);
+    cancelAnimationFrame(this.rafId);
     window.removeEventListener('scroll', this.handleScroll);
+    document.removeEventListener('wheel', this.preventNativeScroll);
+    document.removeEventListener('touchmove', this.preventNativeScroll);
   }
 }
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-  const smoothScroll = new LimitedSmoothScroll();
-});
+// Запуск
+const uniformScroll = new UniformScroll();
