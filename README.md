@@ -4,9 +4,7 @@
 
 ## Возможности
 - Точный прогноз погоды
-- Карта (Yandex Maps)
 - Качество воздуха
-- Фазы луны
 - Установка как приложение (PWA)
 
 ## Установка
@@ -18,4 +16,3 @@
 - HTML5, CSS3, JavaScript
 - PWA (Service Worker, Manifest)
 - OpenWeatherMap API
-- Yandex Maps API
