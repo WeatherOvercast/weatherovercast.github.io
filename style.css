@@ -4,6 +4,13 @@
     box-sizing: border-box;
 }
 
+body {
+  background: #191919;
+  /* На всякий случай - защита от белых полос */
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 /* ПЛАВНАЯ ПРОКРУТКА БЕЗ РЫВКОВ */
 .mobile-weather-container {
     overflow-y: scroll;
@@ -1618,3 +1625,4 @@ button:focus {
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
 }
+
