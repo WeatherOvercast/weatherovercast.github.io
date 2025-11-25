@@ -4,6 +4,24 @@
     box-sizing: border-box;
 }
 
+html {
+  height: 100vh;
+  height: -webkit-fill-available; 
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background: #191919;
+  margin: 0;
+
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.fixed-bottom {
+  bottom: env(safe-area-inset-bottom);
+}
+
 body {
   background: #191919;
   /* На всякий случай - защита от белых полос */
@@ -1625,4 +1643,5 @@ button:focus {
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
 }
+
 
