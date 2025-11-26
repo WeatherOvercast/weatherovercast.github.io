@@ -1591,19 +1591,3 @@ button:focus {
     animation: snowFall 3s ease-in-out infinite;
 }
 
-/* УМНЫЕ ЭФФЕКТЫ - на слабых устройствах меньше blur */
-@media (max-width: 768px) and (max-height: 700px) {
-    /* Для маленьких экранов - минимальные эффекты */
-    .mobile-weather-card {
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-    }
-}
-
-@media (max-width: 768px) and (min-height: 701px) {
-    /* Для больших экранов - нормальные эффекты */
-    .mobile-weather-card {
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-    }
-}
