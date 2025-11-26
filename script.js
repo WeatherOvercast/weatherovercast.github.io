@@ -6,42 +6,42 @@ const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution
 function getWeatherIcon(weatherCode) {
     const iconMap = {
         // Ясно
-        '01d': 'sun',
-        '01n': 'sun',
+        '01d': 'sunny',
+        '01n': 'clear-night',
         
         // Переменная облачность
-        '02d': 'cloud',
-        '02n': 'cloud',
+        '02d': 'cloudy',
+        '02n': 'cloudy',
         
         // Облачно
         '03d': 'cloudy',
         '03n': 'cloudy',
         
         // Пасмурно
-        '04d': 'cloudy',
-        '04n': 'cloudy',
+        '04d': 'overcast',
+        '04n': 'overcast',
         
         // Дождь
-        '09d': 'cloud-rain',
-        '09n': 'cloud-rain',
-        '10d': 'cloud-drizzle',
-        '10n': 'cloud-drizzle',
+        '09d': 'rainy',
+        '09n': 'rainy',
+        '10d': 'rainy',
+        '10n': 'rainy',
         
         // Гроза
-        '11d': 'cloud-lightning',
-        '11n': 'cloud-lightning',
+        '11d': 'thunderstorm',
+        '11n': 'thunderstorm',
         
         // Снег
-        '13d': 'cloud-snow',
-        '13n': 'cloud-snow',
+        '13d': 'snowy',
+        '13n': 'snowy',
         
         // Туман
-        '50d': 'eye',
-        '50n': 'eye'
+        '50d': 'foggy',
+        '50n': 'foggy'
     };
     
-    const iconName = iconMap[weatherCode] || 'sun';
-    return `<i data-lucide="${iconName}" class="weather-icon"></i>`;
+    const iconName = iconMap[weatherCode] || 'sunny';
+    return `<div class="weather-icon icon-${iconName}"></div>`;
 }
 
 // Глобальные переменные
@@ -431,6 +431,8 @@ async function updateWeatherData(data, forecastData, airQualityData) {
     updateThemeByWeather(data.weather[0].main, data.sys);
 }
 
+
+
 // ========== ФУНКЦИИ ДЛЯ МОБИЛЬНОЙ ВЕРСИИ ==========
 function updateMobileWeather(data) {
     if (!data) return;
@@ -449,16 +451,17 @@ function updateMobileWeather(data) {
         document.getElementById('mobile-feels-like').textContent = Math.round(data.main.feels_like) + '°';
         
         const weatherIcon = document.getElementById('mobile-weather-icon');
-        const iconSvg = getWeatherIcon(data.weather[0].icon);
-        weatherIcon.innerHTML = iconSvg;
+        const iconHtml = getWeatherIcon(data.weather[0].icon);
+        weatherIcon.innerHTML = iconHtml;
         
-        const svgElement = weatherIcon.querySelector('svg');
-        if (svgElement) {
-            svgElement.style.stroke = '#ffffff';
-            svgElement.style.strokeWidth = '1.5';
-            svgElement.style.width = '100%';
-            svgElement.style.height = '100%';
-        }
+        // Убираем SVG стилизацию, т.к. теперь у нас CSS иконки
+        // const svgElement = weatherIcon.querySelector('svg');
+        // if (svgElement) {
+        //     svgElement.style.stroke = '#ffffff';
+        //     svgElement.style.strokeWidth = '1.5';
+        //     svgElement.style.width = '100%';
+        //     svgElement.style.height = '100%';
+        // }
         
         document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
         document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
@@ -475,7 +478,6 @@ function updateMobileWeather(data) {
         console.log('Ошибка обновления мобильного блока:', error);
     }
 }
-
 function updateAllMobileData(data, forecastData, airQualityData) {
     if (!data) return;
     
@@ -526,7 +528,6 @@ function updateMobileForecastData(forecastData) {
         });
         
         forecastContainer.innerHTML = forecastHTML;
-        updateMobileIcons();
         
     } catch (error) {
         console.log('Ошибка обновления прогноза:', error);
@@ -1491,3 +1492,36 @@ window.addEventListener('storage', function(e) {
 if (window.location.search.includes('fromSettings=true')) {
     applyLightingFromSettings();
 }
+// ========== ТЕСТОВЫЕ КОМАНДЫ ДЛЯ ИКОНОК ==========
+function testIcon(iconName) {
+    const validIcons = ['sunny', 'cloudy', 'rainy', 'snowy', 'thunderstorm', 'clear-night', 'overcast', 'foggy'];
+    
+    if (!validIcons.includes(iconName)) {
+        console.log('❌ Неизвестная иконка. Доступные: ' + validIcons.join(', '));
+        return;
+    }
+    
+    const weatherIcon = document.getElementById('mobile-weather-icon');
+    if (weatherIcon) {
+        weatherIcon.innerHTML = `<div class="weather-icon icon-${iconName}"></div>`;
+        console.log(`✅ Установлена иконка: ${iconName}`);
+    }
+}
+
+// Делаем функцию глобальной чтобы вызывать из консоли
+window.testIcon = testIcon;
+
+// Также можно сделать команду для просмотра всех иконок
+function showAllIcons() {
+    console.log('🎨 Доступные иконки:');
+    console.log('testIcon("sunny") - Солнце');
+    console.log('testIcon("cloudy") - Облачно');
+    console.log('testIcon("rainy") - Дождь');
+    console.log('testIcon("snowy") - Снег');
+    console.log('testIcon("thunderstorm") - Гроза');
+    console.log('testIcon("clear-night") - Ночь');
+    console.log('testIcon("overcast") - Пасмурно');
+    console.log('testIcon("foggy") - Туман');
+}
+
+window.showAllIcons = showAllIcons;

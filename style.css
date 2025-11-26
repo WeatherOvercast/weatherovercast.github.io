@@ -29,32 +29,6 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* ПЛАВНАЯ ПРОКРУТКА БЕЗ РЫВКОВ */
-.mobile-weather-container {
-    overflow-y: scroll;
-    scroll-behavior: smooth;
-    /* Ограничиваем физику прокрутки */
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: auto;
-}
-
-/* Создаем эффект "тяжелой" прокрутки */
-.mobile-weather-container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        transparent 90%,
-        rgba(0,0,0,0.1) 100%
-    );
-    z-index: 1000;
-}
 
 /* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ПОДСВЕТКИ ========== */
 :root {
@@ -241,16 +215,6 @@ body {
     font-weight: 600;
     margin-top: 8px;
     letter-spacing: 0.5px;
-}
-
-.mobile-weather-icon {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 12px;
-    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.4));
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .mobile-weather-icon svg {
@@ -469,7 +433,7 @@ body {
     -webkit-background-clip: initial;
     -webkit-text-fill-color: initial;
     transition: all 0.3s ease;
-    filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 4px currentColor);
+    filter: drop-shadow(0 0 1px currentColor) drop-shadow(0 0 4px currentColor);
 }
 
 /* Цвета как у других элементов */
@@ -1051,10 +1015,6 @@ body.night .floating-btn:hover {
     filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px rgba(255, 255, 255, 0.1));
 }
 
-/* Свечение для иконок в основном блоке */
-.mobile-weather-icon {
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.15));
-}
 
 /* Свечение для температуры */
 .mobile-temperature {
@@ -1074,11 +1034,7 @@ body.night .floating-btn:hover {
     transition: filter 0.3s ease;
 }
 
-/* Усиление свечения при hover */
-.mobile-detail-card:hover .mobile-detail-value,
-.mobile-detail-card:hover .mobile-progress-fill {
-    filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 8px currentColor);
-}
+
 /* ФИКС ДЛЯ ПЛИТОК С ГРАДУСАМИ */
 .mobile-forecast-list {
     width: 100%;
@@ -1165,11 +1121,6 @@ body.night .floating-btn:hover {
     text-transform: capitalize;
     font-weight: 600;
     margin-top: 5px; /* Уменьшаем отступ */
-}
-
-/* Убираем стили для иконок */
-.mobile-weather-icon {
-    display: none;
 }
 
 /* Обновляем сетку деталей */
@@ -1643,6 +1594,4 @@ button:focus {
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
 }
-
-
 
