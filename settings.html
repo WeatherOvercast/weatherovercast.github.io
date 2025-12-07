@@ -1033,19 +1033,6 @@
             <!-- Карточка выбора темы -->
             <div class="settings-card theme-card">
                 <div class="card-header">
-                    <div class="card-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
-                            <path d="M12 3v1"/>
-                            <path d="M12 20v1"/>
-                            <path d="M3 12h1"/>
-                            <path d="M20 12h1"/>
-                            <path d="m18.364 5.636-.707.707"/>
-                            <path d="m6.343 17.657-.707.707"/>
-                            <path d="m5.636 5.636.707.707"/>
-                            <path d="m17.657 17.657.707.707"/>
-                        </svg>
-                    </div>
                     <h2 class="card-title">Тема оформления</h2>
                 </div>
                 
@@ -1055,16 +1042,10 @@
                             Светлая
                             <span class="theme-badge">В разработке</span>
                         </span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="theme-option active" data-theme="dark">
                         <span class="theme-name">Тёмная</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="theme-option" data-theme="dynamic">
@@ -1072,21 +1053,16 @@
                             Динамическая
                             <span class="theme-badge">В разработке</span>
                         </span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- НОВАЯ КАРТОЧКА ПОДСВЕТКИ -->
+            <!-- КАРТОЧКА ПОДСВЕТКИ -->
             <div class="settings-card lighting-card">
                 <div class="card-header">
-                    <div class="card-icon">
-                    </div>
+
                     <h2 class="card-title">Настройки подсветки</h2>
                 </div>
-                
                 <div class="lighting-options">
                     <div class="lighting-option active" data-color="green">
                         <div class="color-indicator color-green"></div>
@@ -1094,269 +1070,39 @@
                             Зелёный
                             <span class="standard-badge">(стандартный)</span>
                         </span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="warm">
                         <div class="color-indicator color-warm"></div>
                         <span class="lighting-name">Тёплый</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="white">
                         <div class="color-indicator color-white"></div>
                         <span class="lighting-name">Белый</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="blue">
                         <div class="color-indicator color-blue"></div>
                         <span class="lighting-name">Синий</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="pink">
                         <div class="color-indicator color-pink"></div>
                         <span class="lighting-name">Нежный розовый</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="orange">
                         <div class="color-indicator color-orange"></div>
                         <span class="lighting-name">Оранжевый</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                     
                     <div class="lighting-option" data-color="red">
                         <div class="color-indicator color-red"></div>
                         <span class="lighting-name">Красный</span>
-                        <div class="theme-check">
-                            <div class="check-icon"></div>
-                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Карточка информации о сайте -->
-            <div class="settings-card info-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                        </svg>
-                    </div>
-                    <h2 class="card-title">Информация о сайте</h2>
-                </div>
-
-                <!-- Используемые API -->
-                <div class="info-section">
-                    <h3 class="info-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14,2 14,8 20,8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10,9 9,9 8,9"/>
-                        </svg>
-                        Используемые API
-                    </h3>
-                    <div class="info-list">
-                        <div class="info-item">
-                            <span class="info-label">Погодные данные</span>
-                            <span class="info-value api">OpenWeatherMap</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Качество воздуха</span>
-                            <span class="info-value api">OpenWeather Air Pollution</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Статус разработки -->
-                <div class="info-section">
-                    <h3 class="info-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
-                        </svg>
-                        Статус разработки
-                    </h3>
-                    <div class="info-list">
-                        <div class="info-item">
-                            <span class="info-label">Мобильная версия</span>
-                            <span class="info-value status status-ready">Готово</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">PWA</span>
-                            <span class="info-value status status-ready">Готово</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Темы оформления</span>
-                            <span class="info-value status status-development">В разработке</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Десктоп версия</span>
-                            <span class="info-value status status-planned">Запланировано</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- В разработке -->
-                <div class="development-section">
-                    <h3 class="development-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m10 20-4.5-4.5L10 11"/>
-                            <path d="M13 20V4a2 2 0 0 1 2-2h5"/>
-                            <path d="m13 20 4.5-4.5L13 11"/>
-                            <path d="M10 4V2h11v18h-3"/>
-                        </svg>
-                        В активной разработке
-                    </h3>
-                    <div class="development-list">
-                        <div class="development-item">
-                            <div class="development-icon">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                </svg>
-                            </div>
-                            <span class="development-text">Стабилизация светлой темы</span>
-                        </div>
-                        <div class="development-item">
-                            <div class="development-icon">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                </svg>
-                            </div>
-                            <span class="development-text">Динамические темы под погоду</span>
-                        </div>
-                        <div class="development-item">
-                            <div class="development-icon">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                </svg>
-                            </div>
-                            <span class="development-text">Система уведомлений iOS-стиль</span>
-                        </div>
-                        <div class="development-item">
-                            <div class="development-icon">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                </svg>
-                            </div>
-                            <span class="development-text">Адаптация под планшеты</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Карточка разработчиков -->
-            <div class="settings-card developers-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                    </div>
-                    <h2 class="card-title">Команда разработчиков</h2>
-                </div>
-
-                <div class="developers-grid">
-                    <!-- Noah - Основной разработчик -->
-                    <div class="developer-card">
-                        <div class="developer-avatar noah">
-                            <span class="avatar-text">N</span>
-                            <div class="avatar-status online"></div>
-                        </div>
-                        <div class="developer-info">
-                            <h3 class="developer-name">Noah</h3>
-                            <p class="developer-role">Lead Developer</p>
-                            <p class="developer-desc">Full-snack разработчик, архитектор проекта</p>
-                        </div>
-                        <div class="developer-badge primary">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <!-- Sergey - Ментор -->
-                    <div class="developer-card">
-                        <div class="developer-avatar sergey">
-                            <span class="avatar-text">S</span>
-                            <div class="avatar-status online"></div>
-                        </div>
-                        <div class="developer-info">
-                            <h3 class="developer-name">Sergey</h3>
-                            <p class="developer-role">Tech Mentor</p>
-                            <p class="developer-desc">Наставник, code review, архитектурные решения</p>
-                        </div>
-                        <div class="developer-badge mentor">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="8" r="7"></circle>
-                                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <!-- Cat - Настроение -->
-                    <div class="developer-card">
-                        <div class="developer-avatar cat">
-                            <span class="avatar-text">C</span>
-                            <div class="avatar-status busy"></div>
-                        </div>
-                        <div class="developer-info">
-                            <h3 class="developer-name">Cat</h3>
-                            <p class="developer-role">Mood Manager</p>
-                            <p class="developer-desc">Мурчит и настраивает на хорошее настроение</p>
-                        </div>
-                        <div class="developer-badge mood">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                                <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                                <line x1="15" y1="9" x2="15.01" y2="9"></line>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="team-stats">
-                    <div class="stat-item">
-                        <div class="stat-number">3</div>
-                        <div class="stat-label">Участника</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">∞</div>
-                        <div class="stat-label">Идей</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">Энтузиазма</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Текст "скоро больше настроек" -->
-            <div class="coming-soon-text">
-                *Здесь скоро будет больше настроек и функций
-            </div>
-        </div>
-    </div>
-
     <script>
         // ========== ПРОСТЫЕ НАСТРОЙКИ ==========
 

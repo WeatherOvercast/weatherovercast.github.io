@@ -80,6 +80,13 @@ body {
   --accent-hover: rgba(244, 67, 54, 0.5);
 }
 
+/* АКЦЕНТ БЕЗ ВСЯКОГО СВЕЧЕНИЯ - ТОЛЬКО ЦВЕТ */
+.accent-no-glow {
+  --accent-color: #ffffff; /* Просто белый цвет */
+  --accent-glow: transparent; /* ПРОЗРАЧНЫЙ - свечения нет вообще */
+  --accent-hover: rgba(255, 255, 255, 0.8);
+}
+
 /* ========== ТОЛЬКО МОБИЛЬНАЯ ВЕРСИЯ - ОБНОВЛЕННАЯ ========== */
 
 .mobile-weather-container {
@@ -113,55 +120,7 @@ body {
     margin: 0;
 }
 
-/* РАСШИРЕННЫЙ БГ ПОД КАРТОЧКОЙ */
-.mobile-weather-card::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 15px;
-    right: 15px;
-    height: 15px;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 50%;
-    filter: blur(12px);
-    z-index: -1;
-}
-/* СВЕЧЕНИЕ ДЛЯ ЭЛЕМЕНТОВ С ПОДСВЕТКОЙ */
-.mobile-humidity .mobile-detail-value,
-.mobile-humidity .mobile-progress-fill {
-    color: var(--accent-color);
-    filter: drop-shadow(0 0 3px var(--accent-color)) drop-shadow(0 0 6px var(--accent-glow));
-}
 
-.mobile-humidity .mobile-progress-fill { 
-    background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
-}
-
-/* Свечение для температуры */
-.mobile-temperature {
-    filter: drop-shadow(0 0 6px var(--accent-glow));
-}
-
-/* Свечение для кнопок */
-.floating-btn:hover {
-    border: 1.5px solid var(--accent-color);
-    box-shadow: 
-        0 16px 50px rgba(0, 0, 0, 0.4),
-        0 8px 25px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 15px var(--accent-glow);
-}
-
-/* Свечение для напоминаний */
-.reminder-card::before {
-    background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
-}
-
-.reminder-time {
-    color: var(--accent-color);
-    background: var(--accent-glow);
-    border: 1px solid var(--accent-color);
-}
 /* ========== УВЕЛИЧИВАЕМ РАЗМЕРЫ ОСНОВНОЙ ИНФОРМАЦИИ ========== */
 
 .mobile-location {
@@ -263,19 +222,6 @@ body {
     position: relative;
 }
 
-.mobile-detail-card::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 8px;
-    right: 8px;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-    filter: blur(6px);
-    z-index: -1;
-}
-
 .mobile-detail-card:active {
     transform: scale(0.96);
     background: rgba(255, 255, 255, 0.12);
@@ -367,19 +313,6 @@ body {
     position: relative;
 }
 
-.mobile-additional-card::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 8px;
-    right: 8px;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-    filter: blur(6px);
-    z-index: -1;
-}
-
 .mobile-card-title {
     font-size: 1rem;
     font-weight: 700;
@@ -433,7 +366,7 @@ body {
     -webkit-background-clip: initial;
     -webkit-text-fill-color: initial;
     transition: all 0.3s ease;
-    filter: drop-shadow(0 0 1px currentColor) drop-shadow(0 0 4px currentColor);
+    filter: drop-shadow(0 0 1px currentColor);
 }
 
 /* Цвета как у других элементов */
@@ -992,25 +925,50 @@ body.night .floating-btn:hover {
     z-index: 2;
 }
 /* ========== СВЕЧЕНИЕ ДЛЯ ЭЛЕМЕНТОВ ========== */
-.mobile-humidity .mobile-detail-value,
+/* ВЛАЖНОСТЬ - зелёное свечение */
+.mobile-humidity .mobile-detail-value {
+    text-shadow: 0 0 4px #10b981, 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
 .mobile-humidity .mobile-progress-fill {
-    filter: drop-shadow(0 0 3px #10b981) drop-shadow(0 0 6px rgba(16, 185, 129, 0.1));
+    box-shadow: 0 0 5px #10b981, 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
-.mobile-wind .mobile-detail-value,
+/* ВЕТЕР - красное свечение */
+.mobile-wind .mobile-detail-value {
+    text-shadow: 0 0 4px #ef4444, 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
 .mobile-wind .mobile-progress-fill {
-    filter: drop-shadow(0 0 3px #ef4444) drop-shadow(0 0 6px rgba(239, 68, 68, 0.1));
+    box-shadow: 0 0 5px #ef4444, 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
-.mobile-pressure .mobile-detail-value,
+/* ДАВЛЕНИЕ - синее свечение */
+.mobile-pressure .mobile-detail-value {
+    text-shadow: 0 0 4px #3b82f6, 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
 .mobile-pressure .mobile-progress-fill {
-    filter: drop-shadow(0 0 3px #3b82f6) drop-shadow(0 0 6px rgba(59, 130, 246, 0.1));
+    box-shadow: 0 0 5px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
+/* ОЩУЩАЕТСЯ - белое свечение */
 .mobile-feels-like .mobile-detail-value {
-    filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px rgba(255, 255, 255, 0.1));
+    text-shadow: 0 0 3px #ffffff, 0 0 6px rgba(255, 255, 255, 0.2);
 }
 
+/* ТЕМПЕРАТУРА (главная) */
+.mobile-temperature {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 
+                 0 0 15px rgba(255, 255, 255, 0.15);
+    /* Вместо filter: drop-shadow(0 0 6px var(--accent-glow)); */
+}
+
+/* КАЧЕСТВО ВОЗДУХА */
+.mobile-aqi-text {
+    text-shadow: 0 0 3px currentColor;
+    /* Убираем filter полностью */
+}
 
 /* Свечение для температуры */
 .mobile-temperature {
@@ -1590,4 +1548,3 @@ button:focus {
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
 }
-

@@ -1459,6 +1459,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
 // Функция применения подсветки из настроек
 function applyLightingFromSettings() {
     const savedColor = localStorage.getItem('weatherLighting') || 'green';
@@ -1466,6 +1467,7 @@ function applyLightingFromSettings() {
     
     // Удаляем все старые классы подсветки
     body.classList.remove(
+        'accent-neutral', // НОВЫЙ
         'accent-green', 'accent-warm', 'accent-white', 
         'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
     );
@@ -1492,36 +1494,20 @@ window.addEventListener('storage', function(e) {
 if (window.location.search.includes('fromSettings=true')) {
     applyLightingFromSettings();
 }
-// ========== ТЕСТОВЫЕ КОМАНДЫ ДЛЯ ИКОНОК ==========
-function testIcon(iconName) {
-    const validIcons = ['sunny', 'cloudy', 'rainy', 'snowy', 'thunderstorm', 'clear-night', 'overcast', 'foggy'];
+// Функция применения подсветки из настроек
+function applyLightingFromSettings() {
+    const savedColor = localStorage.getItem('weatherLighting') || 'green';
+    const body = document.body;
     
-    if (!validIcons.includes(iconName)) {
-        console.log('❌ Неизвестная иконка. Доступные: ' + validIcons.join(', '));
-        return;
-    }
+    // Удаляем все старые классы подсветки
+    body.classList.remove(
+        'accent-neutral', // ДОБАВЛЯЕМ
+        'accent-green', 'accent-warm', 'accent-white', 
+        'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
+    );
     
-    const weatherIcon = document.getElementById('mobile-weather-icon');
-    if (weatherIcon) {
-        weatherIcon.innerHTML = `<div class="weather-icon icon-${iconName}"></div>`;
-        console.log(`✅ Установлена иконка: ${iconName}`);
-    }
+    // Добавляем новый класс подсветки
+    body.classList.add(`accent-${savedColor}`);
+    
+    console.log('Applied lighting:', savedColor);
 }
-
-// Делаем функцию глобальной чтобы вызывать из консоли
-window.testIcon = testIcon;
-
-// Также можно сделать команду для просмотра всех иконок
-function showAllIcons() {
-    console.log('🎨 Доступные иконки:');
-    console.log('testIcon("sunny") - Солнце');
-    console.log('testIcon("cloudy") - Облачно');
-    console.log('testIcon("rainy") - Дождь');
-    console.log('testIcon("snowy") - Снег');
-    console.log('testIcon("thunderstorm") - Гроза');
-    console.log('testIcon("clear-night") - Ночь');
-    console.log('testIcon("overcast") - Пасмурно');
-    console.log('testIcon("foggy") - Туман');
-}
-
-window.showAllIcons = showAllIcons;
