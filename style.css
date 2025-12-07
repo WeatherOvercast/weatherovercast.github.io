@@ -111,7 +111,7 @@ body {
         0 25px 50px rgba(0, 0, 0, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 0px var(--accent-glow); /* Используем переменную */
+        0 0 20px var(--accent-glow); /* Используем переменную */
     border: 1px solid rgba(255, 255, 255, 0.12);
     position: relative;
     overflow: hidden;
@@ -662,268 +662,6 @@ body {
     min-width: 60px;
 }
 
-/* ========== ПЛАВАЮЩИЕ КНОПКИ LIQUID GLASS ========== */
-.mobile-floating-buttons {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15px;
-    z-index: 9998;
-    pointer-events: none;
-    padding: 0 20px;
-    width: 100%;
-    max-width: 400px;
-    justify-content: center;
-}
-
-.floating-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    border: none;
-    border-radius: 50px;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(25px) saturate(200%);
-    -webkit-backdrop-filter: blur(25px) saturate(200%);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    pointer-events: all;
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.3),
-        0 6px 20px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-    min-width: 150px;
-    flex: 1;
-    max-width: 160px;
-}
-
-.floating-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.15),
-        transparent
-    );
-    transition: left 0.8s ease;
-}
-
-.floating-btn:hover::before {
-    left: 100%;
-}
-
-.floating-btn:hover {
-    transform: translateY(-3px);
-    background: rgba(0, 0, 0, 0.5);
-    box-shadow: 
-        0 16px 50px rgba(0, 0, 0, 0.4),
-        0 8px 25px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 0 1px rgba(255, 255, 255, 0.15);
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
-}
-
-.floating-btn:active {
-    transform: translateY(0) scale(0.96);
-    transition: all 0.1s ease;
-    background: rgba(0, 0, 0, 0.45);
-}
-
-.btn-icon {
-    flex-shrink: 0;
-    stroke-width: 2;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.floating-btn:hover .btn-icon {
-    transform: scale(1.15);
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-}
-
-.btn-text {
-    white-space: nowrap;
-    transition: all 0.3s ease;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-/* Анимация появления */
-.mobile-floating-buttons {
-    animation: slideInButtons 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-.floating-btn:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.floating-btn:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-@keyframes slideInButtons {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(30px) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-    }
-}
-
-/* Показываем только на мобильных */
-@media (min-width: 769px) {
-    .mobile-floating-buttons {
-        display: none !important;
-    }
-}
-
-/* Адаптивность для маленьких экранов */
-@media (max-width: 480px) {
-    .mobile-floating-buttons {
-        bottom: 20px;
-        padding: 0 15px;
-        gap: 12px;
-    }
-    
-    .floating-btn {
-        padding: 14px 16px;
-        min-width: 140px;
-        font-size: 14px;
-        gap: 10px;
-    }
-    
-    .btn-icon {
-        width: 20px;
-        height: 20px;
-    }
-}
-
-@media (max-width: 380px) {
-    .mobile-floating-buttons {
-        bottom: 15px;
-        padding: 0 12px;
-        gap: 10px;
-    }
-    
-    .floating-btn {
-        padding: 12px 14px;
-        min-width: 130px;
-        font-size: 13px;
-        gap: 8px;
-    }
-    
-    .btn-icon {
-        width: 18px;
-        height: 18px;
-    }
-}
-
-/* Эффект liquid glass при нажатии */
-.floating-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-    transform: translate(-50%, -50%);
-    transition: width 0.4s ease, height 0.4s ease;
-}
-
-.floating-btn:active::after {
-    width: 120px;
-    height: 120px;
-}
-
-/* Авто-скрытие текста при очень маленьких экранах */
-@media (max-width: 350px) {
-    .floating-btn {
-        min-width: auto;
-        width: 50px;
-        height: 50px;
-        padding: 0;
-        justify-content: center;
-    }
-    
-    .btn-text {
-        display: none;
-    }
-    
-    .floating-btn:hover .btn-text {
-        display: block;
-        position: absolute;
-        top: -35px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        white-space: nowrap;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-}
-
-/* Темная тема для кнопок */
-body.night .floating-btn {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
-}
-
-body.night .floating-btn:hover {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Анимация скрытия/показа при скролле */
-.mobile-floating-buttons.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(20px);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.mobile-floating-buttons.visible {
-    opacity: 1;
-    pointer-events: all;
-    transform: translateX(-50%) translateY(0);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* Эффект глубины для кнопок */
-.floating-btn {
-    position: relative;
-}
-
-.floating-btn::before {
-    z-index: 1;
-}
-
-.floating-btn > * {
-    position: relative;
-    z-index: 2;
-}
 /* ========== СВЕЧЕНИЕ ДЛЯ ЭЛЕМЕНТОВ ========== */
 /* ВЛАЖНОСТЬ - зелёное свечение */
 .mobile-humidity .mobile-detail-value {
@@ -1547,4 +1285,413 @@ button:focus {
 
 .snow-reminder.important {
     animation: snowFall 3s ease-in-out infinite;
+}
+/* ========== ЦЕНТРИРОВАННАЯ И СТАТИЧНАЯ - ЕЩЁ НИЖЕ ========== */
+.floating-nav {
+    position: fixed;
+    bottom: 20px !important; /* НИЖЕ - было 35px */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999;
+    width: 300px;
+}
+
+.nav-container {
+    background: rgba(35, 35, 35, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 25px !important;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    gap: 10px;
+    width: 100%;
+    height: 70px;
+    
+    /* УБИРАЕМ ВСЕ АНИМАЦИИ ПРЫЖКОВ */
+    animation: none !important;
+    transform: none !important;
+}
+
+/* Иконки навигации - АБСОЛЮТНО СТАТИЧНЫЕ */
+.nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 16px !important;
+    text-decoration: none;
+    transition: background-color 0.15s ease, transform 0s !important;
+    min-width: 54px;
+    min-height: 54px;
+    flex: 1;
+    
+    /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ */
+    transform: none !important;
+    animation: none !important;
+}
+
+/* Иконки */
+.nav-item svg {
+    width: 24px;
+    height: 24px;
+    stroke: #b0b0b0;
+    stroke-width: 2;
+    transition: stroke 0.15s ease, transform 0s !important;
+    
+    /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ ДЛЯ SVG */
+    transform: none !important;
+}
+
+/* Активное состояние - ТОЛЬКО ЦВЕТ */
+.nav-item.active {
+    background: rgba(255, 255, 255, 0.08);
+    transform: none !important;
+}
+
+.nav-item.active svg {
+    stroke: var(--accent-color);
+    transform: none !important;
+}
+
+/* Ховер - ТОЛЬКО ЦВЕТ */
+.nav-item:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    transform: none !important;
+}
+
+.nav-item:hover:not(.active) svg {
+    stroke: #ffffff;
+    transform: none !important;
+}
+
+/* Клик - БЕЗ АНИМАЦИЙ */
+.nav-item:active {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Убираем полоску выделения */
+.nav-item::after {
+    display: none;
+}
+
+/* Появление навигации (только прозрачность, БЕЗ ПРЫЖКОВ) */
+.floating-nav {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Для безопасных зон на iPhone */
+@supports (padding: max(0px)) {
+    .floating-nav {
+        bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important; /* НИЖЕ */
+    }
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
+@media (max-width: 480px) {
+    .floating-nav {
+        width: 280px;
+        bottom: 15px !important; /* НИЖЕ адаптивно */
+    }
+    
+    .nav-container {
+        padding: 12px 18px;
+        height: 68px;
+        border-radius: 22px !important;
+    }
+    
+    .nav-item {
+        padding: 10px;
+        min-width: 50px;
+        min-height: 50px;
+        border-radius: 14px !important;
+    }
+    
+    .nav-item svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+@media (max-width: 380px) {
+    .floating-nav {
+        width: 260px;
+        bottom: 12px !important; /* НИЖЕ адаптивно */
+    }
+    
+    .nav-container {
+        padding: 10px 16px;
+        height: 66px;
+        gap: 8px;
+        border-radius: 20px !important;
+    }
+    
+    .nav-item {
+        padding: 9px;
+        min-width: 46px;
+        min-height: 46px;
+        border-radius: 13px !important;
+    }
+    
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 320px) {
+    .floating-nav {
+        width: 240px;
+        bottom: 10px !important; /* НИЖЕ адаптивно */
+    }
+    
+    .nav-container {
+        padding: 8px 14px;
+        height: 64px;
+        border-radius: 18px !important;
+    }
+    
+    .nav-item {
+        border-radius: 12px !important;
+    }
+}
+
+/* ========== СОВМЕСТИМОСТЬ ========== */
+@media (max-width: 768px) {
+    .mobile-weather-container {
+        padding-bottom: 100px; /* Меньше места теперь */
+    }
+}
+
+@media (min-width: 769px) {
+    .floating-nav {
+        display: none;
+    }
+}
+
+/* Убираем стандартное выделение */
+.nav-item {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ЯДЕРНОЕ ЦЕНТРИРОВАНИЕ - ЧЕТКО ПО ЦЕНТРУ */
+html body .floating-nav {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    right: auto !important;
+    position: fixed !important;
+}
+/* ========== ОКНО ОШИБКИ ========== */
+.error-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 15, 15, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.error-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.error-card {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 24px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 0 20px rgba(244, 67, 54, 0.3);
+    text-align: center;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.error-overlay.active .error-card {
+    transform: translateY(0) scale(1);
+}
+
+.error-icon {
+    margin-bottom: 20px;
+}
+
+.error-icon svg {
+    stroke: #ff6b6b;
+    filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5));
+}
+
+.error-content {
+    margin-bottom: 25px;
+}
+
+.error-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #ff6b6b, #ff8c8c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.error-message {
+    font-size: 0.95rem;
+    color: #b0b0b0;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.error-button {
+    background: rgba(255, 107, 107, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255, 107, 107, 0.3);
+    color: #ff6b6b;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px 32px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+    box-shadow: 
+        0 8px 20px rgba(255, 107, 107, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.error-button:hover {
+    background: rgba(255, 107, 107, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 25px rgba(255, 107, 107, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.error-button:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Анимация появления */
+@keyframes errorPulse {
+    0%, 100% {
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            0 0 20px rgba(244, 67, 54, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            0 0 25px rgba(244, 67, 54, 0.5);
+    }
+}
+
+.error-card {
+    animation: errorPulse 3s ease-in-out infinite;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .error-card {
+        padding: 25px 20px;
+        border-radius: 20px;
+        max-width: 320px;
+    }
+    
+    .error-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .error-title {
+        font-size: 1.3rem;
+    }
+    
+    .error-message {
+        font-size: 0.9rem;
+    }
+    
+    .error-button {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .error-card {
+        padding: 20px 16px;
+        max-width: 280px;
+    }
+    
+    .error-title {
+        font-size: 1.2rem;
+    }
+    
+    .error-message {
+        font-size: 0.85rem;
+    }
+}
+/* ========== СТРАНИЦА ДОНАТА ========== */
+/* Эти стили уже есть в donate.html, но для полноты можно добавить основные */
+
+.donate-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    padding: 20px 15px;
+    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+}
+
+@keyframes pageSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Для светлой темы */
+body.light-theme .donate-page {
+    background: linear-gradient(135deg, #87CEEB, #E0F7FA) !important;
+}
+
+body.light-theme .donate-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    color: #2D3748 !important;
 }

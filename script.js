@@ -71,6 +71,104 @@ const weatherTranslations = {
     'heavy intensity rain': 'Сильный дождь'
 };
 
+// ========== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ==========
+
+// Функция скрытия экрана загрузки
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+    }
+}
+
+// Функция проверки города в избранном
+function isCityInFavorites(city) {
+    return favorites.some(fav => fav.name === city);
+}
+
+// Функция обновления кнопки избранного
+function updateFavoriteButton(isFavorite) {
+    const favoriteBtn = document.getElementById('favorite-btn');
+    if (!favoriteBtn) return;
+    
+    if (isFavorite) {
+        favoriteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        `;
+        favoriteBtn.title = 'Удалить из избранного';
+    } else {
+        favoriteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        `;
+        favoriteBtn.title = 'Добавить в избранное';
+    }
+}
+
+// Экран загрузки
+function showLoadingScreen() {
+    // Создаем экран загрузки если его нет
+    let loadingScreen = document.getElementById('loading-screen');
+    if (!loadingScreen) {
+        loadingScreen = document.createElement('div');
+        loadingScreen.id = 'loading-screen';
+        loadingScreen.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #191919;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            flex-direction: column;
+        `;
+        
+        const spinner = document.createElement('div');
+        spinner.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-color, #4CAF50);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        `;
+        
+        const text = document.createElement('div');
+        text.textContent = 'Загрузка погоды...';
+        text.style.cssText = `
+            color: rgba(255,255,255,0.7);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+        `;
+        
+        loadingScreen.appendChild(spinner);
+        loadingScreen.appendChild(text);
+        document.body.appendChild(loadingScreen);
+        
+        // Добавляем стили для анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    loadingScreen.style.display = 'flex';
+}
+
+// Флаг первой загрузки
+let isFirstLoad = true;
+
 // ========== ФУНКЦИИ ДЛЯ ВРЕМЕНИ ==========
 function formatTime(date) {
     return date.toLocaleTimeString('ru-RU', { 
@@ -1511,3 +1609,252 @@ function applyLightingFromSettings() {
     
     console.log('Applied lighting:', savedColor);
 }
+// Функции для навигации (только иконки)
+function navigateTo(section) {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    // Добавляем активный класс к нажатому элементу
+    event.currentTarget.classList.add('active');
+    
+    switch(section) {
+        case 'home':
+            // Прокрутка к началу
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+            
+        case 'forecast':
+            // Прокрутка к прогнозу
+            const forecastCards = document.querySelectorAll('.mobile-additional-card');
+            if (forecastCards[1]) { // Прогноз на 5 дней
+                forecastCards[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            break;
+            
+        case 'donate':
+            // ПЕРЕХОД НА СТРАНИЦУ ДОНАТА
+            window.location.href = 'donate.html';
+            break;
+            
+        case 'settings':
+            // Открытие настроек
+            window.location.href = 'settings.html';
+            break;
+    }
+    
+    event.preventDefault();
+    return false;
+}
+// Функция открытия настроек с обновлением навигации
+function openSettings() {
+    // Обновляем навигацию
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    // Перенаправление
+    window.location.href = 'settings.html';
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    // Авто-скролл для навигации на маленьких экранах
+    const navContainer = document.querySelector('.nav-container');
+    if (navContainer && window.innerWidth < 380) {
+        navContainer.style.padding = '10px 12px';
+    }
+});
+// ========== СИСТЕМА УВЕДОМЛЕНИЙ ОБ ОШИБКАХ ==========
+
+let errorTimeout = null;
+let weatherLoaded = false;
+
+// Функция показа ошибки
+function showConnectionError() {
+    const errorOverlay = document.getElementById('errorOverlay');
+    if (errorOverlay) {
+        errorOverlay.classList.add('active');
+        // Блокируем прокрутку при открытом окне
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Функция скрытия ошибки
+function hideError() {
+    const errorOverlay = document.getElementById('errorOverlay');
+    if (errorOverlay) {
+        errorOverlay.classList.remove('active');
+        // Возвращаем прокрутку
+        document.body.style.overflow = '';
+    }
+}
+
+// Функция проверки загрузки погоды
+function checkWeatherLoading() {
+    // Проверяем, загружены ли основные данные
+    const cityElement = document.getElementById('mobile-city');
+    const tempElement = document.getElementById('mobile-temperature');
+    
+    // Если через 7 секунд нет данных - показываем ошибку
+    errorTimeout = setTimeout(() => {
+        if (!weatherLoaded && (cityElement.textContent === 'Загрузка...' || 
+            tempElement.textContent === '--°' || 
+            !navigator.onLine)) {
+            
+            showConnectionError();
+        }
+    }, 7000); // 7 секунд
+}
+
+// Функция успешной загрузки
+function weatherLoadedSuccessfully() {
+    weatherLoaded = true;
+    if (errorTimeout) {
+        clearTimeout(errorTimeout);
+        errorTimeout = null;
+    }
+    hideError();
+}
+
+// Модифицируем существующую функцию getWeatherByCoords
+async function getWeatherByCoords(lat, lon) {
+    if (!navigator.onLine) {
+        console.log('Нет подключения к интернету');
+        showConnectionError(); // Показываем ошибку сразу
+        return;
+    }
+    
+    try {
+        showLoadingScreen();
+        
+        // Запускаем таймер проверки
+        checkWeatherLoading();
+        
+        const controller = new AbortController();
+        const timeoutDuration = 15000;
+        
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, timeoutDuration);
+        
+        const clearTimeout = () => {
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+        };
+        
+        try {
+            const [weatherData, forecastData, airQualityData] = await Promise.all([
+                fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
+                    signal: controller.signal
+                }).then(async r => {
+                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    return await r.json();
+                }),
+                fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
+                    signal: controller.signal
+                }).then(async r => {
+                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    return await r.json();
+                }),
+                getAirQuality(lat, lon)
+            ]);
+
+            clearTimeout();
+
+            if (weatherData.cod === 200) {
+                currentCityData = weatherData;
+                currentCity = weatherData.name;
+                
+                await updateWeatherData(weatherData, forecastData, airQualityData);
+                weatherLoadedSuccessfully(); // Успешная загрузка
+                
+                if (!isFirstLoad) {
+                    iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
+                }
+            } else {
+                throw new Error(weatherData.message || 'Неизвестная ошибка API');
+            }
+            
+        } catch (fetchError) {
+            clearTimeout();
+            throw fetchError;
+        }
+        
+    } catch (error) {
+        console.error('Ошибка получения погоды:', error);
+        showConnectionError(); // Показываем ошибку
+    } finally {
+        setTimeout(hideLoadingScreen, 1000);
+    }
+}
+
+// Также модифицируем getWeatherByCity
+async function getWeatherByCity(city) {
+    try {
+        showLoadingScreen();
+        checkWeatherLoading(); // Запускаем проверку
+        
+        const weatherResponse = await fetch(
+            `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`
+        );
+        const weatherData = await weatherResponse.json();
+
+        if (weatherData.cod === 200) {
+            currentCityData = weatherData;
+            currentCity = weatherData.name;
+            const [forecastData, airQualityData] = await Promise.all([
+                getForecast(weatherData.coord.lat, weatherData.coord.lon),
+                getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
+            ]);
+
+            await updateWeatherData(weatherData, forecastData, airQualityData);
+            weatherLoadedSuccessfully(); // Успешная загрузка
+            
+            if (!isFirstLoad) {
+                iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
+            }
+        } else {
+            throw new Error(weatherData.message);
+        }
+    } catch (error) {
+        console.error('Ошибка получения погоды:', error);
+        showConnectionError(); // Показываем ошибку
+    } finally {
+        setTimeout(hideLoadingScreen, 1000);
+    }
+}
+
+// Добавляем проверку при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    // Слушаем изменения состояния сети
+    window.addEventListener('online', () => {
+        if (!weatherLoaded) {
+            getUserLocation(); // Пробуем загрузить снова
+        }
+    });
+    
+    window.addEventListener('offline', () => {
+        showConnectionError();
+    });
+    
+    // Проверяем при старте
+    if (!navigator.onLine) {
+        setTimeout(showConnectionError, 1000);
+    }
+});
+
+// Закрытие по клику на оверлей
+document.addEventListener('click', function(event) {
+    const errorOverlay = document.getElementById('errorOverlay');
+    if (errorOverlay && event.target === errorOverlay) {
+        hideError();
+    }
+});
+
+// Закрытие по Escape
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideError();
+    }
+});
