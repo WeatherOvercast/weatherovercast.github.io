@@ -1624,25 +1624,6 @@ html body .floating-nav {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Для светлой темы */
-body.light-theme .donate-page {
-    background: linear-gradient(135deg, #87CEEB, #E0F7FA) !important;
-}
-
-body.light-theme .donate-card {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
-    color: #2D3748 !important;
-}
-.error-card {
-    --error-color: #ff6b6b; /* По умолчанию */
-}
-/* Добавьте в CSS */
 .reminder-icon svg {
     stroke: #ffffff; /* Белый цвет для всех иконок напоминаний */
-}
-
-/* Для иконки ошибки в оверлее */
-.error-icon svg {
-    stroke: currentColor; /* Будет принимать цвет ошибки */
 }
