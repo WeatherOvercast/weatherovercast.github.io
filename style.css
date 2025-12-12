@@ -1637,3 +1637,12 @@ body.light-theme .donate-card {
 .error-card {
     --error-color: #ff6b6b; /* По умолчанию */
 }
+/* Добавьте в CSS */
+.reminder-icon svg {
+    stroke: #ffffff; /* Белый цвет для всех иконок напоминаний */
+}
+
+/* Для иконки ошибки в оверлее */
+.error-icon svg {
+    stroke: currentColor; /* Будет принимать цвет ошибки */
+}
