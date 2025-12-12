@@ -30,61 +30,11 @@ body {
 }
 
 
-/* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ПОДСВЕТКИ ========== */
+/* ========== CSS ПЕРЕМЕННАЯ ДЛЯ ПОДСВЕТКИ ========== */
 :root {
-  --accent-color: #4CAF50; /* Зелёный по умолчанию */
-  --accent-glow: rgba(76, 175, 80, 0.3); /* Свечение по умолчанию */
-  --accent-hover: rgba(76, 175, 80, 0.5);
-}
-
-/* Цветовые схемы для подсветки */
-.accent-green {
-  --accent-color: #4CAF50;
-  --accent-glow: rgba(76, 175, 80, 0.3);
-  --accent-hover: rgba(76, 175, 80, 0.5);
-}
-
-.accent-warm {
-  --accent-color: #FFA726; /* Тёплый янтарный */
-  --accent-glow: rgba(255, 167, 38, 0.3);
-  --accent-hover: rgba(255, 167, 38, 0.5);
-}
-.accent-white {
   --accent-color: #FFFFFF;
   --accent-glow: rgba(255, 255, 255, 0.3);
   --accent-hover: rgba(255, 255, 255, 0.5);
-}
-
-.accent-blue {
-  --accent-color: #2196F3;
-  --accent-glow: rgba(33, 150, 243, 0.3);
-  --accent-hover: rgba(33, 150, 243, 0.5);
-}
-
-.accent-pink {
-  --accent-color: #feacba; /* Нежный розовый */
-  --accent-glow: rgba(254, 172, 186, 0.3);
-  --accent-hover: rgba(254, 172, 186, 0.5);
-}
-
-
-.accent-orange {
-  --accent-color: #FF5722;
-  --accent-glow: rgba(255, 87, 34, 0.3);
-  --accent-hover: rgba(255, 87, 34, 0.5);
-}
-
-.accent-red {
-  --accent-color: #F44336;
-  --accent-glow: rgba(244, 67, 54, 0.3);
-  --accent-hover: rgba(244, 67, 54, 0.5);
-}
-
-/* АКЦЕНТ БЕЗ ВСЯКОГО СВЕЧЕНИЯ - ТОЛЬКО ЦВЕТ */
-.accent-no-glow {
-  --accent-color: #ffffff; /* Просто белый цвет */
-  --accent-glow: transparent; /* ПРОЗРАЧНЫЙ - свечения нет вообще */
-  --accent-hover: rgba(255, 255, 255, 0.8);
 }
 
 /* ========== ТОЛЬКО МОБИЛЬНАЯ ВЕРСИЯ - ОБНОВЛЕННАЯ ========== */
@@ -1668,17 +1618,6 @@ html body .floating-nav {
         font-size: 0.85rem;
     }
 }
-/* ========== СТРАНИЦА ДОНАТА ========== */
-/* Эти стили уже есть в donate.html, но для полноты можно добавить основные */
-
-.donate-page {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
-    padding: 20px 15px;
-    animation: pageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-    position: relative;
-}
 
 @keyframes pageSlideIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -1694,4 +1633,7 @@ body.light-theme .donate-card {
     background: rgba(255, 255, 255, 0.95) !important;
     border: 1px solid rgba(255, 255, 255, 0.6) !important;
     color: #2D3748 !important;
+}
+.error-card {
+    --error-color: #ff6b6b; /* По умолчанию */
 }

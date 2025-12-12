@@ -3,47 +3,6 @@ const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
 
-function getWeatherIcon(weatherCode) {
-    const iconMap = {
-        // Ясно
-        '01d': 'sunny',
-        '01n': 'clear-night',
-        
-        // Переменная облачность
-        '02d': 'cloudy',
-        '02n': 'cloudy',
-        
-        // Облачно
-        '03d': 'cloudy',
-        '03n': 'cloudy',
-        
-        // Пасмурно
-        '04d': 'overcast',
-        '04n': 'overcast',
-        
-        // Дождь
-        '09d': 'rainy',
-        '09n': 'rainy',
-        '10d': 'rainy',
-        '10n': 'rainy',
-        
-        // Гроза
-        '11d': 'thunderstorm',
-        '11n': 'thunderstorm',
-        
-        // Снег
-        '13d': 'snowy',
-        '13n': 'snowy',
-        
-        // Туман
-        '50d': 'foggy',
-        '50n': 'foggy'
-    };
-    
-    const iconName = iconMap[weatherCode] || 'sunny';
-    return `<div class="weather-icon icon-${iconName}"></div>`;
-}
-
 // Глобальные переменные
 let currentUnits = localStorage.getItem('weatherUnits') || 'celsius';
 let currentTheme = localStorage.getItem('weatherTheme') || 'dynamic';
@@ -53,6 +12,7 @@ let favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
 let forecastData = null;
 let airQualityData = null;
 const TEMPERATURE_SHIFT = 0;
+let isFirstLoad = true;
 
 // Переводы погодных условий
 const weatherTranslations = {
@@ -71,27 +31,94 @@ const weatherTranslations = {
     'heavy intensity rain': 'Сильный дождь'
 };
 
-// ========== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ==========
-
-// Функция скрытия экрана загрузки
-function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
+// Система ошибок
+const ERROR_TYPES = {
+    NO_INTERNET: {
+        title: 'Нет интернет-соединения',
+        message: 'Проверьте подключение к интернету и попробуйте снова',
+        color: '#ef4444', // Красный
+        icon: 'no-wifi'
+    },
+    SERVER_ERROR: {
+        title: 'Сервер не отвечает',
+        message: 'Проблемы с сервером погоды. Попробуйте позже',
+        color: '#f97316', // Оранжевый
+        icon: 'server'
+    },
+    API_LIMIT: {
+        title: 'Превышен лимит запросов',
+        message: 'Слишком много запросов к API. Попробуйте через 10 минут',
+        color: '#eab308', // Желтый
+        icon: 'limit'
+    },
+    MAINTENANCE: {
+        title: 'Обновление серверов',
+        message: 'Серверы API проходят плановое обслуживание с 20:00 до 23:00',
+        color: '#8b5cf6', // Фиолетовый
+        icon: 'maintenance'
+    },
+    LOCATION_ERROR: {
+        title: 'Ошибка геолокации',
+        message: 'Не удалось определить ваше местоположение',
+        color: '#3b82f6', // Синий
+        icon: 'location'
     }
+};
+
+// Получение иконки погоды
+function getWeatherIcon(weatherCode) {
+    const iconMap = {
+        '01d': 'sunny',
+        '01n': 'clear-night',
+        '02d': 'cloudy',
+        '02n': 'cloudy',
+        '03d': 'cloudy',
+        '03n': 'cloudy',
+        '04d': 'overcast',
+        '04n': 'overcast',
+        '09d': 'rainy',
+        '09n': 'rainy',
+        '10d': 'rainy',
+        '10n': 'rainy',
+        '11d': 'thunderstorm',
+        '11n': 'thunderstorm',
+        '13d': 'snowy',
+        '13n': 'snowy',
+        '50d': 'foggy',
+        '50n': 'foggy'
+    };
+    
+    const iconName = iconMap[weatherCode] || 'sunny';
+    return `<div class="weather-icon icon-${iconName}"></div>`;
 }
 
-// Функция проверки города в избранном
-function isCityInFavorites(city) {
-    return favorites.some(fav => fav.name === city);
+// Получение короткого описания погоды
+function getShortWeatherDescription(weatherCode) {
+    const descriptions = {
+        '01d': 'Ясно',
+        '01n': 'Ясно',
+        '02d': 'Мало облаков',
+        '02n': 'Мало облаков',
+        '03d': 'Облачно',
+        '03n': 'Облачно',
+        '04d': 'Пасмурно',
+        '04n': 'Пасмурно',
+        '09d': 'Дождь',
+        '09n': 'Дождь',
+        '10d': 'Дождь',
+        '10n': 'Дождь',
+        '11d': 'Гроза',
+        '11n': 'Гроза',
+        '13d': 'Снег',
+        '13n': 'Снег',
+        '50d': 'Туман',
+        '50n': 'Туман'
+    };
+    
+    return descriptions[weatherCode] || 'Ясно';
 }
 
-
-
-// Флаг первой загрузки
-let isFirstLoad = true;
-
-// ========== ФУНКЦИИ ДЛЯ ВРЕМЕНИ ==========
+// Форматирование времени
 function formatTime(date) {
     return date.toLocaleTimeString('ru-RU', { 
         hour: '2-digit', 
@@ -100,26 +127,19 @@ function formatTime(date) {
     });
 }
 
+// Направление ветра
 function getWindDirection(degrees) {
     const directions = ['С', 'СВ', 'В', 'ЮВ', 'Ю', 'ЮЗ', 'З', 'СЗ'];
     const index = Math.round(degrees / 45) % 8;
     return directions[index];
 }
 
+// Перевод погодных условий
 function translateWeather(description) {
     return weatherTranslations[description] || description;
 }
 
-function calculateDewPoint(temp, humidity) {
-    if (humidity === 0) return -273.15;
-
-    const a = 17.27;
-    const b = 237.7;
-    const alpha = ((a * temp) / (b + temp)) + Math.log(humidity / 100.0);
-    return (b * alpha) / (a - alpha);
-}
-
-// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ТЕМПЕРАТУРОЙ ==========
+// Температурные преобразования
 function convertTemperature(temp, units) {
     const celsius = temp;
     switch(units) {
@@ -147,141 +167,79 @@ function getTemperatureSymbol(units) {
     }
 }
 
-function updateAllTemperatures() {
-    if (currentCity) {
-        getWeatherByCity(currentCity);
-    }
+// Система ошибок соединения
+function showError(errorType, customMessage = null) {
+    const errorOverlay = document.getElementById('errorOverlay');
+    const errorTitle = errorOverlay.querySelector('.error-title');
+    const errorMessage = errorOverlay.querySelector('.error-message');
+    const errorIcon = errorOverlay.querySelector('.error-icon svg');
+    const errorCard = errorOverlay.querySelector('.error-card');
+    
+    const error = ERROR_TYPES[errorType] || ERROR_TYPES.SERVER_ERROR;
+    
+    // Обновляем контент
+    errorTitle.textContent = error.title;
+    errorMessage.textContent = customMessage || error.message;
+    
+    // Обновляем иконку
+    errorIcon.innerHTML = getErrorIcon(error.icon);
+    
+    // Обновляем цвет
+    errorCard.style.setProperty('--error-color', error.color);
+    errorCard.style.boxShadow = `
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 0 20px ${error.color}30
+    `;
+    
+    // Показываем
+    errorOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
-// ========== ФУНКЦИИ ДЛЯ ЛУНЫ ==========
-// async function calculateMoonInfo() {
-//     try {
-//         return calculateSimpleMoonPhase();
-//     } catch (error) {
-//         console.log('Ошибка расчета луны:', error);
-//         return {
-//             phase: 'Растущая луна',
-//             illumination: 45,
-//             age: 7,
-//             phasePercent: 45,
-//             isWaning: false,
-//             nextPhase: 'Первая четверть', 
-//             daysToNext: 2
-//         };
-//     }
-// }
+function hideError() {
+    const errorOverlay = document.getElementById('errorOverlay');
+    errorOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
 
-// function calculateSimpleMoonPhase() {
-//     const now = new Date();
-//     const knownNewMoon = new Date('2024-12-01T06:21:00Z').getTime();
-//     const currentTime = now.getTime();
-//     const calculationTime = currentTime;
-//     const lunarCycleMs = 29.53 * 24 * 60 * 60 * 1000;
+function getErrorIcon(iconType) {
+    const icons = {
+        'no-wifi': `<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                    <path d="M9.172 15.172a4 4 0 0 1 5.656 0" />
+                    <path d="M6.343 12.343a7.963 7.963 0 0 1 3.864 -2.14m4.163 .155a7.965 7.965 0 0 1 3.287 2" />
+                    <path d="M3.515 9.515a12 12 0 0 1 3.544 -2.455m3.101 -.92a12 12 0 0 1 10.325 3.374" />
+                    <line x1="3" y1="3" x2="21" y2="21" />`,
+        'server': `<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                   <rect x="3" y="4" width="18" height="8" rx="3" />
+                   <rect x="3" y="12" width="18" height="8" rx="3" />
+                   <line x1="7" y1="8" x2="7" y2="8.01" />
+                   <line x1="7" y1="16" x2="7" y2="16.01" />`,
+        'limit': `<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M12 9v2m0 4v.01" />
+                  <path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" />`,
+        'maintenance': `<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M9 9v-1a3 3 0 0 1 6 0v1" />
+                        <path d="M8 9h8a6 6 0 0 1 1 3v3a5 5 0 0 1 -10 0v-3a6 6 0 0 1 1 -3" />
+                        <path d="M3 13l4 0" />
+                        <path d="M17 13l4 0" />
+                        <path d="M12 20l0 -6" />
+                        <path d="M4 19l3.35 -2" />
+                        <path d="M20 19l-3.35 -2" />
+                        <path d="M4 7l3.75 2.4" />
+                        <path d="M20 7l-3.75 2.4" />`,
+        'location': `<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                     <path d="M12 18l-2 -4l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5l-2.901 8.034" />
+                     <path d="M21 21l-6 -6" />
+                     <path d="M3 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />`
+    };
     
-//     let moonAgeDays = ((calculationTime - knownNewMoon) % lunarCycleMs) / (24 * 60 * 60 * 1000);
-    
-//     if (moonAgeDays < 0) {
-//         moonAgeDays += 29.53;
-//     }
-    
-//     const phase = moonAgeDays / 29.53;
-//     return formatMoonPhase(phase);
-// }
+    return icons[iconType] || icons.server;
+}
 
-// function formatMoonPhase(phase) {
-//     let phaseName, phasePercent, isWaning;
-//     const age = Math.floor(phase * 29.53);
-
-//     if (phase < 0.02 || phase > 0.98) {
-//         phaseName = 'Новолуние';
-//         phasePercent = 0;
-//         isWaning = false;
-//     } else if (phase < 0.25) {
-//         phaseName = 'Молодая луна';
-//         phasePercent = Math.round(phase * 4 * 25);
-//         isWaning = false;
-//     } else if (phase < 0.27) {
-//         phaseName = 'Первая четверть';
-//         phasePercent = 50;
-//         isWaning = false;
-//     } else if (phase < 0.5) {
-//         phaseName = 'Растущая луна';
-//         phasePercent = 50 + Math.round((phase - 0.25) * 4 * 25);
-//         isWaning = false;
-//     } else if (phase < 0.52) {
-//         phaseName = 'Полнолуние';
-//         phasePercent = 100;
-//         isWaning = false;
-//     } else if (phase < 0.75) {
-//         phaseName = 'Убывающая луна';
-//         phasePercent = 100 - Math.round((phase - 0.5) * 4 * 25);
-//         isWaning = true;
-//     } else if (phase < 0.77) {
-//         phaseName = 'Последняя четверть';
-//         phasePercent = 50;
-//         isWaning = true;
-//     } else {
-//         phaseName = 'Старая луна';
-//         phasePercent = 50 - Math.round((phase - 0.75) * 4 * 25);
-//         isWaning = true;
-//     }
-    
-//     const illumination = Math.round(Math.abs(Math.sin(2 * Math.PI * phase)) * 100);
-//     const daysToNext = getDaysToNext(phase);
-//     const nextPhase = getNextPhase(phaseName);
-    
-//     return {
-//         phase: phaseName,
-//         illumination: illumination,
-//         age: age,
-//         phasePercent: phasePercent,
-//         isWaning: isWaning,
-//         nextPhase: nextPhase,
-//         daysToNext: daysToNext
-//     };
-// }
-
-// function getDaysToNext(phase) {
-//     if (phase < 0.25) return Math.round((0.25 - phase) * 29.53);
-//     if (phase < 0.5) return Math.round((0.5 - phase) * 29.53);
-//     if (phase < 0.75) return Math.round((0.75 - phase) * 29.53);
-//     return Math.round((1 - phase) * 29.53);
-// }
-
-// function getNextPhase(currentPhase) {
-//     const phases = ['Новолуние', 'Молодая луна', 'Первая четверть', 'Растущая луна', 'Полнолуние', 'Убывающая луна', 'Последняя четверть', 'Старая луна'];
-//     const currentIndex = phases.indexOf(currentPhase);
-//     return phases[(currentIndex + 1) % phases.length];
-// }
-
-// function updateMoonVisualization(phasePercent, isWaning) {
-//     const moonPhase = document.getElementById('moon-phase');
-//     if (!moonPhase) return;
-
-//     moonPhase.style.cssText = '';
-//     moonPhase.style.position = 'absolute';
-//     moonPhase.style.top = '0';
-//     moonPhase.style.left = '0';
-//     moonPhase.style.width = '100%';
-//     moonPhase.style.height = '100%';
-//     moonPhase.style.borderRadius = '50%';
-//     moonPhase.style.background = '#f1c40f';
-//     moonPhase.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-
-//     if (phasePercent === 0) {
-//         moonPhase.style.clipPath = 'inset(0 0 0 100%)';
-//     } else if (phasePercent === 100) {
-//         moonPhase.style.clipPath = 'inset(0 0 0 0%)';
-//     } else {
-//         if (isWaning) {
-//             moonPhase.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
-//         } else {
-//             moonPhase.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
-//         }
-//     }
-// }
-
-// ========== ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О ПОГОДЕ ==========
+// Получение данных о погоде
 async function getAirQuality(lat, lon) {
     try {
         const controller = new AbortController();
@@ -314,14 +272,34 @@ async function getAirQuality(lat, lon) {
     }
 }
 
+async function getForecast(lat, lon) {
+    try {
+        const response = await fetch(
+            `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`
+        );
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка получения прогноза:', error);
+        return null;
+    }
+}
+
+// Основная функция получения погоды
 async function getWeatherByCoords(lat, lon) {
     if (!navigator.onLine) {
         console.log('Нет подключения к интернету');
-        iosNotifications.warning('Нет сети', 'Проверьте подключение к интернету', 4000);
+        showError('NO_INTERNET');
         return;
     }
     
     try {
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        // Проверка на время обслуживания
+        if (currentHour >= 20 && currentHour <= 23) {
+            showError('MAINTENANCE');
+        }
         
         const controller = new AbortController();
         const timeoutDuration = 15000;
@@ -330,18 +308,17 @@ async function getWeatherByCoords(lat, lon) {
             controller.abort();
         }, timeoutDuration);
         
-        const clearTimeout = () => {
-            if (timeoutId) {
-                window.clearTimeout(timeoutId);
-            }
-        };
-        
         try {
             const [weatherData, forecastData, airQualityData] = await Promise.all([
                 fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
                     signal: controller.signal
                 }).then(async r => {
-                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    if (!r.ok) {
+                        if (r.status === 429) {
+                            throw new Error('API_LIMIT');
+                        }
+                        throw new Error(`HTTP error! status: ${r.status}`);
+                    }
                     return await r.json();
                 }),
                 fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
@@ -353,7 +330,7 @@ async function getWeatherByCoords(lat, lon) {
                 getAirQuality(lat, lon)
             ]);
 
-            clearTimeout();
+            clearTimeout(timeoutId);
 
             if (weatherData.cod === 200) {
                 currentCityData = weatherData;
@@ -362,39 +339,48 @@ async function getWeatherByCoords(lat, lon) {
                 await updateWeatherData(weatherData, forecastData, airQualityData);
                 
                 if (!isFirstLoad) {
-                    iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
+                    // iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
                 }
             } else {
                 throw new Error(weatherData.message || 'Неизвестная ошибка API');
             }
             
         } catch (fetchError) {
-            clearTimeout();
+            clearTimeout(timeoutId);
             throw fetchError;
         }
         
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
         
-        let errorMessage = 'Не удалось загрузить данные';
-        
-        if (error.name === 'AbortError') {
-            errorMessage = 'Сервер не отвечает. Проверьте подключение';
+        if (error.message === 'API_LIMIT') {
+            showError('API_LIMIT');
+        } else if (error.name === 'AbortError') {
+            showError('SERVER_ERROR', 'Сервер не отвечает. Проверьте подключение');
         } else if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'Проблемы с подключением к серверу погоды';
-        } else if (error.message.includes('HTTP error')) {
-            errorMessage = 'Ошибка сервера погоды';
+            showError('NO_INTERNET', 'Проблемы с подключением к серверу погоды');
+        } else {
+            showError('SERVER_ERROR', error.message);
         }
-        
-        iosNotifications.error('Ошибка', errorMessage, 4000);
-    } finally {
-        setTimeout(hideLoadingScreen, 1000);
     }
 }
 
 async function getWeatherByCity(city) {
+    if (!navigator.onLine) {
+        showError('NO_INTERNET');
+        return;
+    }
+    
     try {
-        showLoadingScreen();
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        // Проверка на время обслуживания
+        if (currentHour >= 20 && currentHour <= 23) {
+            showError('MAINTENANCE');
+            return;
+        }
+        
         const weatherResponse = await fetch(
             `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`
         );
@@ -411,45 +397,31 @@ async function getWeatherByCity(city) {
             await updateWeatherData(weatherData, forecastData, airQualityData);
             
             if (!isFirstLoad) {
-                iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
+                // iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
             }
         } else {
             throw new Error(weatherData.message);
         }
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
-        iosNotifications.error('Ошибка', 'Город не найден', 3000);
-    } finally {
-        setTimeout(hideLoadingScreen, 1000);
+        
+        if (error.message === '429') {
+            showError('API_LIMIT');
+        } else {
+            showError('SERVER_ERROR', 'Город не найден или ошибка сервера');
+        }
     }
 }
 
-async function getForecast(lat, lon) {
-    try {
-        const response = await fetch(
-            `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`
-        );
-        return await response.json();
-    } catch (error) {
-        console.error('Ошибка получения прогноза:', error);
-        return null;
-    }
-}
-
-// ========== ОСНОВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ДАННЫХ ==========
+// Обновление всех данных
 async function updateWeatherData(data, forecastData, airQualityData) {
     updateMobileWeather(data);
-
-    // Обновляем мобильную версию полностью
     await updateAllMobileData(data, forecastData, airQualityData);
-
-    // Обновляем тему
     updateThemeByWeather(data.weather[0].main, data.sys);
+    isFirstLoad = false;
 }
 
-
-
-// ========== ФУНКЦИИ ДЛЯ МОБИЛЬНОЙ ВЕРСИИ ==========
+// Мобильные функции
 function updateMobileWeather(data) {
     if (!data) return;
     
@@ -470,7 +442,6 @@ function updateMobileWeather(data) {
         const iconHtml = getWeatherIcon(data.weather[0].icon);
         weatherIcon.innerHTML = iconHtml;
         
-        
         document.getElementById('mobile-humidity').textContent = data.main.humidity + '%';
         document.getElementById('mobile-wind').textContent = Math.round(data.wind.speed) + ' км/ч';
         document.getElementById('mobile-wind-direction').textContent = 'Ветер ' + getWindDirection(data.wind.deg);
@@ -486,7 +457,8 @@ function updateMobileWeather(data) {
         console.log('Ошибка обновления мобильного блока:', error);
     }
 }
-function updateAllMobileData(data, forecastData, airQualityData) {
+
+async function updateAllMobileData(data, forecastData, airQualityData) {
     if (!data) return;
     
     updateMobileWeather(data);
@@ -501,6 +473,11 @@ function updateAllMobileData(data, forecastData, airQualityData) {
     }
     
     updateMobileSunData(data);
+    
+    // Обновляем умные напоминания
+    if (smartReminders) {
+        smartReminders.updateReminder(data, forecastData);
+    }
 }
 
 function updateMobileForecastData(forecastData) {
@@ -519,7 +496,7 @@ function updateMobileForecastData(forecastData) {
                 dailyForecasts[dayKey] = {
                     day: dayNames[date.getDay()],
                     temp: Math.round(item.main.temp),
-                    icon: item.weather[0].icon
+                    weatherDesc: getShortWeatherDescription(item.weather[0].icon)
                 };
             }
         });
@@ -529,8 +506,8 @@ function updateMobileForecastData(forecastData) {
             forecastHTML += `
                 <div class="mobile-forecast-item">
                     <div class="mobile-forecast-day">${dayData.day}</div>
-                    <div class="mobile-weather-icon small">${getWeatherIcon(dayData.icon)}</div>
                     <div class="mobile-forecast-temp">${dayData.temp}°</div>
+                    <div class="mobile-forecast-desc">${dayData.weatherDesc}</div>
                 </div>
             `;
         });
@@ -555,23 +532,35 @@ function updateMobileHourlyData(forecastData) {
             const time = new Date(hour.dt * 1000);
             const timeString = index === 0 ? 'Сейчас' : formatTime(time);
             const temp = Math.round(hour.main.temp);
+            const weatherDesc = getShortWeatherDescription(hour.weather[0].icon);
             
             hourlyHTML += `
                 <div class="mobile-hourly-item">
                     <div class="mobile-hourly-time">${timeString}</div>
-                    <div class="mobile-weather-icon tiny">${getWeatherIcon(hour.weather[0].icon)}</div>
                     <div class="mobile-hourly-temp">${temp}°</div>
+                    <div class="mobile-hourly-desc">${weatherDesc}</div>
                 </div>
             `;
         });
         
         hourlyContainer.innerHTML = hourlyHTML;
-        updateMobileIcons();
         
     } catch (error) {
         console.log('Ошибка обновления почасового прогноза:', error);
         hourlyContainer.innerHTML = '<div class="mobile-hourly-item">—</div>'.repeat(8);
     }
+}
+
+function getAirQualityText(aqi) {
+    const levels = {
+        1: { text: 'Отлично', class: 'aqi-good' },
+        2: { text: 'Хорошо', class: 'aqi-moderate' },
+        3: { text: 'Умеренно', class: 'aqi-unhealthy-sensitive' },
+        4: { text: 'Плохо', class: 'aqi-unhealthy' },
+        5: { text: 'Очень плохо', class: 'aqi-very-unhealthy' }
+    };
+    
+    return levels[aqi] || levels[1];
 }
 
 function updateMobileAirQualityData(airQualityData) {
@@ -582,23 +571,24 @@ function updateMobileAirQualityData(airQualityData) {
     
     try {
         const aqi = airQualityData.list[0].main.aqi;
-        const levels = {
-            1: { text: 'Отлично', color: '#10b981' },
-            2: { text: 'Хорошо', color: '#4ecdc4' },
-            3: { text: 'Умеренно', color: '#ffe66d' },
-            4: { text: 'Плохо', color: '#ff9e6d' },
-            5: { text: 'Очень плохо', color: '#ff6b6b' }
-        };
+        const airQualityInfo = getAirQualityText(aqi);
         
-        const level = levels[aqi] || levels[1];
-        aqiElement.textContent = aqi;
-        aqiElement.style.color = level.color;
-        aqiLabel.textContent = level.text;
+        aqiElement.innerHTML = `
+            <div class="mobile-aqi-text ${airQualityInfo.class}">
+                ${airQualityInfo.text}
+            </div>
+        `;
+        
+        aqiLabel.textContent = 'Качество воздуха';
         
     } catch (error) {
         console.log('Ошибка обновления качества воздуха:', error);
-        aqiElement.textContent = '—';
-        aqiLabel.textContent = 'Нет данных';
+        aqiElement.innerHTML = `
+            <div class="mobile-aqi-text aqi-moderate">
+                Нет данных
+            </div>
+        `;
+        aqiLabel.textContent = 'Качество воздуха';
     }
 }
 
@@ -612,51 +602,10 @@ function updateMobileSunData(data) {
         document.getElementById('mobile-sunrise').textContent = formatTime(sunrise);
         document.getElementById('mobile-sunset').textContent = formatTime(sunset);
         
-        calculateMoonInfo().then(moonInfo => {
-            const moonElement = document.getElementById('mobile-moon-phase');
-            if (moonElement) {
-                updateMoonVisualizationElement(moonElement, moonInfo.phasePercent, moonInfo.isWaning);
-            }
-        });
-        
     } catch (error) {
         console.log('Ошибка обновления времени солнца:', error);
         document.getElementById('mobile-sunrise').textContent = '--:--';
         document.getElementById('mobile-sunset').textContent = '--:--';
-    }
-}
-
-function updateMobileIcons() {
-    const icons = document.querySelectorAll('.mobile-weather-icon svg');
-    icons.forEach(svg => {
-        svg.style.stroke = '#ffffff';
-        svg.style.strokeWidth = '1.5';
-    });
-}
-
-function updateMoonVisualizationElement(element, phasePercent, isWaning) {
-    if (!element) return;
-
-    element.style.cssText = '';
-    element.style.position = 'absolute';
-    element.style.top = '0';
-    element.style.left = '0';
-    element.style.width = '100%';
-    element.style.height = '100%';
-    element.style.borderRadius = '50%';
-    element.style.background = '#f1c40f';
-    element.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-
-    if (phasePercent === 0) {
-        element.style.clipPath = 'inset(0 0 0 100%)';
-    } else if (phasePercent === 100) {
-        element.style.clipPath = 'inset(0 0 0 0%)';
-    } else {
-        if (isWaning) {
-            element.style.clipPath = `inset(0 ${100 - phasePercent}% 0 0)`;
-        } else {
-            element.style.clipPath = `inset(0 0 0 ${100 - phasePercent}%)`;
-        }
     }
 }
 
@@ -732,16 +681,9 @@ function updateWeatherGlow(weatherData) {
     mobileCard.classList.add(glowClass);
 }
 
-// ========== ФУНКЦИИ ДЛЯ ЭКРАНА ЗАГРУЗКИ ==========
-function showLoadingScreen() {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'flex';
-    }
-}
-// ========== ФУНКЦИИ ДЛЯ ТЕМ ==========
+// Функции тем
 function updateThemeByWeather(weatherMain, sys) {
-    if (currentTheme !== 'dark') return;
+    if (currentTheme !== 'dynamic') return;
 
     const now = new Date();
     const currentTime = now.getTime();
@@ -769,22 +711,18 @@ function loadSettings() {
 
     if (savedTheme) {
         currentTheme = savedTheme;
-
-        if (currentTheme === 'light') {
-            document.body.style.background = 'linear-gradient(135deg, #87CEEB, #E0F7FA)';
-            document.body.style.color = '#333';
-        } else if (currentTheme === 'dark') {
-            document.body.style.background = 'linear-gradient(135deg, #2C3E50, #34495E)';
-            document.body.style.color = '#FFFFFF';
-        } else {
-            document.body.style.background = '';
-            document.body.style.color = '';
-        }
+        document.body.classList.remove('light', 'dark');
+        document.body.classList.add(savedTheme);
     }
 }
 
-// ========== ГЕОЛОКАЦИЯ ==========
+// Геолокация
 function getUserLocation() {
+    if (!navigator.onLine) {
+        showError('NO_INTERNET');
+        return;
+    }
+    
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             position => {
@@ -794,6 +732,7 @@ function getUserLocation() {
             },
             error => {
                 console.log('Ошибка геолокации:', error);
+                showError('LOCATION_ERROR');
                 const fallbackLat = 59.9343;
                 const fallbackLng = 30.3351;
                 getWeatherByCoords(fallbackLat, fallbackLng);
@@ -806,254 +745,76 @@ function getUserLocation() {
         );
     } else {
         console.log('Геолокация не поддерживается браузером');
-        showNotification('Ваш браузер не поддерживает геолокацию');
+        showError('LOCATION_ERROR');
         const fallbackLat = 59.9343;
         const fallbackLng = 30.3351;
         getWeatherByCoords(fallbackLat, fallbackLng);
     }
 }
 
-// ========== PWA ФУНКЦИИ ==========
-let deferredPrompt;
-const installPrompt = document.getElementById('install-prompt');
-const installBtn = document.getElementById('install-btn');
-const installClose = document.getElementById('install-close');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    setTimeout(() => {
-        if (deferredPrompt && !isAppInstalled()) {
-            installPrompt.style.display = 'block';
-        }
-    }, 3000);
-});
-
-if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-
-        if (outcome === 'accepted') {
-            installPrompt.style.display = 'none';
-        }
-
-        deferredPrompt = null;
-    });
-}
-
-if (installClose) {
-    installClose.addEventListener('click', () => {
-        installPrompt.style.display = 'none';
-        localStorage.setItem('installPromptClosed', 'true');
-    });
-}
-
-function isAppInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches || 
-           window.navigator.standalone ||
-           document.referrer.includes('android-app://');
-}
-
-if (installPrompt && localStorage.getItem('installPromptClosed') === 'true') {
-    installPrompt.style.display = 'none';
-}
-
-if (installPrompt && isAppInstalled()) {
-    installPrompt.style.display = 'none';
-}
-
-// ========== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==========
-document.addEventListener('DOMContentLoaded', () => {
-    showLoadingScreen();
-    loadSettings();
-    getUserLocation();
-
-    // Обработчики для плавающих кнопок
-    const settingsBtn = document.querySelector('.settings-btn');
-    const functionsBtn = document.querySelector('.functions-btn');
-
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-        });
-    }
-
-    if (functionsBtn) {
-        functionsBtn.addEventListener('click', () => {
-        });
-    }
-
-    // Инициализация PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => console.log('SW registered'))
-            .catch(error => console.log('SW registration failed'));
-    }
-});
-
-// Функция для получения короткого описания погоды
-function getShortWeatherDescription(weatherCode) {
-    const descriptions = {
-        '01d': 'Ясно',
-        '01n': 'Ясно',
-        '02d': 'Мало облаков',
-        '02n': 'Мало облаков',
-        '03d': 'Облачно',
-        '03n': 'Облачно',
-        '04d': 'Пасмурно',
-        '04n': 'Пасмурно',
-        '09d': 'Дождь',
-        '09n': 'Дождь',
-        '10d': 'Дождь',
-        '10n': 'Дождь',
-        '11d': 'Гроза',
-        '11n': 'Гроза',
-        '13d': 'Снег',
-        '13n': 'Снег',
-        '50d': 'Туман',
-        '50n': 'Туман'
-    };
+// Навигация
+function navigateTo(section) {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
     
-    return descriptions[weatherCode] || 'Ясно';
-}
-
-// Обновляем почасовой прогноз
-function updateMobileHourlyData(forecastData) {
-    const hourlyContainer = document.getElementById('mobile-hourly');
-    if (!hourlyContainer || !forecastData?.list) return;
+    event.currentTarget.classList.add('active');
     
-    try {
-        const hourlyItems = forecastData.list.slice(0, 8);
-        let hourlyHTML = '';
-        
-        hourlyItems.forEach((hour, index) => {
-            const time = new Date(hour.dt * 1000);
-            const timeString = index === 0 ? 'Сейчас' : formatTime(time);
-            const temp = Math.round(hour.main.temp);
-            const weatherDesc = getShortWeatherDescription(hour.weather[0].icon);
+    switch(section) {
+        case 'home':
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
             
-            hourlyHTML += `
-                <div class="mobile-hourly-item">
-                    <div class="mobile-hourly-time">${timeString}</div>
-                    <div class="mobile-hourly-temp">${temp}°</div>
-                    <div class="mobile-hourly-desc">${weatherDesc}</div>
-                </div>
-            `;
-        });
-        
-        hourlyContainer.innerHTML = hourlyHTML;
-        
-    } catch (error) {
-        console.log('Ошибка обновления почасового прогноза:', error);
-        hourlyContainer.innerHTML = '<div class="mobile-hourly-item">—</div>'.repeat(8);
-    }
-}
-
-// Обновляем 5-дневный прогноз
-function updateMobileForecastData(forecastData) {
-    const forecastContainer = document.getElementById('mobile-forecast');
-    if (!forecastContainer || !forecastData?.list) return;
-    
-    try {
-        const dailyForecasts = {};
-        const dayNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-        
-        forecastData.list.forEach(item => {
-            const date = new Date(item.dt * 1000);
-            const dayKey = date.toDateString();
-            
-            if (!dailyForecasts[dayKey] && Object.keys(dailyForecasts).length < 5) {
-                dailyForecasts[dayKey] = {
-                    day: dayNames[date.getDay()],
-                    temp: Math.round(item.main.temp),
-                    weatherDesc: getShortWeatherDescription(item.weather[0].icon)
-                };
+        case 'forecast':
+            const forecastCards = document.querySelectorAll('.mobile-additional-card');
+            if (forecastCards[1]) {
+                forecastCards[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-        });
-        
-        let forecastHTML = '';
-        Object.values(dailyForecasts).forEach(dayData => {
-            forecastHTML += `
-                <div class="mobile-forecast-item">
-                    <div class="mobile-forecast-day">${dayData.day}</div>
-                    <div class="mobile-forecast-temp">${dayData.temp}°</div>
-                    <div class="mobile-forecast-desc">${dayData.weatherDesc}</div>
-                </div>
-            `;
-        });
-        
-        forecastContainer.innerHTML = forecastHTML;
-        
-    } catch (error) {
-        console.log('Ошибка обновления прогноза:', error);
-        forecastContainer.innerHTML = '<div class="mobile-forecast-item">—</div>'.repeat(5);
+            break;
+            
+        case 'donate':
+            window.location.href = 'donate.html';
+            break;
+            
+        case 'settings':
+            window.location.href = 'settings.html';
+            break;
+    }
+    
+    event.preventDefault();
+    return false;
+}
+
+function openSettings() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    window.location.href = 'settings.html';
+}
+
+// Применение настроек
+function applyTemperatureUnits() {
+    const savedUnits = localStorage.getItem('weatherUnits') || 'celsius';
+    currentUnits = savedUnits;
+    
+    if (currentCityData) {
+        updateMobileWeather(currentCityData);
     }
 }
 
-function updateMobileSunData(data) {
-    if (!data?.sys) return;
+function applyLightingFromSettings() {
+    const savedColor = localStorage.getItem('weatherLighting') || 'green';
+    const body = document.body;
     
-    try {
-        const sunrise = new Date(data.sys.sunrise * 1000);
-        const sunset = new Date(data.sys.sunset * 1000);
-        
-        document.getElementById('mobile-sunrise').textContent = formatTime(sunrise);
-        document.getElementById('mobile-sunset').textContent = formatTime(sunset);
-        
-    } catch (error) {
-        console.log('Ошибка обновления времени солнца:', error);
-        document.getElementById('mobile-sunrise').textContent = '--:--';
-        document.getElementById('mobile-sunset').textContent = '--:--';
-    }
+    body.classList.remove(
+        'accent-neutral',
+        'accent-green', 'accent-warm', 'accent-white', 
+        'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
+    );
+    
+    body.classList.add(`accent-${savedColor}`);
 }
-// Функция для получения текстового описания качества воздуха
-function getAirQualityText(aqi) {
-    const levels = {
-        1: { text: 'Отлично', class: 'aqi-good' },
-        2: { text: 'Хорошо', class: 'aqi-moderate' },
-        3: { text: 'Умеренно', class: 'aqi-unhealthy-sensitive' },
-        4: { text: 'Плохо', class: 'aqi-unhealthy' },
-        5: { text: 'Очень плохо', class: 'aqi-very-unhealthy' }
-    };
-    
-    return levels[aqi] || levels[1];
-}
-    
-// Обновляем функцию отображения качества воздуха
-function updateMobileAirQualityData(airQualityData) {
-    const aqiElement = document.getElementById('mobile-aqi');
-    const aqiLabel = document.getElementById('mobile-aqi-label');
-    
-    if (!aqiElement || !aqiLabel || !airQualityData?.list?.[0]) return;
-    
-    try {
-        const aqi = airQualityData.list[0].main.aqi;
-        const airQualityInfo = getAirQualityText(aqi);
-        
-        // Убираем цифру, показываем только текст
-        aqiElement.innerHTML = `
-            <div class="mobile-aqi-text ${airQualityInfo.class}">
-                ${airQualityInfo.text}
-            </div>
-        `;
-        
-        aqiLabel.textContent = 'Качество воздуха';
-        
-    } catch (error) {
-        console.log('Ошибка обновления качества воздуха:', error);
-        aqiElement.innerHTML = `
-            <div class="mobile-aqi-text aqi-moderate">
-                Нет данных
-            </div>
-        `;
-        aqiLabel.textContent = 'Качество воздуха';
-    }
-}
-// ========== СИСТЕМА УМНЫХ НАПОМИНАНИЙ ==========
 
+// Система умных напоминаний (исправленная)
 class SmartReminders {
     constructor() {
         this.reminderElement = document.getElementById('weather-reminder');
@@ -1061,94 +822,32 @@ class SmartReminders {
         this.messageElement = document.getElementById('reminder-message');
         this.timeElement = document.getElementById('reminder-time');
         this.currentReminder = null;
+        this.lastUpdate = null;
     }
 
-// Расчет вероятности снега
-calculateSnowProbability(forecastData) {
-    const next12Hours = forecastData.list.slice(0, 4);
-    let snowChance = 0;
-    let snowCount = 0;
-
-    next12Hours.forEach(hour => {
-        const weather = hour.weather[0].main.toLowerCase();
-        const description = hour.weather[0].description.toLowerCase();
-        
-        if (weather.includes('snow') || description.includes('snow')) {
-            snowCount++;
-        }
-        // Проверяем температуру для возможного снега
-        if (hour.main.temp <= 2 && (weather.includes('rain') || description.includes('shower'))) {
-            snowCount += 0.5; // Возможен мокрый снег
-        }
-    });
-
-    return {
-        high: snowCount >= 2,
-        medium: snowCount >= 1,
-        snowCount: snowCount
-    };
-}
-
-// Проверка актуальности для снежного напоминания
-isRelevantTimeForSnow(currentHour) {
-    // Напоминаем утром и днем, когда люди планируют день
-    return (currentHour >= 6 && currentHour <= 14);
-}
-
-// Создание напоминания о снеге
-createSnowReminder(snowProbability) {
-    const messages = [
-        "Наслаждайтесь снегом!",
-        "Идеальное время для снежных забав",
-        "Можно слепить снеговика",
-        "Прекрасный снежный день!",
-    ];
-    
-    const intensity = snowProbability.high ? "сильный" : "небольшой";
-    
-    return {
-        type: 'snow',
-        title: `Возможен ${intensity} снег`,
-        message: messages[Math.floor(Math.random() * messages.length)],
-        time: `Снегопад ожидается`,
-        className: 'snow-reminder important',
-        icon: 'snow'
-    };
-}
-
-// Обновляем анализ погоды - добавляем снег с высоким приоритетом
-analyzeWeatherForReminders(weatherData, forecastData) {
-    if (!weatherData || !forecastData) return null;
-
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentWeather = weatherData.weather[0].main.toLowerCase();
-    
-    const rainProbability = this.calculateRainProbability(forecastData);
-    const snowProbability = this.calculateSnowProbability(forecastData);
-    
-    // НОВЫЙ ПРИОРИТЕТ: Снег идет перед дождем
-    if (snowProbability.high && this.isRelevantTimeForSnow(currentHour)) {
-        return this.createSnowReminder(snowProbability);
-    }
-    
-    return this.createDefaultReminder(weatherData);
-}
-
-    // Анализ погодных данных для напоминаний
     analyzeWeatherForReminders(weatherData, forecastData) {
         if (!weatherData || !forecastData) return null;
 
         const now = new Date();
         const currentHour = now.getHours();
         const currentWeather = weatherData.weather[0].main.toLowerCase();
-        const rainProbability = this.calculateRainProbability(forecastData);
         
-        // Приоритеты: 1) Дождь, 2) Рассвет, 3) Закат
+        // Обновляем время последнего обновления
+        this.lastUpdate = now;
+        
+        // Проверка снега с высоким приоритетом
+        const snowProbability = this.calculateSnowProbability(forecastData);
+        if (snowProbability.high && this.isRelevantTimeForSnow(currentHour)) {
+            return this.createSnowReminder(snowProbability);
+        }
+        
+        // Проверка дождя
+        const rainProbability = this.calculateRainProbability(forecastData);
         if (rainProbability.high && this.isRelevantTimeForRain(currentHour)) {
             return this.createRainReminder(rainProbability);
         }
         
+        // Проверка рассвета/заката
         const sunTimes = this.getSunTimes(weatherData);
         if (this.isTimeForSunriseReminder(currentHour, sunTimes.sunrise)) {
             return this.createSunriseReminder(sunTimes.sunrise);
@@ -1161,9 +860,32 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         return this.createDefaultReminder(weatherData);
     }
 
-    // Расчет вероятности дождя
+    calculateSnowProbability(forecastData) {
+        const next12Hours = forecastData.list.slice(0, 4);
+        let snowChance = 0;
+        let snowCount = 0;
+
+        next12Hours.forEach(hour => {
+            const weather = hour.weather[0].main.toLowerCase();
+            const description = hour.weather[0].description.toLowerCase();
+            
+            if (weather.includes('snow') || description.includes('snow')) {
+                snowCount++;
+            }
+            if (hour.main.temp <= 2 && (weather.includes('rain') || description.includes('shower'))) {
+                snowCount += 0.5;
+            }
+        });
+
+        return {
+            high: snowCount >= 2,
+            medium: snowCount >= 1,
+            snowCount: snowCount
+        };
+    }
+
     calculateRainProbability(forecastData) {
-        const next12Hours = forecastData.list.slice(0, 4); // Следующие 12 часов
+        const next12Hours = forecastData.list.slice(0, 4);
         let rainChance = 0;
         let rainCount = 0;
 
@@ -1172,7 +894,7 @@ analyzeWeatherForReminders(weatherData, forecastData) {
             if (weather.includes('rain') || weather.includes('drizzle')) {
                 rainCount++;
             }
-            if (hour.pop) { // Probability of precipitation
+            if (hour.pop) {
                 rainChance = Math.max(rainChance, hour.pop * 100);
             }
         });
@@ -1185,14 +907,15 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Проверка актуальности времени для напоминания о дожде
+    isRelevantTimeForSnow(currentHour) {
+        return (currentHour >= 6 && currentHour <= 14);
+    }
+
     isRelevantTimeForRain(currentHour) {
-        // Напоминаем утром (6-10) и вечером (16-20)
         return (currentHour >= 6 && currentHour <= 10) || 
                (currentHour >= 16 && currentHour <= 20);
     }
 
-    // Получение времени восхода/заката
     getSunTimes(weatherData) {
         return {
             sunrise: new Date(weatherData.sys.sunrise * 1000),
@@ -1200,21 +923,38 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Проверка времени для напоминания о рассвете
     isTimeForSunriseReminder(currentHour, sunrise) {
         const sunriseHour = sunrise.getHours();
-        // Напоминаем за 1-2 часа до рассвета
-        return currentHour >= (sunriseHour - 2) && currentHour < sunriseHour;
+        // Исправлено: с 12 часов до 1 часа перед рассветом
+        return currentHour >= (sunriseHour - 1) && currentHour < sunriseHour;
     }
 
-    // Проверка времени для напоминания о закате
     isTimeForSunsetReminder(currentHour, sunset) {
         const sunsetHour = sunset.getHours();
-        // Напоминаем за 1-2 часа до заката
-        return currentHour >= (sunsetHour - 2) && currentHour < sunsetHour;
+        // Исправлено: с 12 часов до 1 часа перед закатом
+        return currentHour >= (sunsetHour - 1) && currentHour < sunsetHour;
     }
 
-    // Создание напоминания о дожде
+    createSnowReminder(snowProbability) {
+        const messages = [
+            "Наслаждайтесь снегом!",
+            "Идеальное время для снежных забав",
+            "Можно слепить снеговика",
+            "Прекрасный снежный день!",
+        ];
+        
+        const intensity = snowProbability.high ? "сильный" : "небольшой";
+        
+        return {
+            type: 'snow',
+            title: `Возможен ${intensity} снег`,
+            message: messages[Math.floor(Math.random() * messages.length)],
+            time: `Снегопад ожидается`,
+            className: 'snow-reminder important',
+            icon: 'snow'
+        };
+    }
+
     createRainReminder(rainProbability) {
         const messages = [
             "Возьмите зонт",
@@ -1234,13 +974,12 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Создание напоминания о рассвете
     createSunriseReminder(sunrise) {
         const sunriseTime = this.formatTime(sunrise);
         
         return {
             type: 'sunrise',
-            title: 'Не пропустите рассвет!',
+            title: 'Рассвет через час',
             message: 'Идеальное время для утренних фото',
             time: `В ${sunriseTime}`,
             className: 'sunrise-reminder',
@@ -1248,13 +987,12 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Создание напоминания о закате
     createSunsetReminder(sunset) {
         const sunsetTime = this.formatTime(sunset);
         
         return {
             type: 'sunset',
-            title: 'Время заката приближается',
+            title: 'Закат через час',
             message: 'Отличный момент для вечерней прогулки',
             time: `В ${sunsetTime}`,
             className: 'sunset-reminder',
@@ -1262,7 +1000,6 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Напоминание по умолчанию
     createDefaultReminder(weatherData) {
         const descriptions = {
             'clear': 'Можно погулять',
@@ -1284,7 +1021,6 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         };
     }
 
-    // Форматирование времени
     formatTime(date) {
         return date.toLocaleTimeString('ru-RU', { 
             hour: '2-digit', 
@@ -1292,35 +1028,27 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         });
     }
 
-    // Время следующего обновления
     getNextUpdateTime() {
-        const nextUpdate = new Date(Date.now());
+        if (!this.lastUpdate) return 'Обновление: --:--';
+        const nextUpdate = new Date(this.lastUpdate.getTime() + 60 * 60 * 1000); // +1 час
         return `Обновление: ${this.formatTime(nextUpdate)}`;
     }
 
-    // Показать напоминание
     showReminder(reminderData) {
         if (!this.reminderElement || !reminderData) return;
 
         this.currentReminder = reminderData;
         
-        // Обновляем контент
         this.titleElement.textContent = reminderData.title;
         this.messageElement.textContent = reminderData.message;
         this.timeElement.textContent = reminderData.time;
         
-        // Обновляем классы и иконку
         this.reminderElement.className = `reminder-card ${reminderData.className}`;
         this.updateReminderIcon(reminderData.icon);
         
-        // Показываем элемент
         this.reminderElement.style.display = 'flex';
-        
-        // Логируем для отладки
-        console.log('Показано напоминание:', reminderData);
     }
 
-    // Обновление иконки напоминания
     updateReminderIcon(iconType) {
         const iconSvg = this.getReminderIcon(iconType);
         const iconContainer = this.reminderElement.querySelector('.reminder-icon');
@@ -1329,7 +1057,6 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         }
     }
 
-    // Получение SVG иконок для напоминаний
     getReminderIcon(iconType) {
         const icons = {
             umbrella: `
@@ -1353,17 +1080,17 @@ analyzeWeatherForReminders(weatherData, forecastData) {
                     <path d="M16 18a4 4 0 0 0-8 0"></path>
                 </svg>
             `,
-                    snow: `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
-                <line x1="8" y1="16" x2="8.01" y2="16"></line>
-                <line x1="8" y1="20" x2="8.01" y2="20"></line>
-                <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                <line x1="12" y1="22" x2="12.01" y2="22"></line>
-                <line x1="16" y1="16" x2="16.01" y2="16"></line>
-                <line x1="16" y1="20" x2="16.01" y2="20"></line>
-            </svg>
-        `,
+            snow: `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
+                    <line x1="8" y1="16" x2="8.01" y2="16"></line>
+                    <line x1="8" y1="20" x2="8.01" y2="20"></line>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    <line x1="12" y1="22" x2="12.01" y2="22"></line>
+                    <line x1="16" y1="16" x2="16.01" y2="16"></line>
+                    <line x1="16" y1="20" x2="16.01" y2="20"></line>
+                </svg>
+            `,
             sunset: `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M12 10v8"></path>
@@ -1394,14 +1121,12 @@ analyzeWeatherForReminders(weatherData, forecastData) {
         return icons[iconType] || icons.sun;
     }
 
-    // Скрыть напоминание
     hideReminder() {
         if (this.reminderElement) {
             this.reminderElement.style.display = 'none';
         }
     }
 
-    // Обновить напоминание на основе новых данных
     updateReminder(weatherData, forecastData) {
         const reminder = this.analyzeWeatherForReminders(weatherData, forecastData);
         if (reminder) {
@@ -1412,21 +1137,42 @@ analyzeWeatherForReminders(weatherData, forecastData) {
     }
 }
 
-// Инициализация системы напоминаний
+// Инициализация
 const smartReminders = new SmartReminders();
 
-// Интеграция с основной функцией обновления погоды
-async function updateWeatherData(data, forecastData, airQualityData) {
+// Загрузка приложения
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    applyTemperatureUnits();
+    applyLightingFromSettings();
+    getUserLocation();
 
-    await updateAllMobileData(data, forecastData, airQualityData);
+    // Слушатели событий
+    window.addEventListener('online', () => {
+        hideError();
+        getUserLocation();
+    });
     
-    // НОВОЕ: Обновляем умные напоминания
-    smartReminders.updateReminder(data, forecastData);
+    window.addEventListener('offline', () => {
+        showError('NO_INTERNET');
+    });
     
-    updateThemeByWeather(data.weather[0].main, data.sys);
-}
-// Убираем стандартный фокус у всех кнопок
-document.addEventListener('DOMContentLoaded', function() {
+    // Закрытие ошибки по клику на оверлей
+    document.addEventListener('click', function(event) {
+        const errorOverlay = document.getElementById('errorOverlay');
+        if (errorOverlay && event.target === errorOverlay) {
+            hideError();
+        }
+    });
+    
+    // Закрытие ошибки по Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            hideError();
+        }
+    });
+
+    // Убираем стандартный фокус у кнопок
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => {
         btn.addEventListener('mousedown', function(e) {
@@ -1437,331 +1183,18 @@ document.addEventListener('DOMContentLoaded', function() {
             this.blur();
         });
     });
+
+    // PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('SW registered'))
+            .catch(error => console.log('SW registration failed'));
+    }
 });
-function openSettings() {
-    window.location.href = 'settings.html';
-}
-// Функция для применения выбранных единиц измерения
-function applyTemperatureUnits() {
-    const savedUnits = localStorage.getItem('weatherUnits') || 'celsius';
-    currentUnits = savedUnits;
-    
-    // Если есть данные о погоде - обновляем отображение
+
+// Обновление всех температур
+function updateAllTemperatures() {
     if (currentCityData) {
-        updateAllTemperatures();
+        updateMobileWeather(currentCityData);
     }
 }
-
-// Вызываем при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    applyTemperatureUnits();
-    
-    // Слушаем сообщения от страницы настроек
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'unitsChanged') {
-            currentUnits = event.data.units;
-            updateAllTemperatures();
-        }
-    });
-});
-
-// Функция применения подсветки из настроек
-function applyLightingFromSettings() {
-    const savedColor = localStorage.getItem('weatherLighting') || 'green';
-    const body = document.body;
-    
-    // Удаляем все старые классы подсветки
-    body.classList.remove(
-        'accent-neutral', // НОВЫЙ
-        'accent-green', 'accent-warm', 'accent-white', 
-        'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
-    );
-    
-    // Добавляем новый класс подсветки
-    body.classList.add(`accent-${savedColor}`);
-    
-    console.log('Applied lighting:', savedColor);
-}
-
-// Применяем при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    applyLightingFromSettings();
-});
-
-// Также применяем при возврате из настроек
-window.addEventListener('storage', function(e) {
-    if (e.key === 'weatherLighting') {
-        applyLightingFromSettings();
-    }
-});
-
-// Если открываем из настроек - сразу применяем
-if (window.location.search.includes('fromSettings=true')) {
-    applyLightingFromSettings();
-}
-// Функция применения подсветки из настроек
-function applyLightingFromSettings() {
-    const savedColor = localStorage.getItem('weatherLighting') || 'green';
-    const body = document.body;
-    
-    // Удаляем все старые классы подсветки
-    body.classList.remove(
-        'accent-neutral', // ДОБАВЛЯЕМ
-        'accent-green', 'accent-warm', 'accent-white', 
-        'accent-blue', 'accent-pink', 'accent-orange', 'accent-red'
-    );
-    
-    // Добавляем новый класс подсветки
-    body.classList.add(`accent-${savedColor}`);
-    
-    console.log('Applied lighting:', savedColor);
-}
-// Функции для навигации (только иконки)
-function navigateTo(section) {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
-    
-    // Добавляем активный класс к нажатому элементу
-    event.currentTarget.classList.add('active');
-    
-    switch(section) {
-        case 'home':
-            // Прокрутка к началу
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            break;
-            
-        case 'forecast':
-            // Прокрутка к прогнозу
-            const forecastCards = document.querySelectorAll('.mobile-additional-card');
-            if (forecastCards[1]) { // Прогноз на 5 дней
-                forecastCards[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            break;
-            
-        case 'donate':
-            // ПЕРЕХОД НА СТРАНИЦУ ДОНАТА
-            window.location.href = 'donate.html';
-            break;
-            
-        case 'settings':
-            // Открытие настроек
-            window.location.href = 'settings.html';
-            break;
-    }
-    
-    event.preventDefault();
-    return false;
-}
-// Функция открытия настроек с обновлением навигации
-function openSettings() {
-    // Обновляем навигацию
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    
-    // Перенаправление
-    window.location.href = 'settings.html';
-}
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    // Авто-скролл для навигации на маленьких экранах
-    const navContainer = document.querySelector('.nav-container');
-    if (navContainer && window.innerWidth < 380) {
-        navContainer.style.padding = '10px 12px';
-    }
-});
-// ========== СИСТЕМА УВЕДОМЛЕНИЙ ОБ ОШИБКАХ ==========
-
-let errorTimeout = null;
-let weatherLoaded = false;
-
-// Функция показа ошибки
-function showConnectionError() {
-    const errorOverlay = document.getElementById('errorOverlay');
-    if (errorOverlay) {
-        errorOverlay.classList.add('active');
-        // Блокируем прокрутку при открытом окне
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Функция скрытия ошибки
-function hideError() {
-    const errorOverlay = document.getElementById('errorOverlay');
-    if (errorOverlay) {
-        errorOverlay.classList.remove('active');
-        // Возвращаем прокрутку
-        document.body.style.overflow = '';
-    }
-}
-
-// Функция проверки загрузки погоды
-function checkWeatherLoading() {
-    // Проверяем, загружены ли основные данные
-    const cityElement = document.getElementById('mobile-city');
-    const tempElement = document.getElementById('mobile-temperature');
-    
-    // Если через 7 секунд нет данных - показываем ошибку
-    errorTimeout = setTimeout(() => {
-        if (!weatherLoaded && (cityElement.textContent === 'Загрузка...' || 
-            tempElement.textContent === '--°' || 
-            !navigator.onLine)) {
-            
-            showConnectionError();
-        }
-    }, 7000); // 7 секунд
-}
-
-// Функция успешной загрузки
-function weatherLoadedSuccessfully() {
-    weatherLoaded = true;
-    if (errorTimeout) {
-        clearTimeout(errorTimeout);
-        errorTimeout = null;
-    }
-    hideError();
-}
-
-// Модифицируем существующую функцию getWeatherByCoords
-async function getWeatherByCoords(lat, lon) {
-    if (!navigator.onLine) {
-        console.log('Нет подключения к интернету');
-        showConnectionError(); // Показываем ошибку сразу
-        return;
-    }
-    
-    try {
-        showLoadingScreen();
-        
-        // Запускаем таймер проверки
-        checkWeatherLoading();
-        
-        const controller = new AbortController();
-        const timeoutDuration = 15000;
-        
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-        }, timeoutDuration);
-        
-        const clearTimeout = () => {
-            if (timeoutId) {
-                window.clearTimeout(timeoutId);
-            }
-        };
-        
-        try {
-            const [weatherData, forecastData, airQualityData] = await Promise.all([
-                fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
-                    signal: controller.signal
-                }).then(async r => {
-                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
-                    return await r.json();
-                }),
-                fetch(`${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
-                    signal: controller.signal
-                }).then(async r => {
-                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
-                    return await r.json();
-                }),
-                getAirQuality(lat, lon)
-            ]);
-
-            clearTimeout();
-
-            if (weatherData.cod === 200) {
-                currentCityData = weatherData;
-                currentCity = weatherData.name;
-                
-                await updateWeatherData(weatherData, forecastData, airQualityData);
-                weatherLoadedSuccessfully(); // Успешная загрузка
-                
-                if (!isFirstLoad) {
-                    iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
-                }
-            } else {
-                throw new Error(weatherData.message || 'Неизвестная ошибка API');
-            }
-            
-        } catch (fetchError) {
-            clearTimeout();
-            throw fetchError;
-        }
-        
-    } catch (error) {
-        console.error('Ошибка получения погоды:', error);
-        showConnectionError(); // Показываем ошибку
-    } finally {
-        setTimeout(hideLoadingScreen, 1000);
-    }
-}
-
-// Также модифицируем getWeatherByCity
-async function getWeatherByCity(city) {
-    try {
-        showLoadingScreen();
-        checkWeatherLoading(); // Запускаем проверку
-        
-        const weatherResponse = await fetch(
-            `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`
-        );
-        const weatherData = await weatherResponse.json();
-
-        if (weatherData.cod === 200) {
-            currentCityData = weatherData;
-            currentCity = weatherData.name;
-            const [forecastData, airQualityData] = await Promise.all([
-                getForecast(weatherData.coord.lat, weatherData.coord.lon),
-                getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
-            ]);
-
-            await updateWeatherData(weatherData, forecastData, airQualityData);
-            weatherLoadedSuccessfully(); // Успешная загрузка
-            
-            if (!isFirstLoad) {
-                iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
-            }
-        } else {
-            throw new Error(weatherData.message);
-        }
-    } catch (error) {
-        console.error('Ошибка получения погоды:', error);
-        showConnectionError(); // Показываем ошибку
-    } finally {
-        setTimeout(hideLoadingScreen, 1000);
-    }
-}
-
-// Добавляем проверку при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    // Слушаем изменения состояния сети
-    window.addEventListener('online', () => {
-        if (!weatherLoaded) {
-            getUserLocation(); // Пробуем загрузить снова
-        }
-    });
-    
-    window.addEventListener('offline', () => {
-        showConnectionError();
-    });
-    
-    // Проверяем при старте
-    if (!navigator.onLine) {
-        setTimeout(showConnectionError, 1000);
-    }
-});
-
-// Закрытие по клику на оверлей
-document.addEventListener('click', function(event) {
-    const errorOverlay = document.getElementById('errorOverlay');
-    if (errorOverlay && event.target === errorOverlay) {
-        hideError();
-    }
-});
-
-// Закрытие по Escape
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        hideError();
-    }
-});
