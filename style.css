@@ -607,7 +607,60 @@ body {
     min-width: 60px;
 }
 
+/* ========== СВЕЧЕНИЕ ДЛЯ ЭЛЕМЕНТОВ ========== */
+/* ВЛАЖНОСТЬ - зелёное свечение */
+.mobile-humidity .mobile-detail-value {
+    text-shadow: 0 0 2px #10b981, 0 0 6px rgba(16, 185, 129, 0.3);
+}
 
+.mobile-humidity .mobile-progress-fill {
+    box-shadow: 0 0 5px #10b981, 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* ВЕТЕР - красное свечение */
+.mobile-wind .mobile-detail-value {
+    text-shadow: 0 0 2px #ef4444, 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.mobile-wind .mobile-progress-fill {
+    box-shadow: 0 0 5px #ef4444, 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+/* ДАВЛЕНИЕ - синее свечение */
+.mobile-pressure .mobile-detail-value {
+    text-shadow: 0 0 2px #3b82f6, 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.mobile-pressure .mobile-progress-fill {
+    box-shadow: 0 0 5px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+/* ОЩУЩАЕТСЯ - белое свечение */
+.mobile-feels-like .mobile-detail-value {
+    text-shadow: 0 0 2px #ffffff, 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+/* ТЕМПЕРАТУРА (главная) */
+.mobile-temperature {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 
+                 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+/* КАЧЕСТВО ВОЗДУХА */
+.mobile-aqi-text {
+    text-shadow: 0 0 3px currentColor;
+    /* Убираем filter полностью */
+}
+
+/* Свечение для температуры */
+.mobile-temperature {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.15));
+}
+
+/* Свечение для AQI */
+.mobile-aqi-value {
+    filter: drop-shadow(0 0 4px currentColor);
+}
 
 /* Плавная анимация свечения */
 .mobile-detail-value,
