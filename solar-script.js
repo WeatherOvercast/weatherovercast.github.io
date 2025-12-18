@@ -541,7 +541,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideError();
 });
 
-// Добавить в конец файла solar-script.js:
 
 // Плавное появление уведомления
 document.addEventListener('DOMContentLoaded', () => {
