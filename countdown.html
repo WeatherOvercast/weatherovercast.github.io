@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Overcast</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=demokey&lang=ru_RU" type="text/javascript"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ВЕСЬ CSS С ГЛАВНОЙ СТРАНИЦЫ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100vh;
+            height: -webkit-fill-available; 
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            background: #191919;
+            margin: 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .fixed-bottom {
+            bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            background: #191919;
+            margin: 0;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        :root {
+            --accent-color: #FFFFFF;
+            --accent-glow: rgba(255, 255, 255, 0.3);
+            --accent-hover: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========== ОСНОВНОЙ КОНТЕЙНЕР ========== */
+        .mobile-weather-container {
+            display: block !important;
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px 8px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+            position: relative;
+        }
+
+        /* ШИРОКАЯ КАРТОЧКА */
+        .mobile-weather-card {
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 24px;
+            padding: 20px 15px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 20px var(--accent-glow);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            min-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ШАПКА */
+        .mobile-location {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .mobile-city {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mobile-date {
+            color: #a0a0a0;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* ОСНОВНОЙ БЛОК ОТСЧЕТА */
+        .countdown-main {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .countdown-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #ffffff, #bbdefb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .countdown-subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        /* ТАЙМЕР */
+        .countdown-timer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .time-unit {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 20px 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .time-unit:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .time-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff, #bbdefb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .time-label {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ПРОГРЕСС-БАР */
+        .progress-container {
+            margin: 30px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+            background: linear-gradient(90deg, #ffffff, #bbdefb);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* СНЕЖИНКИ */
+        .snowflakes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+            border-radius: 50%;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* ========== НАВИГАЦИЯ (ТОЧНАЯ КОПИЯ С ГЛАВНОЙ) ========== */
+        .floating-nav {
+            position: fixed;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999;
+            width: 300px;
+        }
+
+        .nav-container {
+            background: rgba(35, 35, 35, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px !important;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            gap: 10px;
+            width: 100%;
+            height: 70px;
+            
+            animation: none !important;
+            transform: none !important;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 16px !important;
+            text-decoration: none;
+            transition: background-color 0.15s ease, transform 0s !important;
+            min-width: 54px;
+            min-height: 54px;
+            flex: 1;
+            
+            transform: none !important;
+            animation: none !important;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: #b0b0b0;
+            stroke-width: 2;
+            transition: stroke 0.15s ease, transform 0s !important;
+            
+            transform: none !important;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.08);
+            transform: none !important;
+        }
+
+        .nav-item.active svg {
+            stroke: var(--accent-color);
+            transform: none !important;
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            transform: none !important;
+        }
+
+        .nav-item:hover:not(.active) svg {
+            stroke: #ffffff;
+            transform: none !important;
+        }
+
+        .nav-item:active {
+            transform: none !important;
+            transition: none !important;
+        }
+
+        .nav-item::after {
+            display: none;
+        }
+
+        .floating-nav {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @supports (padding: max(0px)) {
+            .floating-nav {
+                bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important;
+            }
+        }
+
+        /* ========== АДАПТИВНОСТЬ ========== */
+        @media (max-width: 768px) {
+            .mobile-weather-container {
+                padding-bottom: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .floating-nav {
+                width: 280px;
+                bottom: 15px !important;
+            }
+            
+            .nav-container {
+                padding: 12px 18px;
+                height: 68px;
+                border-radius: 22px !important;
+            }
+            
+            .nav-item {
+                padding: 10px;
+                min-width: 50px;
+                min-height: 50px;
+                border-radius: 14px !important;
+            }
+            
+            .nav-item svg {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .time-value {
+                font-size: 1.8rem;
+            }
+            
+            .countdown-title {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .floating-nav {
+                width: 260px;
+                bottom: 12px !important;
+            }
+            
+            .nav-container {
+                padding: 10px 16px;
+                height: 66px;
+                gap: 8px;
+                border-radius: 20px !important;
+            }
+            
+            .nav-item {
+                padding: 9px;
+                min-width: 46px;
+                min-height: 46px;
+                border-radius: 13px !important;
+            }
+            
+            .nav-item svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .countdown-timer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 320px) {
+            .floating-nav {
+                width: 240px;
+                bottom: 10px !important;
+            }
+            
+            .nav-container {
+                padding: 8px 14px;
+                height: 64px;
+                border-radius: 18px !important;
+            }
+            
+            .nav-item {
+                border-radius: 12px !important;
+            }
+            
+            .time-value {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .floating-nav {
+                display: none;
+            }
+        }
+
+        /* Убираем стандартное выделение */
+        .nav-item {
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ЯДЕРНОЕ ЦЕНТРИРОВАНИЕ */
+        html body .floating-nav {
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            margin: 0 !important;
+            right: auto !important;
+            position: fixed !important;
+        }
+
+        /* Анимации для карточки */
+        @keyframes mobileFadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.98); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .mobile-weather-card {
+            animation: mobileFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .time-unit {
+            animation: mobileFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .time-unit:nth-child(1) { animation-delay: 0.1s; }
+        .time-unit:nth-child(2) { animation-delay: 0.15s; }
+        .time-unit:nth-child(3) { animation-delay: 0.2s; }
+        .time-unit:nth-child(4) { animation-delay: 0.25s; }
+    </style>
+</head>
+<body>
+    <!-- Основной контейнер для мобильной версии -->
+    <div class="mobile-weather-container">
+        <!-- Основная карточка с отсчетом -->
+        <div class="mobile-weather-card">
+            <!-- Снежинки -->
+            <div class="snowflakes" id="snowflakes"></div>
+            
+            <!-- Шапка с локацией и датой -->
+            <div class="mobile-location">
+                <div class="mobile-city" id="mobile-city">Обратный отсчет</div>
+                <div class="mobile-date" id="mobile-date">--</div>
+            </div>
+
+            <!-- Основной блок отсчета -->
+            <div class="countdown-main">
+                <div class="countdown-title">До 2026 года осталось:</div>
+                <div class="countdown-subtitle" id="timeUntilText">Загрузка...</div>
+                
+                <!-- Таймер -->
+                <div class="countdown-timer">
+                    <div class="time-unit">
+                        <div class="time-value" id="days">00</div>
+                        <div class="time-label">Дней</div>
+                    </div>
+                    
+                    <div class="time-unit">
+                        <div class="time-value" id="hours">00</div>
+                        <div class="time-label">Часов</div>
+                    </div>
+                    
+                    <div class="time-unit">
+                        <div class="time-value" id="minutes">00</div>
+                        <div class="time-label">Минут</div>
+                    </div>
+                    
+                    <div class="time-unit">
+                        <div class="time-value" id="seconds">00</div>
+                        <div class="time-label">Секунд</div>
+                    </div>
+                </div>
+
+                <!-- Прогресс-бар года -->
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>2025</span>
+                        <span id="progressPercent">0%</span>
+                        <span>2026</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="yearProgress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Плавающая навигация (ТОЧНАЯ КОПИЯ С ГЛАВНОЙ) -->
+        <nav class="floating-nav">
+            <div class="nav-container">
+                <!-- Дом -->
+                <a href="index.html" class="nav-item">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </a>
+                
+                <!-- Прогноз (график) -->
+                <a href="#" class="nav-item" onclick="showForecastAlert()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 20V10"></path>
+                        <path d="M12 20V4"></path>
+                        <path d="M6 20v-6"></path>
+                    </svg>
+                </a>
+                
+                <!-- Обратный отсчет (активная) -->
+                <a href="countdown.html" class="nav-item active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M7.027 11.477a5 5 0 1 0 5.496 -4.45a4.951 4.951 0 0 0 -3.088 .681" />
+                        <path d="M5.636 5.636a9 9 0 1 0 3.555 -2.188" />
+                        <path d="M18 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                        <path d="M9 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                    </svg>
+                </a>
+                
+                <!-- Настройки -->
+                <a href="settings.html" class="nav-item">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // Функция для форматирования даты
+        function formatDate(date) {
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            return date.toLocaleDateString('ru-RU', options);
+        }
+
+        // Функция для обновления даты в шапке
+        function updateHeaderDate() {
+            const now = new Date();
+            document.getElementById('mobile-date').textContent = formatDate(now);
+        }
+
+        // Создание снежинок
+        function createSnowflakes() {
+            const container = document.getElementById('snowflakes');
+            // Очищаем предыдущие снежинки
+            container.innerHTML = '';
+            
+            // Создаем 25 снежинок
+            for (let i = 0; i < 25; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                
+                // Случайный размер от 2 до 5px
+                const size = Math.random() * 3 + 2;
+                snowflake.style.width = `${size}px`;
+                snowflake.style.height = `${size}px`;
+                
+                // Случайная позиция по горизонтали
+                snowflake.style.left = `${Math.random() * 100}%`;
+                
+                // Случайная прозрачность
+                snowflake.style.opacity = Math.random() * 0.3 + 0.2;
+                
+                // Случайная скорость падения и вращения
+                const duration = Math.random() * 10 + 10; // 10-20 секунд
+                const delay = Math.random() * 5; // Задержка до 5 секунд
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(snowflake);
+            }
+        }
+
+        // Обратный отсчет до Нового года
+        function updateCountdown() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
+            // Новый год наступает 1 января следующего года в 00:00:00
+            const newYear = new Date(`January 1, ${currentYear + 1} 00:00:00`);
+            
+            // Разница во времени в миллисекундах
+            const diff = newYear - now;
+            
+            // Если Новый год уже наступил
+            if (diff <= 0) {
+                document.getElementById('mobile-city').textContent = "С Новым 2026 годом! 🎉";
+                document.getElementById('timeUntilText').textContent = "Поздравляем!";
+                
+                // Устанавливаем все значения в 00
+                document.getElementById('days').textContent = "00";
+                document.getElementById('hours').textContent = "00";
+                document.getElementById('minutes').textContent = "00";
+                document.getElementById('seconds').textContent = "00";
+                
+                // Устанавливаем прогресс на 100%
+                document.getElementById('progressPercent').textContent = "100%";
+                document.getElementById('yearProgress').style.width = "100%";
+                
+                // Меняем заголовок страницы
+                document.title = "🎉 С Новым 2026 годом!";
+                
+                return;
+            }
+            
+            // Рассчитываем дни, часы, минуты, секунды
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // Обновляем таймер с ведущими нулями
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            
+            // Текстовое описание времени
+            const timeStr = `Осталось ${days} дней, ${hours} часов, ${minutes} минут`;
+            document.getElementById('timeUntilText').textContent = timeStr;
+            
+            // Рассчитываем прогресс текущего года
+            const startOfYear = new Date(`January 1, ${currentYear} 00:00:00`);
+            const endOfYear = new Date(`January 1, ${currentYear + 1} 00:00:00`);
+            const yearProgress = ((now - startOfYear) / (endOfYear - startOfYear)) * 100;
+            const progressPercent = Math.min(yearProgress, 100).toFixed(1);
+            
+            // Обновляем прогресс-бар
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+            document.getElementById('yearProgress').style.width = `${progressPercent}%`;
+            
+            // Анимация для секунд
+            const secondsElement = document.getElementById('seconds');
+            secondsElement.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                secondsElement.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Функция для уведомления о прогнозе
+        function showForecastAlert() {
+            alert("Прогноз погоды доступен на главной странице");
+            return false;
+        }
+
+        // Основная функция инициализации
+        function init() {
+            console.log("Инициализация страницы отсчета...");
+            
+            // Обновляем дату в шапке
+            updateHeaderDate();
+            
+            // Создаем снежинки
+            createSnowflakes();
+            
+            // Запускаем обратный отсчет сразу
+            updateCountdown();
+            
+            // Обновляем обратный отсчет каждую секунду
+            setInterval(updateCountdown, 1000);
+            
+            // Обновляем дату каждую минуту
+            setInterval(updateHeaderDate, 60000);
+            
+            // Меняем снежинки каждые 30 секунд
+            setInterval(createSnowflakes, 30000);
+            
+            // Праздничный заголовок в декабре
+            const currentMonth = new Date().getMonth();
+            if (currentMonth === 11) { // Декабрь (0-11)
+                document.title = "⏳ " + document.title;
+            }
+            
+            console.log("Страница отсчета загружена!");
+        }
+
+        // Запускаем при полной загрузке DOM
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Резервный запуск, если DOM уже загружен
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
