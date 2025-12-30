@@ -884,7 +884,7 @@ function applyLightingFromSettings() {
     body.classList.add(`accent-${savedColor}`);
 }
 
-// Система умных напоминаний (исправленная)
+// Система умных напоминаний (редач)
 class SmartReminders {
     constructor() {
         this.reminderElement = document.getElementById('weather-reminder');
@@ -893,97 +893,96 @@ class SmartReminders {
         this.timeElement = document.getElementById('reminder-time');
         this.currentReminder = null;
         this.lastUpdate = null;
+        this.lastReminderTime = null;
+        this.REMINDER_COOLDOWN = 30 * 60 * 1000; // 30 минут кулдаун
     }
 
     analyzeWeatherForReminders(weatherData, forecastData) {
         if (!weatherData || !forecastData) return null;
 
         const now = new Date();
-        const currentHour = now.getHours();
-        const currentWeather = weatherData.weather[0].main.toLowerCase();
+        
+        // Проверяем кулдаун
+        if (this.lastReminderTime && 
+            (now - this.lastReminderTime) < this.REMINDER_COOLDOWN) {
+            return null;
+        }
+        
+        // Получаем прогноз на ближайший час
+        const nextHourData = this.getWeatherForNextHour(forecastData);
         
         // Обновляем время последнего обновления
         this.lastUpdate = now;
         
-        // Проверка снега с высоким приоритетом
-        const snowProbability = this.calculateSnowProbability(forecastData);
-        if (snowProbability.high && this.isRelevantTimeForSnow(currentHour)) {
-            return this.createSnowReminder(snowProbability);
+        // Проверка снега в ближайший час
+        if (nextHourData && this.willSnowInNextHour(nextHourData)) {
+            return this.createSnowReminder();
         }
         
-        // Проверка дождя
-        const rainProbability = this.calculateRainProbability(forecastData);
-        if (rainProbability.high && this.isRelevantTimeForRain(currentHour)) {
-            return this.createRainReminder(rainProbability);
+        // Проверка дождя в ближайший час
+        if (nextHourData && this.willRainInNextHour(nextHourData)) {
+            return this.createRainReminder(nextHourData);
         }
         
-        // Проверка рассвета/заката
+        // Проверка рассвета/заката в ближайший час
         const sunTimes = this.getSunTimes(weatherData);
-        if (this.isTimeForSunriseReminder(currentHour, sunTimes.sunrise)) {
+        const timeToSunrise = this.getHoursUntil(sunTimes.sunrise);
+        const timeToSunset = this.getHoursUntil(sunTimes.sunset);
+        
+        if (timeToSunrise >= 0 && timeToSunrise < 1) {
             return this.createSunriseReminder(sunTimes.sunrise);
         }
         
-        if (this.isTimeForSunsetReminder(currentHour, sunTimes.sunset)) {
+        if (timeToSunset >= 0 && timeToSunset < 1) {
             return this.createSunsetReminder(sunTimes.sunset);
         }
         
         return this.createDefaultReminder(weatherData);
     }
 
-    calculateSnowProbability(forecastData) {
-        const next12Hours = forecastData.list.slice(0, 4);
-        let snowChance = 0;
-        let snowCount = 0;
-
-        next12Hours.forEach(hour => {
-            const weather = hour.weather[0].main.toLowerCase();
-            const description = hour.weather[0].description.toLowerCase();
+    getWeatherForNextHour(forecastData) {
+        if (!forecastData?.list) return null;
+        
+        const now = new Date();
+        const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+        
+        // Ищем ближайший прогноз к следующему часу
+        let closestForecast = null;
+        let smallestDiff = Infinity;
+        
+        forecastData.list.forEach(item => {
+            const forecastTime = new Date(item.dt * 1000);
+            const timeDiff = Math.abs(forecastTime - nextHour);
             
-            if (weather.includes('snow') || description.includes('snow')) {
-                snowCount++;
-            }
-            if (hour.main.temp <= 2 && (weather.includes('rain') || description.includes('shower'))) {
-                snowCount += 0.5;
+            if (timeDiff < smallestDiff && timeDiff <= 90 * 60 * 1000) { // В пределах 1.5 часов
+                smallestDiff = timeDiff;
+                closestForecast = item;
             }
         });
-
-        return {
-            high: snowCount >= 2,
-            medium: snowCount >= 1,
-            snowCount: snowCount
-        };
+        
+        return closestForecast;
     }
 
-    calculateRainProbability(forecastData) {
-        const next12Hours = forecastData.list.slice(0, 4);
-        let rainChance = 0;
-        let rainCount = 0;
-
-        next12Hours.forEach(hour => {
-            const weather = hour.weather[0].main.toLowerCase();
-            if (weather.includes('rain') || weather.includes('drizzle')) {
-                rainCount++;
-            }
-            if (hour.pop) {
-                rainChance = Math.max(rainChance, hour.pop * 100);
-            }
-        });
-
-        return {
-            high: rainCount >= 2 || rainChance > 60,
-            medium: rainCount >= 1 || rainChance > 30,
-            chance: rainChance,
-            rainCount: rainCount
-        };
+    willSnowInNextHour(hourData) {
+        if (!hourData) return false;
+        
+        const weather = hourData.weather[0].main.toLowerCase();
+        const description = hourData.weather[0].description.toLowerCase();
+        
+        return weather.includes('snow') || 
+               description.includes('snow') ||
+               (hourData.main.temp <= 2 && weather.includes('rain'));
     }
 
-    isRelevantTimeForSnow(currentHour) {
-        return (currentHour >= 6 && currentHour <= 14);
-    }
-
-    isRelevantTimeForRain(currentHour) {
-        return (currentHour >= 6 && currentHour <= 10) || 
-               (currentHour >= 16 && currentHour <= 20);
+    willRainInNextHour(hourData) {
+        if (!hourData) return false;
+        
+        const weather = hourData.weather[0].main.toLowerCase();
+        const pop = hourData.pop || 0;
+        
+        return weather.includes('rain') || 
+               weather.includes('drizzle') ||
+               pop > 0.3; // Вероятность осадков > 30%
     }
 
     getSunTimes(weatherData) {
@@ -993,31 +992,25 @@ class SmartReminders {
         };
     }
 
-    isTimeForSunriseReminder(currentHour, sunrise) {
-        const sunriseHour = sunrise.getHours();
-        // Исправлено: с 12 часов до 1 часа перед рассветом
-        return currentHour >= (sunriseHour - 1) && currentHour < sunriseHour;
+    getHoursUntil(targetTime) {
+        const now = new Date();
+        const diffMs = targetTime - now;
+        return diffMs / (1000 * 60 * 60); // Разница в часах
     }
 
-    isTimeForSunsetReminder(currentHour, sunset) {
-        const sunsetHour = sunset.getHours();
-        // Исправлено: с 12 часов до 1 часа перед закатом
-        return currentHour >= (sunsetHour - 1) && currentHour < sunsetHour;
-    }
-
-    createSnowReminder(snowProbability) {
+    createSnowReminder() {
         const messages = [
-            "Наслаждайтесь снегом!",
+            "Наслаждайтесь снегом! С Новым Годом!",
             "Идеальное время для снежных забав",
             "Можно слепить снеговика",
-            "Прекрасный снежный день!",
+            "Прекрасный снежный день!"
         ];
         
-        const intensity = snowProbability.high ? "сильный" : "небольшой";
+        this.lastReminderTime = new Date();
         
         return {
             type: 'snow',
-            title: `Возможен ${intensity} снег`,
+            title: 'Возможен снег',
             message: messages[Math.floor(Math.random() * messages.length)],
             time: `Снегопад ожидается`,
             className: 'snow-reminder important',
@@ -1025,20 +1018,23 @@ class SmartReminders {
         };
     }
 
-    createRainReminder(rainProbability) {
+    createRainReminder(hourData) {
+        const pop = hourData.pop ? Math.round(hourData.pop * 100) : 50;
         const messages = [
             "Возьмите зонт",
             "Ожидаются осадки",
             "Не забудьте зонтик!"
         ];
         
-        const intensity = rainProbability.high ? "сильный" : "небольшой";
+        const intensity = pop > 60 ? "сильный" : "небольшой";
+        
+        this.lastReminderTime = new Date();
         
         return {
             type: 'rain',
             title: `Возможен ${intensity} дождь`,
             message: messages[Math.floor(Math.random() * messages.length)],
-            time: `Вероятность: ${Math.round(rainProbability.chance)}%`,
+            time: `Вероятность: ${pop}%`,
             className: 'rain-warning important',
             icon: 'umbrella'
         };
@@ -1047,10 +1043,12 @@ class SmartReminders {
     createSunriseReminder(sunrise) {
         const sunriseTime = this.formatTime(sunrise);
         
+        this.lastReminderTime = new Date();
+        
         return {
             type: 'sunrise',
             title: 'Рассвет через час',
-            message: 'Идеальное время для утренних фото',
+            message: 'Идеальное время для утреннего кофе или чая',
             time: `В ${sunriseTime}`,
             className: 'sunrise-reminder',
             icon: 'sunrise'
@@ -1059,6 +1057,8 @@ class SmartReminders {
 
     createSunsetReminder(sunset) {
         const sunsetTime = this.formatTime(sunset);
+        
+        this.lastReminderTime = new Date();
         
         return {
             type: 'sunset',
@@ -1071,15 +1071,24 @@ class SmartReminders {
     }
 
     createDefaultReminder(weatherData) {
+        // Только если нет других напоминаний
+        if (this.lastReminderTime && 
+            (new Date() - this.lastReminderTime) < 2 * 60 * 60 * 1000) {
+            return null; // Кулдаун 2 часа для дефолтных напоминаний
+        }
+        
         const descriptions = {
-            'clear': 'Можно погулять',
-            'clouds': 'Можно остаться дома или погулять',
-            'snow': 'Наслаждайтесь снегом',
-            'thunderstorm': 'Лучше остаться дома'
+            'clear': 'Сходите в парк, подышите свежим воздухом',
+            'clouds': 'Остаться дома или погулять? Выбор за вами!',
+            'rain': 'Не забудьте зонт',
+            'snow': 'Наслаждайтесь снегом. С Новым Годом!',
+            'thunderstorm': 'Оставайтесь дома'
         };
         
         const weatherType = weatherData.weather[0].main.toLowerCase();
         const message = descriptions[weatherType] || 'Хорошего дня!';
+        
+        this.lastReminderTime = new Date();
         
         return {
             type: 'default',
@@ -1129,40 +1138,11 @@ class SmartReminders {
 
     getReminderIcon(iconType) {
         const icons = {
-            umbrella: `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-umbrella"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /></svg>
-            `,
-            sunrise: `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 2v8"></path>
-                    <path d="m4.93 10.93 1.41 1.41"></path>
-                    <path d="M2 18h2"></path>
-                    <path d="M20 18h2"></path>
-                    <path d="m19.07 10.93-1.41 1.41"></path>
-                    <path d="M22 22H2"></path>
-                    <path d="m8 6 4-4 4 4"></path>
-                    <path d="M16 18a4 4 0 0 0-8 0"></path>
-                </svg>
-            `,
-            snow: `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-snowflake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></svg>
-            `,
-            sunset: `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sunset"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0" /><path d="M3 21l18 0" /><path d="M12 3v6l3 -3m-6 0l3 3" /></svg>
-            `,
-            sun: `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-            `
+            umbrella: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /></svg>`,
+            sunrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0" /><path d="M3 21l18 0" /><path d="M12 9v-6l3 3m-6 0l3 -3" /></svg>`,
+            snow: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></svg>`,
+            sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0" /><path d="M3 21l18 0" /><path d="M12 3v6l3 -3m-6 0l3 3" /></svg>`,
+            sun: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="4" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></svg>`
         };
         
         return icons[iconType] || icons.sun;
