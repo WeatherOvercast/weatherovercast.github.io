@@ -1189,7 +1189,6 @@ const smartReminders = new SmartReminders();
 
 // Загрузка приложения
 document.addEventListener('DOMContentLoaded', () => {
-    loadGlowSettings();
     loadSettings();
     applyTemperatureUnits();
     applyLightingFromSettings();
