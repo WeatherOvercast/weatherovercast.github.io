@@ -1130,13 +1130,7 @@ class SmartReminders {
     getReminderIcon(iconType) {
         const icons = {
             umbrella: `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                    <line x1="6" y1="1" x2="6" y2="4"></line>
-                    <line x1="10" y1="1" x2="10" y2="4"></line>
-                    <line x1="14" y1="1" x2="14" y2="4"></line>
-                </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-umbrella"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /></svg>
             `,
             sunrise: `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -1151,27 +1145,10 @@ class SmartReminders {
                 </svg>
             `,
             snow: `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
-                    <line x1="8" y1="16" x2="8.01" y2="16"></line>
-                    <line x1="8" y1="20" x2="8.01" y2="20"></line>
-                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                    <line x1="12" y1="22" x2="12.01" y2="22"></line>
-                    <line x1="16" y1="16" x2="16.01" y2="16"></line>
-                    <line x1="16" y1="20" x2="16.01" y2="20"></line>
-                </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-snowflake"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 4l2 1l2 -1" /><path d="M12 2v6.5l3 1.72" /><path d="M17.928 6.268l.134 2.232l1.866 1.232" /><path d="M20.66 7l-5.629 3.25l.01 3.458" /><path d="M19.928 14.268l-1.866 1.232l-.134 2.232" /><path d="M20.66 17l-5.629 -3.25l-2.99 1.738" /><path d="M14 20l-2 -1l-2 1" /><path d="M12 22v-6.5l-3 -1.72" /><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232" /><path d="M3.34 17l5.629 -3.25l-.01 -3.458" /><path d="M4.072 9.732l1.866 -1.232l.134 -2.232" /><path d="M3.34 7l5.629 3.25l2.99 -1.738" /></svg>
             `,
             sunset: `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 10v8"></path>
-                    <path d="m4.93 18.93 1.41-1.41"></path>
-                    <path d="M2 12h2"></path>
-                    <path d="M20 12h2"></path>
-                    <path d="m19.07 5.93-1.41-1.41"></path>
-                    <path d="M22 22H2"></path>
-                    <path d="m16 6-4 4-4-4"></path>
-                    <path d="M16 18a4 4 0 0 0-8 0"></path>
-                </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sunset"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0" /><path d="M3 21l18 0" /><path d="M12 3v6l3 -3m-6 0l3 3" /></svg>
             `,
             sun: `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
