@@ -1246,118 +1246,118 @@ function updateAllTemperatures() {
         updateMobileWeather(currentCityData);
     }
 }
-// Функция для загрузки настроек свечения
-function loadGlowSettings() {
-    const glowEnabled = localStorage.getItem('glowEnabled');
-    const animationsEnabled = localStorage.getItem('animationsEnabled');
+// // Функция для загрузки настроек свечения
+// function loadGlowSettings() {
+//     const glowEnabled = localStorage.getItem('glowEnabled');
+//     const animationsEnabled = localStorage.getItem('animationsEnabled');
     
-    // Применяем свечение (по умолчанию включено)
-    if (glowEnabled === 'false') {
-        disableAllGlow();
-    } else {
-        enableAllGlow();
-    }
+//     // Применяем свечение (по умолчанию включено)
+//     if (glowEnabled === 'false') {
+//         disableAllGlow();
+//     } else {
+//         enableAllGlow();
+//     }
     
-    // Применяем анимации (по умолчанию включены)
-    if (animationsEnabled === 'false') {
-        disableAllAnimations();
-    } else {
-        enableAllAnimations();
-    }
-}
+//     // Применяем анимации (по умолчанию включены)
+//     if (animationsEnabled === 'false') {
+//         disableAllAnimations();
+//     } else {
+//         enableAllAnimations();
+//     }
+// }
 
-function disableAllGlow() {
-    // Устанавливаем CSS переменные в 0
-    document.documentElement.style.setProperty('--glow-intensity', '0');
-    document.documentElement.style.setProperty('--text-glow', 'none');
-    document.documentElement.style.setProperty('--detail-glow', 'none');
-    document.documentElement.style.setProperty('--card-glow', 'none');
-    document.documentElement.style.setProperty('--progress-glow', 'none');
+// function disableAllGlow() {
+//     // Устанавливаем CSS переменные в 0
+//     document.documentElement.style.setProperty('--glow-intensity', '0');
+//     document.documentElement.style.setProperty('--text-glow', 'none');
+//     document.documentElement.style.setProperty('--detail-glow', 'none');
+//     document.documentElement.style.setProperty('--card-glow', 'none');
+//     document.documentElement.style.setProperty('--progress-glow', 'none');
     
-    // Принудительно убираем все свечения
-    const elements = document.querySelectorAll('*');
-    elements.forEach(el => {
-        el.style.textShadow = 'none';
-        el.style.boxShadow = el.style.boxShadow?.replace(/0 0 [^;]+rgba\([^)]+\)[^;]*;?/g, '') || '';
-        el.style.filter = el.style.filter?.replace(/drop-shadow\([^)]+\)/g, '') || '';
-    });
+//     // Принудительно убираем все свечения
+//     const elements = document.querySelectorAll('*');
+//     elements.forEach(el => {
+//         el.style.textShadow = 'none';
+//         el.style.boxShadow = el.style.boxShadow?.replace(/0 0 [^;]+rgba\([^)]+\)[^;]*;?/g, '') || '';
+//         el.style.filter = el.style.filter?.replace(/drop-shadow\([^)]+\)/g, '') || '';
+//     });
     
-    console.log('Все свечения выключены');
-}
+//     console.log('Все свечения выключены');
+// }
 
-function enableAllGlow() {
-    // Восстанавливаем CSS переменные
-    document.documentElement.style.setProperty('--glow-intensity', '1');
-    document.documentElement.style.setProperty('--text-glow', 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))');
-    document.documentElement.style.setProperty('--detail-glow', 'drop-shadow(0 0 4px currentColor)');
-    document.documentElement.style.setProperty('--card-glow', '0 0 20px rgba(78, 205, 196, 0.3)');
-    document.documentElement.style.setProperty('--progress-glow', '0 0 10px currentColor');
+// function enableAllGlow() {
+//     // Восстанавливаем CSS переменные
+//     document.documentElement.style.setProperty('--glow-intensity', '1');
+//     document.documentElement.style.setProperty('--text-glow', 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))');
+//     document.documentElement.style.setProperty('--detail-glow', 'drop-shadow(0 0 4px currentColor)');
+//     document.documentElement.style.setProperty('--card-glow', '0 0 20px rgba(78, 205, 196, 0.3)');
+//     document.documentElement.style.setProperty('--progress-glow', '0 0 10px currentColor');
     
-    console.log('Все свечения включены');
-}
+//     console.log('Все свечения включены');
+// }
 
-function disableAllAnimations() {
-    // Отключаем CSS анимации и переходы
-    const style = document.createElement('style');
-    style.id = 'no-animations-style';
-    style.textContent = `
-        * {
-            animation: none !important;
-            transition: none !important;
-        }
+// function disableAllAnimations() {
+//     // Отключаем CSS анимации и переходы
+//     const style = document.createElement('style');
+//     style.id = 'no-animations-style';
+//     style.textContent = `
+//         * {
+//             animation: none !important;
+//             transition: none !important;
+//         }
         
-        .mobile-detail-card:active {
-            transform: none !important;
-        }
-    `;
-    document.head.appendChild(style);
-}
+//         .mobile-detail-card:active {
+//             transform: none !important;
+//         }
+//     `;
+//     document.head.appendChild(style);
+// }
 
-function enableAllAnimations() {
-    // Удаляем стили отключения анимаций
-    const noAnimationsStyle = document.getElementById('no-animations-style');
-    if (noAnimationsStyle) {
-        noAnimationsStyle.remove();
-    }
-}
+// function enableAllAnimations() {
+//     // Удаляем стили отключения анимаций
+//     const noAnimationsStyle = document.getElementById('no-animations-style');
+//     if (noAnimationsStyle) {
+//         noAnimationsStyle.remove();
+//     }
+// }
 
-// Слушатель сообщений от страницы настроек
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'UPDATE_GLOW') {
-        if (event.data.glow === false) {
-            disableAllGlow();
-        } else {
-            enableAllGlow();
-        }
+// // Слушатель сообщений от страницы настроек
+// window.addEventListener('message', function(event) {
+//     if (event.data.type === 'UPDATE_GLOW') {
+//         if (event.data.glow === false) {
+//             disableAllGlow();
+//         } else {
+//             enableAllGlow();
+//         }
         
-        if (event.data.animations === false) {
-            disableAllAnimations();
-        } else {
-            enableAllAnimations();
-        }
-    }
-});
+//         if (event.data.animations === false) {
+//             disableAllAnimations();
+//         } else {
+//             enableAllAnimations();
+//         }
+//     }
+// });
 
-// Слушатель изменений в localStorage
-window.addEventListener('storage', function(event) {
-    if (event.key === 'glowEnabled') {
-        if (event.newValue === 'false') {
-            disableAllGlow();
-        } else {
-            enableAllGlow();
-        }
-    }
+// // Слушатель изменений в localStorage
+// window.addEventListener('storage', function(event) {
+//     if (event.key === 'glowEnabled') {
+//         if (event.newValue === 'false') {
+//             disableAllGlow();
+//         } else {
+//             enableAllGlow();
+//         }
+//     }
     
-    if (event.key === 'animationsEnabled') {
-        if (event.newValue === 'false') {
-            disableAllAnimations();
-        } else {
-            enableAllAnimations();
-        }
-    }
-});
+//     if (event.key === 'animationsEnabled') {
+//         if (event.newValue === 'false') {
+//             disableAllAnimations();
+//         } else {
+//             enableAllAnimations();
+//         }
+//     }
+// });
 
-// При возврате на страницу проверяем настройки
-window.addEventListener('pageshow', function() {
-    loadGlowSettings();
-});
+// // При возврате на страницу проверяем настройки
+// window.addEventListener('pageshow', function() {
+//     loadGlowSettings();
+// });
