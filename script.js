@@ -1225,18 +1225,3 @@ function updateAllTemperatures() {
         updateMobileWeather(currentCityData);
     }
 }
-// ========== СОЛНЕЧНАЯ СТРАНИЦА ==========
-
-// Если мы на солнечной странице, экспортируем данные
-if (window.location.pathname.includes('solar.html') && currentCityData) {
-    window.currentCityData = currentCityData;
-}
-
-// Функция для получения данных о погоде (используется на солнечной странице)
-async function fetchWeatherDataForSolar(lat, lon) {
-    const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
-    const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`
-    );
-    return await response.json();
-}
