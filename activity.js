@@ -78,7 +78,7 @@ async function fetchAirQualityData(lat, lon) {
     }
 }
 
-// НОВАЯ ЛОГИКА: Расчет оценки для активности
+//Расчет оценки для активности
 function calculateActivityScore(activity, weather) {
     if (!weather) return 5;
     
