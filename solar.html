@@ -18,32 +18,32 @@
             width: 100%;
             max-width: 500px;
             margin: 0 auto;
-            padding: 10px 8px 80px 8px;
+            padding: 10px 8px 100px 8px;
             min-height: 100vh;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
         }
 
-/* ШИРОКАЯ КАРТОЧКА */
-.mobile-weather-card {
-    background: rgba(26, 26, 26, 0.85);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border-radius: 24px;
-    padding: 20px 15px;
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 20px var(--accent-glow); /* Используем переменную */
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-}
+        .mobile-weather-card {
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 24px;
+            padding: 20px 15px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 20px var(--accent-glow);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+        }
+
         /* ШАПКА СТРАНИЦЫ */
         .activity-header {
             text-align: center;
@@ -292,72 +292,92 @@
         .activity-card:nth-child(4) { animation-delay: 0.25s; }
         .air-details-section { animation-delay: 0.3s; }
 
-        /* ТАБ БАР КАК НА ГЛАВНОЙ С ПРАВИЛЬНЫМ ВЫДЕЛЕНИЕМ */
+        /* ========== ОБНОВЛЕННАЯ НАВИГАЦИОННАЯ ПАНЕЛЬ ========== */
         .floating-nav {
             position: fixed;
-            bottom: 35px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             z-index: 9999;
-            width: 300px;
+            width: 380px !important;
         }
 
         .nav-container {
             background: rgba(35, 35, 35, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 25px !important;
-            padding: 14px 20px;
+            border-radius: 36px !important;
+            padding: 12px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            gap: 10px;
+            gap: 12px;
             width: 100%;
-            height: 70px;
+            height: 72px;
+            
+            /* УБИРАЕМ ВСЕ АНИМАЦИИ ПРЫЖКОВ */
             animation: none !important;
             transform: none !important;
         }
 
+        /* Иконки навигации - С ТЕКСТОМ */
         .nav-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 12px;
-            border-radius: 16px !important;
+            padding: 8px 10px;
+            border-radius: 22px !important;
             text-decoration: none;
             transition: background-color 0.15s ease, transform 0s !important;
-            min-width: 54px;
-            min-height: 54px;
+            min-width: 58px;
+            min-height: 58px;
             flex: 1;
+            
+            /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ И УБИРАЕМ ВЫДЕЛЕНИЕ */
             transform: none !important;
             animation: none !important;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
         }
 
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            stroke: #b0b0b0;
-            stroke-width: 2;
-            transition: stroke 0.15s ease, transform 0s !important;
-            transform: none !important;
+        /* Надписи под иконками */
+        .nav-label {
+            font-size: 11px !important;
+            font-weight: 600;
+            color: #b0b0b0;
+            margin-top: 4px !important;
+            letter-spacing: 0.3px;
+            transition: color 0.15s ease;
         }
 
-        /* ВЫДЕЛЕНИЕ ТОЛЬКО ДЛЯ 3-Й ИКОНКИ (как на главной - серое) */
+        /* ВЫДЕЛЕНИЕ ДЛЯ АКТИВНОЙ СТРАНИЦЫ (3-я иконка - Условия) */
         .nav-item:nth-child(3) {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .nav-item:nth-child(3) .nav-label {
+            color: #ffffff !important;
+            font-weight: 700;
         }
 
         .nav-item:nth-child(3) svg {
-            stroke: #ffffff;
+            stroke: #ffffff !important;
         }
 
-        /* ОСТАЛЬНЫЕ БЕЗ ВЫДЕЛЕНИЯ */
+        /* Остальные иконки без выделения */
         .nav-item:nth-child(1),
         .nav-item:nth-child(2),
         .nav-item:nth-child(4) {
-            background: transparent;
+            background: transparent !important;
+        }
+
+        .nav-item:nth-child(1) .nav-label,
+        .nav-item:nth-child(2) .nav-label,
+        .nav-item:nth-child(4) .nav-label {
+            color: #b0b0b0;
         }
 
         .nav-item:nth-child(1) svg,
@@ -366,19 +386,50 @@
             stroke: #b0b0b0;
         }
 
+        /* Ховер эффект - ТОЛЬКО ДЛЯ НЕАКТИВНЫХ */
         .nav-item:hover:not(.nav-item:nth-child(3)) {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05) !important;
         }
 
         .nav-item:hover:not(.nav-item:nth-child(3)) svg {
-            stroke: #ffffff;
+            stroke: #ffffff !important;
         }
 
-        /* Убираем полоску выделения */
-        .nav-item::after {
-            display: none;
+        .nav-item:hover:not(.nav-item:nth-child(3)) .nav-label {
+            color: #ffffff !important;
         }
 
+        /* Активная иконка при ховере */
+        .nav-item:nth-child(3):hover {
+            background: rgba(255, 255, 255, 0.12) !important; /* Слегка ярче */
+        }
+
+        /* Иконки */
+        .nav-item svg {
+            width: 24px !important;
+            height: 24px !important;
+            stroke-width: 2;
+            transition: stroke 0.15s ease, transform 0s !important;
+            
+            /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ ДЛЯ SVG */
+            transform: none !important;
+        }
+
+        /* Убираем синий квадратик при нажатии */
+        .nav-item:focus,
+        .nav-item:focus-visible,
+        .nav-item:active {
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        /* Для iOS Safari */
+        .nav-item {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+        }
+
+        /* Появление навигации */
         .floating-nav {
             animation: fadeIn 0.3s ease-out;
         }
@@ -391,158 +442,110 @@
         /* Для безопасных зон на iPhone */
         @supports (padding: max(0px)) {
             .floating-nav {
-                bottom: max(20px, env(safe-area-inset-bottom) + 10px);
+                bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important;
             }
         }
 
-        /* АДАПТИВНОСТЬ */
-        @media (max-width: 768px) {
-            .mobile-weather-container {
-                display: flex !important;
-                max-width: 100%;
-                padding: 10px 8px 80px 8px;
-            }
-            
-            body {
-                padding: 0;
-                margin: 0;
-                background: #0f0f0f !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            }
-        }
-
+        /* ========== АДАПТИВНОСТЬ ========== */
         @media (max-width: 480px) {
-            .mobile-weather-container {
-                padding: 8px 6px 75px 6px;
-            }
-            
-            .mobile-weather-card {
-                padding: 18px 12px;
-                border-radius: 20px;
-            }
-            
-            .activity-title {
-                font-size: 1.8rem;
-            }
-            
-            .activity-card {
-                padding: 14px 10px;
-                min-height: 110px;
-                border-radius: 14px;
-            }
-            
-            .activity-card-score {
-                font-size: 1.6rem;
-            }
-            
             .floating-nav {
-                width: 280px;
-                bottom: 20px;
+                width: 360px !important;
+                bottom: 15px !important;
             }
             
             .nav-container {
-                padding: 12px 18px;
-                height: 68px;
-                border-radius: 22px !important;
+                padding: 10px 24px;
+                height: 70px !important;
+                border-radius: 34px !important;
+                gap: 14px;
             }
             
             .nav-item {
-                padding: 10px;
-                min-width: 50px;
-                min-height: 50px;
-                border-radius: 14px !important;
+                padding: 6px 8px !important;
+                min-width: 56px !important;
+                min-height: 56px !important;
+                border-radius: 20px !important;
+            }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.08) !important;
+            }
+            
+            .nav-label {
+                font-size: 10px !important;
+                margin-top: 3px !important;
             }
             
             .nav-item svg {
-                width: 22px;
-                height: 22px;
+                width: 22px !important;
+                height: 22px !important;
             }
         }
 
         @media (max-width: 380px) {
-            .mobile-weather-container {
-                padding: 6px 5px 70px 5px;
-            }
-            
-            .mobile-weather-card {
-                padding: 16px 10px;
-                border-radius: 18px;
-            }
-            
-            .activity-title {
-                font-size: 1.6rem;
-            }
-            
-            .activity-subtitle {
-                font-size: 0.9rem;
-            }
-            
-            .activity-card {
-                padding: 12px 8px;
-                min-height: 100px;
-            }
-            
-            .activity-card-score {
-                font-size: 1.4rem;
-            }
-            
-            .air-metric-value {
-                font-size: 1.1rem;
-            }
-            
             .floating-nav {
-                width: 260px;
-                bottom: 15px;
+                width: 340px !important;
+                bottom: 12px !important;
             }
             
             .nav-container {
-                padding: 10px 16px;
-                height: 66px;
-                gap: 8px;
-                border-radius: 20px !important;
+                padding: 8px 22px;
+                height: 68px !important;
+                gap: 10px;
+                border-radius: 32px !important;
             }
             
             .nav-item {
-                padding: 9px;
-                min-width: 46px;
-                min-height: 46px;
-                border-radius: 13px !important;
+                padding: 5px 7px !important;
+                min-width: 52px !important;
+                min-height: 52px !important;
+                border-radius: 19px !important;
+            }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.08) !important;
+            }
+            
+            .nav-label {
+                font-size: 9px !important;
+                margin-top: 2px !important;
             }
             
             .nav-item svg {
-                width: 20px;
-                height: 20px;
+                width: 20px !important;
+                height: 20px !important;
             }
         }
 
         @media (max-width: 320px) {
-            .activity-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-            
-            .activity-card {
-                min-height: 95px;
-            }
-            
-            .air-metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .floating-nav {
-                width: 240px;
+                width: 320px !important;
+                bottom: 10px !important;
             }
             
             .nav-container {
-                padding: 8px 14px;
-                height: 64px;
-                border-radius: 18px !important;
+                padding: 6px 20px;
+                height: 66px !important;
+                border-radius: 30px !important;
             }
-        }
-
-        @media (min-width: 769px) {
-            .floating-nav {
-                display: none;
+            
+            .nav-item {
+                border-radius: 18px !important;
+                padding: 4px 6px !important;
+            }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.08) !important;
+            }
+            
+            .nav-label {
+                font-size: 8px !important;
+                margin-top: 1px !important;
+            }
+            
+            .nav-item svg {
+                width: 18px !important;
+                height: 18px !important;
             }
         }
     </style>
@@ -711,29 +714,31 @@
             </div>
         </div>
 
-        <!-- Плавающая навигация - 3-я иконка с серым выделением -->
+        <!-- ОБНОВЛЕННАЯ ПЛАВАЮЩАЯ НАВИГАЦИЯ С КРУПНЫМИ ИКОНКАМИ -->
         <nav class="floating-nav">
             <div class="nav-container">
-                <!-- Дом -->
+                <!-- Погода -->
                 <a href="index.html" class="nav-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
+                    <span class="nav-label">Погода</span>
                 </a>
                 
-                <!-- Прогноз (график) -->
-                <a href="#" class="nav-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <!-- Прогноз -->
+                <a href="#" class="nav-item" onclick="navigateTo('forecast')">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 20V10"></path>
                         <path d="M12 20V4"></path>
                         <path d="M6 20v-6"></path>
                     </svg>
+                    <span class="nav-label">Прогноз</span>
                 </a>
                 
                 <!-- Активности -->
                 <a href="activity.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                         <path d="M7.027 11.477a5 5 0 1 0 5.496 -4.45a4.951 4.951 0 0 0 -3.088 .681" />
                         <path d="M5.636 5.636a9 9 0 1 0 3.555 -2.188" />
@@ -741,14 +746,16 @@
                         <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
                         <path d="M9 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
                     </svg>
+                    <span class="nav-label">Условия</span>
                 </a>
                 
                 <!-- Настройки -->
                 <a href="settings.html" class="nav-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
+                    <span class="nav-label">Настройки</span>
                 </a>
             </div>
         </nav>

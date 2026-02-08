@@ -1224,59 +1224,111 @@ button:focus {
     animation: snowFall 3s ease-in-out infinite;
 }
 
-/* ========== ЦЕНТРИРОВАННАЯ И СТАТИЧНАЯ - ЕЩЁ НИЖЕ ========== */
+/* ========== ОБНОВЛЕННАЯ НАВИГАЦИОННАЯ ПАНЕЛЬ КАК НА ГЛАВНОЙ ========== */
 .floating-nav {
     position: fixed;
-    bottom: 20px !important; /* НИЖЕ - было 35px */
+    bottom: 20px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     z-index: 9999;
-    width: 300px;
+    width: 380px !important;
 }
 
 .nav-container {
     background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 25px !important;
-    padding: 14px 20px;
+    border-radius: 36px !important;
+    padding: 12px 28px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    height: 70px;
+    height: 72px;
     
     /* УБИРАЕМ ВСЕ АНИМАЦИИ ПРЫЖКОВ */
     animation: none !important;
     transform: none !important;
 }
 
-/* Иконки навигации - АБСОЛЮТНО СТАТИЧНЫЕ */
+/* Иконки навигации - С ТЕКСТОМ */
 .nav-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px;
-    border-radius: 16px !important;
+    padding: 8px 10px;
+    border-radius: 22px !important;
     text-decoration: none;
     transition: background-color 0.15s ease, transform 0s !important;
-    min-width: 54px;
-    min-height: 54px;
+    min-width: 58px;
+    min-height: 58px;
     flex: 1;
     
-    /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ */
+    /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ И УБИРАЕМ ВЫДЕЛЕНИЕ */
     transform: none !important;
     animation: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Надписи под иконками */
+.nav-label {
+    font-size: 11px !important;
+    font-weight: 600;
+    color: #b0b0b0;
+    margin-top: 4px !important;
+    letter-spacing: 0.3px;
+    transition: color 0.15s ease;
+}
+
+/* ВЫДЕЛЕНИЕ ДЛЯ 1-Й ИКОНКИ (ГЛАВНАЯ СТРАНИЦА) */
+.nav-item:nth-child(1) {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item:nth-child(1) .nav-label {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.nav-item:nth-child(1) svg {
+    stroke: #ffffff;
+}
+
+/* Остальные иконки без выделения */
+.nav-item:nth-child(2) .nav-label,
+.nav-item:nth-child(3) .nav-label,
+.nav-item:nth-child(4) .nav-label {
+    color: #b0b0b0;
+}
+
+.nav-item:nth-child(2) svg,
+.nav-item:nth-child(3) svg,
+.nav-item:nth-child(4) svg {
+    stroke: #b0b0b0;
+}
+
+/* Ховер эффект */
+.nav-item:hover:not(.nav-item:nth-child(1)) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item:hover:not(.nav-item:nth-child(1)) svg {
+    stroke: #ffffff;
+}
+
+.nav-item:hover:not(.nav-item:nth-child(1)) .nav-label {
+    color: #ffffff;
 }
 
 /* Иконки */
 .nav-item svg {
-    width: 24px;
-    height: 24px;
-    stroke: #b0b0b0;
+    width: 24px !important;
+    height: 24px !important;
     stroke-width: 2;
     transition: stroke 0.15s ease, transform 0s !important;
     
@@ -1284,40 +1336,21 @@ button:focus {
     transform: none !important;
 }
 
-/* Активное состояние - ТОЛЬКО ЦВЕТ */
-.nav-item.active {
-    background: rgba(255, 255, 255, 0.08);
-    transform: none !important;
-}
-
-.nav-item.active svg {
-    stroke: var(--accent-color);
-    transform: none !important;
-}
-
-/* Ховер - ТОЛЬКО ЦВЕТ */
-.nav-item:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
-    transform: none !important;
-}
-
-.nav-item:hover:not(.active) svg {
-    stroke: #ffffff;
-    transform: none !important;
-}
-
-/* Клик - БЕЗ АНИМАЦИЙ */
+/* Убираем синий квадратик при нажатии */
+.nav-item:focus,
+.nav-item:focus-visible,
 .nav-item:active {
-    transform: none !important;
-    transition: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
-/* Убираем полоску выделения */
-.nav-item::after {
-    display: none;
+/* Для iOS Safari */
+.nav-item {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
 }
 
-/* Появление навигации (только прозрачность, БЕЗ ПРЫЖКОВ) */
+/* Появление навигации */
 .floating-nav {
     animation: fadeIn 0.3s ease-out;
 }
@@ -1330,288 +1363,137 @@ button:focus {
 /* Для безопасных зон на iPhone */
 @supports (padding: max(0px)) {
     .floating-nav {
-        bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important; /* НИЖЕ */
+        bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important;
     }
 }
 
 /* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 480px) {
     .floating-nav {
-        width: 280px;
-        bottom: 15px !important; /* НИЖЕ адаптивно */
+        width: 360px !important;
+        bottom: 15px !important;
     }
     
     .nav-container {
-        padding: 12px 18px;
-        height: 68px;
-        border-radius: 22px !important;
+        padding: 10px 24px;
+        height: 70px !important;
+        border-radius: 34px !important;
+        gap: 14px;
     }
     
     .nav-item {
-        padding: 10px;
-        min-width: 50px;
-        min-height: 50px;
-        border-radius: 14px !important;
-    }
-    
-    .nav-item svg {
-        width: 22px;
-        height: 22px;
-    }
-}
-
-@media (max-width: 380px) {
-    .floating-nav {
-        width: 260px;
-        bottom: 12px !important; /* НИЖЕ адаптивно */
-    }
-    
-    .nav-container {
-        padding: 10px 16px;
-        height: 66px;
-        gap: 8px;
+        padding: 6px 8px !important;
+        min-width: 56px !important;
+        min-height: 56px !important;
         border-radius: 20px !important;
     }
     
-    .nav-item {
-        padding: 9px;
-        min-width: 46px;
-        min-height: 46px;
-        border-radius: 13px !important;
+    .nav-label {
+        font-size: 10px !important;
+        margin-top: 3px !important;
     }
     
     .nav-item svg {
-        width: 20px;
-        height: 20px;
-    }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 320px) {
-    .floating-nav {
-        width: 240px;
-        bottom: 10px !important; /* НИЖЕ адаптивно */
-    }
-    
-    .nav-container {
-        padding: 8px 14px;
-        height: 64px;
-        border-radius: 18px !important;
-    }
-    
-    .nav-item {
-        border-radius: 12px !important;
-    }
-}
-
-/* ========== СОВМЕСТИМОСТЬ ========== */
-@media (max-width: 768px) {
-    .mobile-weather-container {
-        padding-bottom: 100px; /* Меньше места теперь */
-    }
-}
-
-@media (min-width: 769px) {
-    .floating-nav {
-        display: none;
-    }
-}
-
-/* Убираем стандартное выделение */
-.nav-item {
-    outline: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* ЯДЕРНОЕ ЦЕНТРИРОВАНИЕ - ЧЕТКО ПО ЦЕНТРУ */
-html body .floating-nav {
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    margin: 0 !important;
-    right: auto !important;
-    position: fixed !important;
-}
-/* ========== ОКНО ОШИБКИ ========== */
-.error-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 15, 15, 0.85);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10001;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    padding: 20px;
-}
-
-.error-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.error-card {
-    background: rgba(30, 30, 30, 0.95);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border-radius: 24px;
-    padding: 30px;
-    width: 100%;
-    max-width: 400px;
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 20px rgba(244, 67, 54, 0.3);
-    text-align: center;
-    transform: translateY(20px) scale(0.95);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.error-overlay.active .error-card {
-    transform: translateY(0) scale(1);
-}
-
-.error-icon {
-    margin-bottom: 20px;
-}
-
-.error-icon svg {
-    stroke: #ff6b6b;
-    filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5));
-}
-
-.error-content {
-    margin-bottom: 25px;
-}
-
-.error-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #ff6b6b, #ff8c8c);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.error-message {
-    font-size: 0.95rem;
-    color: #b0b0b0;
-    line-height: 1.5;
-    font-weight: 500;
-}
-
-.error-button {
-    background: rgba(255, 107, 107, 0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1.5px solid rgba(255, 107, 107, 0.3);
-    color: #ff6b6b;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 14px 32px;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 200px;
-    margin: 0 auto;
-    box-shadow: 
-        0 8px 20px rgba(255, 107, 107, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.error-button:hover {
-    background: rgba(255, 107, 107, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 12px 25px rgba(255, 107, 107, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.error-button:active {
-    transform: translateY(0) scale(0.98);
-    transition: all 0.1s ease;
-}
-
-/* Анимация появления */
-@keyframes errorPulse {
-    0%, 100% {
-        box-shadow: 
-            0 25px 50px rgba(0, 0, 0, 0.5),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1),
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            0 0 20px rgba(244, 67, 54, 0.3);
-    }
-    50% {
-        box-shadow: 
-            0 25px 50px rgba(0, 0, 0, 0.5),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1),
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            0 0 25px rgba(244, 67, 54, 0.5);
-    }
-}
-
-.error-card {
-    animation: errorPulse 3s ease-in-out infinite;
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .error-card {
-        padding: 25px 20px;
-        border-radius: 20px;
-        max-width: 320px;
-    }
-    
-    .error-icon svg {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .error-title {
-        font-size: 1.3rem;
-    }
-    
-    .error-message {
-        font-size: 0.9rem;
-    }
-    
-    .error-button {
-        padding: 12px 24px;
-        font-size: 0.95rem;
+        width: 22px !important;
+        height: 22px !important;
     }
 }
 
 @media (max-width: 380px) {
-    .error-card {
-        padding: 20px 16px;
-        max-width: 280px;
+    .floating-nav {
+        width: 340px !important;
+        bottom: 12px !important;
     }
     
-    .error-title {
-        font-size: 1.2rem;
+    .nav-container {
+        padding: 8px 22px;
+        height: 68px !important;
+        gap: 10px;
+        border-radius: 32px !important;
     }
     
-    .error-message {
-        font-size: 0.85rem;
+    .nav-item {
+        padding: 5px 7px !important;
+        min-width: 52px !important;
+        min-height: 52px !important;
+        border-radius: 19px !important;
+    }
+    
+    .nav-label {
+        font-size: 9px !important;
+        margin-top: 2px !important;
+    }
+    
+    .nav-item svg {
+        width: 20px !important;
+        height: 20px !important;
     }
 }
 
-@keyframes pageSlideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@media (max-width: 320px) {
+    .floating-nav {
+        width: 320px !important;
+        bottom: 10px !important;
+    }
+    
+    .nav-container {
+        padding: 6px 20px;
+        height: 66px !important;
+        border-radius: 30px !important;
+    }
+    
+    .nav-item {
+        border-radius: 18px !important;
+        padding: 4px 6px !important;
+    }
+    
+    .nav-label {
+        font-size: 8px !important;
+        margin-top: 1px !important;
+    }
+    
+    .nav-item svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
 }
 
+/* УБИРАЕМ СИНИЙ КВАДРАТИК ДЛЯ ВСЕХ ЭЛЕМЕНТОВ */
+a, button, input, textarea, select {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+a:focus, button:focus, input:focus, textarea:focus, select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+a:active, button:active {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Для карточек и кнопок в приложении */
+.mobile-detail-card,
+.mobile-additional-card,
+.floating-btn,
+.reminder-card {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.mobile-detail-card:active,
+.mobile-additional-card:active,
+.floating-btn:active,
+.reminder-card:active {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Убираем стандартный фокус у всех кликабельных элементов */
+*:focus {
+    outline: none !important;
+}
 .reminder-icon svg {
     stroke: #ffffff; /* Белый цвет для всех иконок напоминаний */
 }

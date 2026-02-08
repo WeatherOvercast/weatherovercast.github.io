@@ -1079,7 +1079,7 @@ class SmartReminders {
         
         const descriptions = {
             'clear': 'Сходите в парк, подышите свежим воздухом',
-            'clouds': 'Остаться дома или погулять? Выбор за вами!',
+            'clouds': 'Можете остаться дома или погулять',
             'rain': 'Не забудьте зонт',
             'snow': 'Наслаждайтесь снегом. С Новым Годом!',
             'thunderstorm': 'Оставайтесь дома'
@@ -1225,3 +1225,58 @@ function updateAllTemperatures() {
         updateMobileWeather(currentCityData);
     }
 }
+// ========== УПРАВЛЕНИЕ РЕКЛАМНЫМ БАННЕРОМ ==========
+
+// Показывать баннер раз в неделю
+function shouldShowAdBanner() {
+    const lastClosed = localStorage.getItem('adBannerLastClosed');
+    if (!lastClosed) return true;
+    
+    const lastClosedDate = new Date(lastClosed);
+    const now = new Date();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
+    
+    return (now - lastClosedDate) >= oneWeek;
+}
+
+// Показать баннер
+function showAdBanner() {
+    const adBanner = document.getElementById('adBanner');
+    if (adBanner && shouldShowAdBanner()) {
+        adBanner.classList.add('active');
+    }
+}
+
+// Скрыть баннер
+function hideAdBanner() {
+    const adBanner = document.getElementById('adBanner');
+    if (adBanner) {
+        adBanner.classList.remove('active');
+        // Сохраняем время закрытия
+        localStorage.setItem('adBannerLastClosed', new Date().toISOString());
+    }
+}
+
+// Инициализация баннера при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    // Показываем баннер через 3 секунды после загрузки
+    setTimeout(() => {
+        showAdBanner();
+    }, 3000);
+    
+    // Обработчик закрытия баннера
+    const closeButton = document.getElementById('closeAdBanner');
+    if (closeButton) {
+        closeButton.addEventListener('click', hideAdBanner);
+    }
+    
+    // Клик по фону баннера не закрывает его
+    const adBanner = document.getElementById('adBanner');
+    if (adBanner) {
+        adBanner.addEventListener('click', (e) => {
+            if (e.target === adBanner) {
+                e.preventDefault();
+            }
+        });
+    }
+});
