@@ -1,6 +1,6 @@
 {
   "name": "Weather App",
-  "short_name": "Weather", 
+  "short_name": "F.Weather", 
   "start_url": "/",
   "display": "standalone",
   "background_color": "#191919",
