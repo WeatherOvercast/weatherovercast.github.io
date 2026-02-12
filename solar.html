@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Активности | Weather Flux</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap"
@@ -11,6 +11,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#191919">
     <link rel="apple-touch-icon" href="maskable_icon_x512.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         /* ========== ТОЛЬКО МОБИЛЬНАЯ ВЕРСИЯ - ОБНОВЛЕННАЯ ========== */
         .mobile-weather-container {
@@ -34,8 +35,7 @@
             box-shadow: 
                 0 25px 50px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 0 20px var(--accent-glow);
+                0 0 0 1px rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
             position: relative;
             overflow: hidden;
@@ -295,154 +295,122 @@
         /* ========== ОБНОВЛЕННАЯ НАВИГАЦИОННАЯ ПАНЕЛЬ ========== */
         .floating-nav {
             position: fixed;
-            bottom: 20px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
-            width: 380px !important;
+            width: 380px;
+            perspective: 1000px;
         }
 
         .nav-container {
-            background: rgba(35, 35, 35, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 36px !important;
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(40px) saturate(210%) brightness(80%);
+            -webkit-backdrop-filter: blur(40px) saturate(210%) brightness(80%);
+            border-radius: 38px;
             padding: 12px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            gap: 12px;
+            gap: 8px;
             width: 100%;
-            height: 72px;
-            
-            /* УБИРАЕМ ВСЕ АНИМАЦИИ ПРЫЖКОВ */
-            animation: none !important;
-            transform: none !important;
+            height: 76px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 2px 15px rgba(255, 255, 255, 0.05),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* Иконки навигации - С ТЕКСТОМ */
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 8px 10px;
-            border-radius: 22px !important;
+            border-radius: 26px;
             text-decoration: none;
-            transition: background-color 0.15s ease, transform 0s !important;
-            min-width: 58px;
-            min-height: 58px;
             flex: 1;
-            
-            /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ И УБИРАЕМ ВЫДЕЛЕНИЕ */
-            transform: none !important;
-            animation: none !important;
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent !important;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Надписи под иконками */
-        .nav-label {
-            font-size: 11px !important;
-            font-weight: 600;
-            color: #b0b0b0;
-            margin-top: 4px !important;
-            letter-spacing: 0.3px;
-            transition: color 0.15s ease;
+        .nav-item:active {
+            transform: scale(0.88) translateY(2px) !important;
         }
 
-        /* ВЫДЕЛЕНИЕ ДЛЯ АКТИВНОЙ СТРАНИЦЫ (3-я иконка - Условия) */
+        /* ===== ВЫДЕЛЕНИЕ ДЛЯ ТРЕТЬЕГО ПУНКТА (УСЛОВИЯ) ===== */
         .nav-item:nth-child(3) {
-            background: rgba(255, 255, 255, 0.08) !important;
-        }
-
-        .nav-item:nth-child(3) .nav-label {
-            color: #ffffff !important;
-            font-weight: 700;
+            background: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 
+                inset 0 1px 4px rgba(255, 255, 255, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .nav-item:nth-child(3) svg {
-            stroke: #ffffff !important;
+            stroke: #ffffff;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
         }
 
-        /* Остальные иконки без выделения */
-        .nav-item:nth-child(1),
-        .nav-item:nth-child(2),
-        .nav-item:nth-child(4) {
+        .nav-item:nth-child(3) .nav-label {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Сбрасываем выделение с первого пункта (Погода) */
+        .nav-item:nth-child(1) {
             background: transparent !important;
-        }
-
-        .nav-item:nth-child(1) .nav-label,
-        .nav-item:nth-child(2) .nav-label,
-        .nav-item:nth-child(4) .nav-label {
-            color: #b0b0b0;
-        }
-
-        .nav-item:nth-child(1) svg,
-        .nav-item:nth-child(2) svg,
-        .nav-item:nth-child(4) svg {
-            stroke: #b0b0b0;
-        }
-
-        /* Ховер эффект - ТОЛЬКО ДЛЯ НЕАКТИВНЫХ */
-        .nav-item:hover:not(.nav-item:nth-child(3)) {
-            background: rgba(255, 255, 255, 0.05) !important;
-        }
-
-        .nav-item:hover:not(.nav-item:nth-child(3)) svg {
-            stroke: #ffffff !important;
-        }
-
-        .nav-item:hover:not(.nav-item:nth-child(3)) .nav-label {
-            color: #ffffff !important;
-        }
-
-        /* Активная иконка при ховере */
-        .nav-item:nth-child(3):hover {
-            background: rgba(255, 255, 255, 0.12) !important; /* Слегка ярче */
-        }
-
-        /* Иконки */
-        .nav-item svg {
-            width: 24px !important;
-            height: 24px !important;
-            stroke-width: 2;
-            transition: stroke 0.15s ease, transform 0s !important;
-            
-            /* БЛОКИРУЕМ ВСЕ ПРЫЖКИ ДЛЯ SVG */
-            transform: none !important;
-        }
-
-        /* Убираем синий квадратик при нажатии */
-        .nav-item:focus,
-        .nav-item:focus-visible,
-        .nav-item:active {
-            outline: none !important;
             box-shadow: none !important;
-            -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* Для iOS Safari */
-        .nav-item {
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+        .nav-item:nth-child(1) svg {
+            stroke: rgba(255, 255, 255, 0.45);
+            filter: none;
         }
 
-        /* Появление навигации */
-        .floating-nav {
-            animation: fadeIn 0.3s ease-out;
+        .nav-item:nth-child(1) .nav-label {
+            color: rgba(255, 255, 255, 0.4);
+            text-shadow: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Иконки и текст */
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: rgba(255, 255, 255, 0.45);
+            stroke-width: 2.2;
+            transition: stroke 0.3s ease;
         }
 
-        /* Для безопасных зон на iPhone */
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Ховер */
+        .nav-item:hover:not(:nth-child(3)) svg {
+            stroke: rgba(255, 255, 255, 0.9);
+        }
+
+        .nav-item:hover:not(:nth-child(3)) .nav-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .nav-item:nth-child(3):hover {
+            background: rgba(255, 255, 255, 0.18) !important;
+        }
+
+        /* Фикс для iPhone Safe Area */
         @supports (padding: max(0px)) {
             .floating-nav {
-                bottom: max(15px, env(safe-area-inset-bottom) + 5px) !important;
+                bottom: max(25px, env(safe-area-inset-bottom) + 12px) !important;
             }
         }
 
@@ -467,10 +435,6 @@
                 border-radius: 20px !important;
             }
             
-            .nav-item:nth-child(3) {
-                background: rgba(255, 255, 255, 0.08) !important;
-            }
-            
             .nav-label {
                 font-size: 10px !important;
                 margin-top: 3px !important;
@@ -479,6 +443,10 @@
             .nav-item svg {
                 width: 22px !important;
                 height: 22px !important;
+            }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.12) !important;
             }
         }
 
@@ -502,10 +470,6 @@
                 border-radius: 19px !important;
             }
             
-            .nav-item:nth-child(3) {
-                background: rgba(255, 255, 255, 0.08) !important;
-            }
-            
             .nav-label {
                 font-size: 9px !important;
                 margin-top: 2px !important;
@@ -514,6 +478,10 @@
             .nav-item svg {
                 width: 20px !important;
                 height: 20px !important;
+            }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.12) !important;
             }
         }
 
@@ -534,10 +502,6 @@
                 padding: 4px 6px !important;
             }
             
-            .nav-item:nth-child(3) {
-                background: rgba(255, 255, 255, 0.08) !important;
-            }
-            
             .nav-label {
                 font-size: 8px !important;
                 margin-top: 1px !important;
@@ -547,9 +511,11 @@
                 width: 18px !important;
                 height: 18px !important;
             }
+            
+            .nav-item:nth-child(3) {
+                background: rgba(255, 255, 255, 0.12) !important;
+            }
         }
-
-        
     </style>
 </head>
 <body>
@@ -570,7 +536,7 @@
                     <div class="activity-card-content">
                         <div class="activity-card-title">
                             <div class="activity-card-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-run">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <path d="M12 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
                                     <path d="M4 17l5 1l.75 -1.5" />
@@ -589,7 +555,7 @@
                     <div class="activity-card-content">
                         <div class="activity-card-title">
                             <div class="activity-card-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bike">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <path d="M2 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
                                     <path d="M16 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
@@ -608,7 +574,7 @@
                     <div class="activity-card-content">
                         <div class="activity-card-title">
                             <div class="activity-card-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-walk">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <path d="M12 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
                                     <path d="M7 21l3 -4" />
@@ -627,7 +593,7 @@
                     <div class="activity-card-content">
                         <div class="activity-card-title">
                             <div class="activity-card-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-photo-scan">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <path d="M15 8h.01" />
                                     <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
@@ -648,7 +614,7 @@
             <!-- Детализация воздуха -->
             <div class="air-details-section">
                 <div class="air-details-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-wind">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                         <path d="M5 8h8.5a2.5 2.5 0 1 0 -2.34 -3.24" />
                         <path d="M3 12h15.5a2.5 2.5 0 1 1 -2.34 3.24" />
@@ -658,7 +624,6 @@
                 </div>
                 
                 <div class="air-metrics-grid" id="air-metrics">
-                    <!-- Заполнится через JS -->
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">PM2.5</div>
@@ -667,7 +632,6 @@
                         <div class="air-metric-desc">Мелкие частицы</div>
                         <div class="air-metric-status status-moderate">Загрузка...</div>
                     </div>
-                    
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">PM10</div>
@@ -676,7 +640,6 @@
                         <div class="air-metric-desc">Крупные частицы</div>
                         <div class="air-metric-status status-moderate">Загрузка...</div>
                     </div>
-                    
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">CO</div>
@@ -685,7 +648,6 @@
                         <div class="air-metric-desc">Угарный газ</div>
                         <div class="air-metric-status status-moderate">Загрузка...</div>
                     </div>
-                    
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">NO₂</div>
@@ -694,7 +656,6 @@
                         <div class="air-metric-desc">Диоксид азота</div>
                         <div class="air-metric-status status-moderate">Загрузка...</div>
                     </div>
-                    
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">O₃</div>
@@ -703,7 +664,6 @@
                         <div class="air-metric-desc">Озон</div>
                         <div class="air-metric-status status-moderate">Загрузка...</div>
                     </div>
-                    
                     <div class="air-metric-card">
                         <div class="air-metric-header">
                             <div class="air-metric-name">SO₂</div>
@@ -716,18 +676,22 @@
             </div>
         </div>
 
-        <!-- ОБНОВЛЕННАЯ ПЛАВАЮЩАЯ НАВИГАЦИЯ С КРУПНЫМИ ИКОНКАМИ -->
+        <!-- НАВИГАЦИЯ С ВЫДЕЛЕНИЕМ НА 3-Й ИКОНКЕ (УСЛОВИЯ) -->
         <nav class="floating-nav">
             <div class="nav-container">
-                <!-- Погода -->
+                <!-- Погода (без выделения) -->
                 <a href="index.html" class="nav-item">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sun"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                        <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
                     <span class="nav-label">Погода</span>
                 </a>
                 
                 <!-- Прогноз -->
-                <a href="#" class="nav-item" onclick="navigateTo('forecast')">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <a href="#" class="nav-item">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 20V10"></path>
                         <path d="M12 20V4"></path>
                         <path d="M6 20v-6"></path>
@@ -735,9 +699,9 @@
                     <span class="nav-label">Прогноз</span>
                 </a>
                 
-                <!-- Активности -->
+                <!-- Условия (АКТИВНОЕ ВЫДЕЛЕНИЕ) -->
                 <a href="activity.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                         <path d="M7.027 11.477a5 5 0 1 0 5.496 -4.45a4.951 4.951 0 0 0 -3.088 .681" />
                         <path d="M5.636 5.636a9 9 0 1 0 3.555 -2.188" />
@@ -750,7 +714,15 @@
                 
                 <!-- Профиль -->
                 <a href="prof.html" class="nav-item">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user-scan"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M4 8v-2a2 2 0 0 1 2 -2h2" /><path d="M4 16v2a2 2 0 0 0 2 2h2" /><path d="M16 4h2a2 2 0 0 1 2 2v2" /><path d="M16 20h2a2 2 0 0 0 2 -2v-2" /><path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" /></svg> 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                        <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+                        <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+                        <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+                        <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+                        <path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" />
+                    </svg> 
                     <span class="nav-label">Профиль</span>
                 </a>
             </div>

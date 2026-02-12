@@ -2,77 +2,177 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Профиль - Weather Flux</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        /* Ленточки "В разработке" */
-        .ribbon-container {
+        /* ========== LIQUID ICE GLASS (iOS 26.4 ULTRA) ========== */
+        .floating-nav {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
-            overflow: hidden;
+            width: 380px;
+            perspective: 1000px;
         }
-        
-        /* Первая лента (слева направо) */
-        .ribbon-1 {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 50px;
-            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
-            transform: translateX(-25%) translateY(300%) rotate(-45deg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+
+        .nav-container {
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(40px) saturate(210%) brightness(80%);
+            -webkit-backdrop-filter: blur(40px) saturate(210%) brightness(80%);
+            border-radius: 38px;
+            padding: 12px 28px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            height: 76px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 2px 15px rgba(255, 255, 255, 0.05),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 8px 10px;
+            border-radius: 26px;
+            text-decoration: none;
+            flex: 1;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        /* Вторая лента (справа налево) */
-        .ribbon-2 {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 50px;
-            background: linear-gradient(45deg, #ffed4e, #ffd700, #ffed4e);
-            transform: translateX(-25%) translateY(500%) rotate(45deg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+        .nav-item:active {
+            transform: scale(0.88) translateY(2px) !important;
         }
-        
-        .ribbon-text {
-            color: #000;
-            font-weight: 800;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
+
+        /* Иконки и текст - базовые стили */
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: rgba(255, 255, 255, 0.45);
+            stroke-width: 2.2;
+            transition: stroke 0.3s ease, filter 0.3s ease;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 5px;
             text-transform: uppercase;
-            white-space: nowrap;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+            letter-spacing: 0.8px;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
         }
-        
-        .ribbon-1 .ribbon-text {
-            padding: 0 20px;
+
+        /* ===== ВЫДЕЛЕНИЕ ДЛЯ ЧЕТВЕРТОГО ПУНКТА (ПРОФИЛЬ) ===== */
+        .nav-item:nth-child(4) {
+            background: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 
+                inset 0 1px 4px rgba(255, 255, 255, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.2);
         }
-        
-        .ribbon-2 .ribbon-text {
-            padding: 0 20px;
-            transform: scaleX(-1);
+
+        .nav-item:nth-child(4) svg {
+            stroke: #ffffff !important;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
         }
-        
-        /* Дополнительные стили для страницы профиля */
+
+        .nav-item:nth-child(4) .nav-label {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Сбрасываем выделение с первого пункта (Погода) */
+        .nav-item:nth-child(1) {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .nav-item:nth-child(1) svg {
+            stroke: rgba(255, 255, 255, 0.45) !important;
+            filter: none !important;
+        }
+
+        .nav-item:nth-child(1) .nav-label {
+            color: rgba(255, 255, 255, 0.4) !important;
+            text-shadow: none !important;
+        }
+
+        /* Сбрасываем выделение со второго пункта (Прогноз) */
+        .nav-item:nth-child(2) {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .nav-item:nth-child(2) svg {
+            stroke: rgba(255, 255, 255, 0.45) !important;
+            filter: none !important;
+        }
+
+        .nav-item:nth-child(2) .nav-label {
+            color: rgba(255, 255, 255, 0.4) !important;
+            text-shadow: none !important;
+        }
+
+        /* Сбрасываем выделение с третьего пункта (Условия) */
+        .nav-item:nth-child(3) {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .nav-item:nth-child(3) svg {
+            stroke: rgba(255, 255, 255, 0.45) !important;
+            filter: none !important;
+        }
+
+        .nav-item:nth-child(3) .nav-label {
+            color: rgba(255, 255, 255, 0.4) !important;
+            text-shadow: none !important;
+        }
+
+        /* Ховер эффекты для неактивных пунктов */
+        .nav-item:hover:not(:nth-child(4)) {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .nav-item:hover:not(:nth-child(4)) svg {
+            stroke: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .nav-item:hover:not(:nth-child(4)) .nav-label {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Ховер для активного пункта (чуть ярче) */
+        .nav-item:nth-child(4):hover {
+            background: rgba(255, 255, 255, 0.18) !important;
+        }
+
+        /* Фикс для iPhone Safe Area */
+        @supports (padding: max(0px)) {
+            .floating-nav {
+                bottom: max(25px, env(safe-area-inset-bottom) + 12px) !important;
+            }
+        }
+
+        /* ========== СТИЛИ СТРАНИЦЫ ПРОФИЛЯ ========== */
         .mobile-weather-container {
-            padding-top: 10px; /* Поднимаем всю карточку вверх */
+            padding-top: 10px;
         }
         
         .mobile-weather-card {
@@ -80,14 +180,14 @@
             padding: 0;
             overflow: visible;
             min-height: 720px;
-            margin-top: -10px; /* Дополнительный сдвиг вверх */
+            margin-top: -10px;
         }
 
         .profile-header {
             position: relative;
-            height: 200px; /* Немного уменьшаем высоту хедера */
+            height: 200px;
             background: #2a2a2a;
-            padding: 30px 20px 50px 20px; /* Уменьшаем паддинги */
+            padding: 30px 20px 50px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -96,13 +196,13 @@
         }
 
         .profile-avatar {
-            width: 110px; /* Немного меньше аватар */
+            width: 110px;
             height: 110px;
             border-radius: 50%;
             background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
             border: 3px solid rgba(255,255,255,0.15);
             position: absolute;
-            bottom: -55px; /* Поднимаем аватар ближе к хедеру */
+            bottom: -55px;
             z-index: 10;
             display: flex;
             align-items: center;
@@ -113,7 +213,7 @@
         }
 
         .profile-avatar-placeholder {
-            font-size: 36px; /* Немного меньше текст */
+            font-size: 36px;
             font-weight: 800;
             background: linear-gradient(135deg, #ffffff, #a0a0a0);
             -webkit-background-clip: text;
@@ -121,25 +221,26 @@
         }
 
         .profile-content {
-            padding: 70px 20px 25px 20px; /* Уменьшаем верхний паддинг */
-            margin-top: -35px; /* Поднимаем контент выше */
+            padding: 100px 20px 25px 20px; /* Значительно поднял карточку (было 80px, стало 100px) */
+            margin-top: -35px;
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .profile-name {
-            font-size: 1.7rem; /* Немного меньше размер */
+            font-size: 1.7rem;
             font-weight: 700;
             color: #ffffff;
-            margin-bottom: 8px; /* Уменьшаем отступ */
+            margin-bottom: 8px;
             text-align: center;
-            margin-top: 15px; /* Меньше отступ сверху */
+            margin-top: 5px; /* Уменьшил отступ сверху */
         }
 
         .user-info {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
-            padding: 22px; /* Немного меньше паддинг */
+            padding: 22px;
             border: 1px solid rgba(255, 255, 255, 0.07);
-            margin-bottom: 15px; /* Уменьшаем отступ снизу */
+            margin-bottom: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
@@ -147,7 +248,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 18px; /* Немного меньше */
+            margin-bottom: 18px;
             padding-bottom: 18px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
@@ -159,7 +260,7 @@
         }
 
         .info-icon {
-            width: 22px; /* Немного меньше иконки */
+            width: 22px;
             height: 22px;
             color: #888;
         }
@@ -169,25 +270,24 @@
         }
 
         .info-label {
-            font-size: 0.82rem; /* Немного меньше */
+            font-size: 0.82rem;
             color: #888;
             margin-bottom: 3px;
             font-weight: 500;
         }
 
         .info-value {
-            font-size: 1.05rem; /* Немного меньше */
+            font-size: 1.05rem;
             color: #ffffff;
             font-weight: 500;
         }
 
-        /* Стили для кнопок Настройки и Алергии */
         .action-button {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
-            padding: 18px 22px; /* Немного меньше паддинги */
+            padding: 18px 22px;
             border: 1px solid rgba(255, 255, 255, 0.07);
-            margin-bottom: 12px; /* Меньше отступ между кнопками */
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
@@ -219,20 +319,20 @@
         }
 
         .button-icon {
-            width: 22px; /* Немного меньше иконки */
+            width: 22px;
             height: 22px;
             color: #888;
             flex-shrink: 0;
         }
 
         .button-label {
-            font-size: 1.05rem; /* Немного меньше */
+            font-size: 1.05rem;
             color: #ffffff;
             font-weight: 500;
         }
 
         .button-arrow {
-            width: 18px; /* Немного меньше стрелки */
+            width: 18px;
             height: 18px;
             color: #888;
             transition: transform 0.2s ease;
@@ -242,45 +342,99 @@
             transform: translateX(3px);
         }
 
-        /* Иконка для аллергий */
         .allergy-icon {
             color: #ff6b6b;
         }
 
-        /* Стили для навигации */
-        .floating-nav {
-            margin-top: 5px; /* Поднимаем навигацию чуть выше */
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-
-        .nav-item.active svg {
-            stroke: #ffffff !important;
-        }
-
-        .nav-item.active .nav-label {
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-
-        /* Убираем выделение с "Погоды" в навигации */
-        .nav-item:nth-child(1) {
-            background: transparent !important;
-        }
-
-        .nav-item:nth-child(1) .nav-label {
-            color: #b0b0b0 !important;
-            font-weight: 600 !important;
-        }
-
-        .nav-item:nth-child(1) svg {
-            stroke: #b0b0b0 !important;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Адаптивность */
+        @media (max-width: 480px) {
+            .floating-nav {
+                width: 360px !important;
+                bottom: 15px !important;
+            }
+            
+            .nav-container {
+                padding: 10px 24px;
+                height: 70px !important;
+                border-radius: 34px !important;
+                gap: 14px;
+            }
+            
+            .nav-item {
+                padding: 6px 8px !important;
+                min-width: 56px !important;
+                min-height: 56px !important;
+                border-radius: 20px !important;
+            }
+            
+            .nav-label {
+                font-size: 10px !important;
+                margin-top: 3px !important;
+            }
+            
+            .nav-item svg {
+                width: 22px !important;
+                height: 22px !important;
+            }
+            
+            .nav-item:nth-child(4) {
+                background: rgba(255, 255, 255, 0.12) !important;
+            }
+            
+            .profile-content {
+                padding: 95px 20px 25px 20px; /* Поднятие для 480px */
+            }
+            
+            .profile-name {
+                margin-top: 5px;
+            }
+        }
+
         @media (max-width: 380px) {
+            .floating-nav {
+                width: 340px !important;
+                bottom: 12px !important;
+            }
+            
+            .nav-container {
+                padding: 8px 22px;
+                height: 68px !important;
+                gap: 10px;
+                border-radius: 32px !important;
+            }
+            
+            .nav-item {
+                padding: 5px 7px !important;
+                min-width: 52px !important;
+                min-height: 52px !important;
+                border-radius: 19px !important;
+            }
+            
+            .nav-label {
+                font-size: 9px !important;
+                margin-top: 2px !important;
+            }
+            
+            .nav-item svg {
+                width: 20px !important;
+                height: 20px !important;
+            }
+            
+            .nav-item:nth-child(4) {
+                background: rgba(255, 255, 255, 0.12) !important;
+            }
+            
             .mobile-weather-card {
                 min-height: 690px;
                 margin-top: -5px;
@@ -303,11 +457,11 @@
             
             .profile-name {
                 font-size: 1.4rem;
-                margin-top: 12px;
+                margin-top: 5px;
             }
             
             .profile-content {
-                padding: 60px 15px 20px 15px;
+                padding: 85px 15px 20px 15px; /* Поднятие для 380px */
                 margin-top: -30px;
             }
             
@@ -320,57 +474,46 @@
             .button-label {
                 font-size: 0.95rem;
             }
-            
-            /* Адаптивность для ленточек */
-            .ribbon-1,
-            .ribbon-2 {
-                height: 40px;
-            }
-            
-            .ribbon-1 {
-                transform: translateX(-25%) translateY(250%) rotate(-45deg);
-            }
-            
-            .ribbon-2 {
-                transform: translateX(-25%) translateY(450%) rotate(45deg);
-            }
-            
-            .ribbon-text {
-                font-size: 1rem;
-            }
         }
 
-        /* Анимация появления */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        @media (max-width: 320px) {
+            .floating-nav {
+                width: 320px !important;
+                bottom: 10px !important;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            .nav-container {
+                padding: 6px 20px;
+                height: 66px !important;
+                border-radius: 30px !important;
             }
-        }
-
-        .profile-content {
-            animation: fadeInUp 0.6s ease-out;
+            
+            .nav-item {
+                border-radius: 18px !important;
+                padding: 4px 6px !important;
+            }
+            
+            .nav-label {
+                font-size: 8px !important;
+                margin-top: 1px !important;
+            }
+            
+            .nav-item svg {
+                width: 18px !important;
+                height: 18px !important;
+            }
+            
+            .nav-item:nth-child(4) {
+                background: rgba(255, 255, 255, 0.12) !important;
+            }
+            
+            .profile-content {
+                padding: 75px 12px 18px 12px; /* Поднятие для 320px */
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Контейнер с двумя ленточками -->
-    <div class="ribbon-container">
-        <!-- Первая лента (слева направо) -->
-        <div class="ribbon-1">
-            <div class="ribbon-text">В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ</div>
-        </div>
-        
-        <!-- Вторая лента (справа налево) -->
-        <div class="ribbon-2">
-            <div class="ribbon-text">В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ • В РАЗРАБОТКЕ</div>
-        </div>
-    </div>
-
     <div class="mobile-weather-container">
         <div class="mobile-weather-card">
             <!-- Хедер профиля -->
@@ -379,7 +522,6 @@
                     <div class="profile-avatar-placeholder">FW</div>
                 </div>
             </div>
-
             <!-- Контент профиля -->
             <div class="profile-content">
                 <div class="profile-name">Name</div>
@@ -410,7 +552,7 @@
                     </div>
                 </div>
 
-                <!-- Блок Настройки -->
+                <!-- Блок Настройки (открывает settings.html) -->
                 <a href="settings.html" class="action-button">
                     <div class="button-content">
                         <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -426,14 +568,30 @@
                     </svg>
                 </a>
 
-                <!-- Блок Алергии -->
-                <a href="#" class="action-button">
+                <!-- Блок Регистрация/Вход (вместо Алергии) -->
+                <a href="register.html" class="action-button">
                     <div class="button-content">
-                        <svg class="button-icon allergy-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M3 12h4l3 8l4 -16l3 8h4" />
+                            <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+                            <path d="M20 12h-13l3 -3m0 6l-3 -3" />
                         </svg>
-                        <span class="button-label">Алергии</span>
+                        <span class="button-label">Регистрация/Вход</span>
+                    </div>
+                    <svg class="button-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M9 6l6 6l-6 6" />
+                    </svg>
+                </a>
+
+                <!-- Блок Сообщить о Баге (ссылка на Telegram, открывается в новой вкладке) -->
+                <a href="https://t.me/wptf80x" target="_blank" rel="noopener noreferrer" class="action-button">
+                    <div class="button-content">
+                        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
+                        </svg>
+                        <span class="button-label">Сообщить о Баге</span>
                     </div>
                     <svg class="button-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -443,7 +601,7 @@
             </div>
         </div>
 
-        <!-- Плавающая навигация -->
+        <!-- ПЛАВАЮЩАЯ НАВИГАЦИЯ С ВЫДЕЛЕНИЕМ НА 4-Й ИКОНКЕ (ПРОФИЛЬ) -->
         <nav class="floating-nav">
             <div class="nav-container">
                 <!-- Погода (без выделения) -->
@@ -456,8 +614,8 @@
                     <span class="nav-label">Погода</span>
                 </a>
                 
-                <!-- Прогноз -->
-                <a href="index.html" class="nav-item" onclick="navigateTo('forecast')">
+                <!-- Прогноз (без выделения) -->
+                <a href="index.html" class="nav-item">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 20V10"></path>
                         <path d="M12 20V4"></path>
@@ -466,7 +624,7 @@
                     <span class="nav-label">Прогноз</span>
                 </a>
                 
-                <!-- Условия -->
+                <!-- Условия (без выделения) -->
                 <a href="solar.html" class="nav-item">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -478,9 +636,8 @@
                     </svg>
                     <span class="nav-label">Условия</span>
                 </a>
-                
-                <!-- Профиль  -->
-                <a href="prof.html" class="nav-item active">
+                <!-- Профиль -->
+                <a href="prof.html" class="nav-item">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                         <path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
@@ -495,7 +652,6 @@
             </div>
         </nav>
     </div>
-
     <script>
         // Убираем синие квадратики при фокусе
         document.querySelectorAll('a, button').forEach(el => {
@@ -504,36 +660,6 @@
             });
             el.addEventListener('mousedown', function(e) {
                 e.preventDefault();
-            });
-        });
-
-        // Функция навигации
-        function navigateTo(section) {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => item.classList.remove('active'));
-            
-            event.currentTarget.classList.add('active');
-            
-            if (section === 'forecast' && window.location.pathname.includes('index.html')) {
-                const forecastCards = document.querySelectorAll('.mobile-additional-card');
-                if (forecastCards[1]) {
-                    forecastCards[1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                event.preventDefault();
-            }
-        }
-
-        // Обработчики для кнопок
-        document.querySelectorAll('.action-button').forEach((button, index) => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (index === 0) {
-                    console.log('Настройки открыты');
-                    // window.location.href = 'settings.html';
-                } else if (index === 1) {
-                    console.log('Алергии открыты');
-                    // window.location.href = 'allergies.html';
-                }
             });
         });
     </script>
