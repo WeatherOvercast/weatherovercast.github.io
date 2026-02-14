@@ -14,6 +14,7 @@ let airQualityData = null;
 const TEMPERATURE_SHIFT = 0;
 let isFirstLoad = true;
 
+
 // Переводы погодных условий
 const weatherTranslations = {
     'clear sky': 'Ясно',
@@ -31,38 +32,13 @@ const weatherTranslations = {
     'heavy intensity rain': 'Сильный дождь'
 };
 
-// Система ошибок
+// ERROR_TYPES для системы ошибок - добавляем, если их нет
 const ERROR_TYPES = {
-    NO_INTERNET: {
-        title: 'Нет интернет-соединения',
-        message: 'Проверьте подключение к интернету и попробуйте снова',
-        color: '#ef4444', // Красный
-        icon: 'no-wifi'
-    },
-    SERVER_ERROR: {
-        title: 'Сервер не отвечает',
-        message: 'Проблемы с сервером погоды. Попробуйте позже',
-        color: '#f97316', // Оранжевый
-        icon: 'server'
-    },
-    API_LIMIT: {
-        title: 'Превышен лимит запросов',
-        message: 'Слишком много запросов к API. Попробуйте через 10 минут',
-        color: '#eab308', // Желтый
-        icon: 'limit'
-    },
-    MAINTENANCE: {
-        title: 'Обновление серверов',
-        message: 'Серверы API проходят плановое обслуживание с 20:00 до 23:00',
-        color: '#8b5cf6', // Фиолетовый
-        icon: 'maintenance'
-    },
-    LOCATION_ERROR: {
-        title: 'Ошибка геолокации',
-        message: 'Не удалось определить ваше местоположение',
-        color: '#3b82f6', // Синий
-        icon: 'location'
-    }
+    'NO_INTERNET': { title: 'Нет соединения', message: 'Проверьте подключение к интернету', icon: 'no-wifi', color: '#ff6b6b' },
+    'SERVER_ERROR': { title: 'Ошибка сервера', message: 'Сервер временно недоступен', icon: 'server', color: '#ff9e6d' },
+    'API_LIMIT': { title: 'Лимит запросов', message: 'Слишком много запросов, попробуйте позже', icon: 'limit', color: '#ffe66d' },
+    'MAINTENANCE': { title: 'Техработы', message: 'Сервер на обслуживании с 20:00 до 23:00', icon: 'maintenance', color: '#69a3dd' },
+    'LOCATION_ERROR': { title: 'Ошибка геолокации', message: 'Не удалось определить местоположение', icon: 'location', color: '#ff9e6d' }
 };
 
 // Получение иконки погоды
@@ -170,6 +146,11 @@ function getTemperatureSymbol(units) {
 // Система ошибок соединения
 function showError(errorType, customMessage = null) {
     const errorOverlay = document.getElementById('errorOverlay');
+    if (!errorOverlay) {
+        console.error('errorOverlay не найден');
+        return;
+    }
+    
     const errorTitle = errorOverlay.querySelector('.error-title');
     const errorMessage = errorOverlay.querySelector('.error-message');
     const errorIcon = errorOverlay.querySelector('.error-icon svg');
@@ -178,20 +159,22 @@ function showError(errorType, customMessage = null) {
     const error = ERROR_TYPES[errorType] || ERROR_TYPES.SERVER_ERROR;
     
     // Обновляем контент
-    errorTitle.textContent = error.title;
-    errorMessage.textContent = customMessage || error.message;
+    if (errorTitle) errorTitle.textContent = error.title;
+    if (errorMessage) errorMessage.textContent = customMessage || error.message;
     
     // Обновляем иконку
-    errorIcon.innerHTML = getErrorIcon(error.icon);
+    if (errorIcon) errorIcon.innerHTML = getErrorIcon(error.icon);
     
     // Обновляем цвет
-    errorCard.style.setProperty('--error-color', error.color);
-    errorCard.style.boxShadow = `
-        0 25px 50px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 20px ${error.color}30
-    `;
+    if (errorCard) {
+        errorCard.style.setProperty('--error-color', error.color);
+        errorCard.style.boxShadow = `
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            0 0 20px ${error.color}30
+        `;
+    }
     
     // Показываем
     errorOverlay.classList.add('active');
@@ -200,8 +183,10 @@ function showError(errorType, customMessage = null) {
 
 function hideError() {
     const errorOverlay = document.getElementById('errorOverlay');
-    errorOverlay.classList.remove('active');
-    document.body.style.overflow = '';
+    if (errorOverlay) {
+        errorOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 }
 
 function getErrorIcon(iconType) {
@@ -304,23 +289,36 @@ async function fetchWithTimeout(url, options = {}) {
     }
 }
 
-// Модифицированная основная функция получения погоды
+// Модифицированная основная функция получения погоды с кешем
 async function getWeatherByCoords(lat, lon) {
+    // Проверяем наличие кеша
+    const cache = weatherCache ? weatherCache.loadFromCache() : null;
+    
+    // Если есть кеш, сразу показываем данные
+    if (cache && cache.weather) {
+        console.log('📋 Показываем кешированные данные');
+        if (weatherCache) {
+            weatherCache.displayCachedData();
+        }
+    } else {
+        console.log('⏳ Кеша нет, показываем заглушки');
+    }
+
     if (!navigator.onLine) {
-        console.log('Нет подключения к интернету');
-        showError('NO_INTERNET');
+        console.log('❌ Нет интернета, используем только кеш');
+        if (!cache) {
+            showError('NO_INTERNET');
+        } else if (weatherCache) {
+            showOfflineNotification('Используются сохраненные данные');
+        }
         return;
     }
     
     try {
-        // УДАЛИТЬ ЭТУ ПРОВЕРКУ (перенесена в обработчик таймаута)
-        // const now = new Date();
-        // const currentHour = now.getHours();
-        // 
-        // // Проверка на время обслуживания
-        // if (currentHour >= 20 && currentHour <= 23) {
-        //     showError('MAINTENANCE');
-        // }
+        // Показываем индикатор загрузки
+        if (weatherCache) {
+            weatherCache.showLoading();
+        }
         
         const controller = new AbortController();
         const timeoutDuration = 15000;
@@ -333,12 +331,10 @@ async function getWeatherByCoords(lat, lon) {
             const [weatherData, forecastData, airQualityData] = await Promise.all([
                 fetchWithTimeout(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=ru`, {
                     signal: controller.signal,
-                    timeout: 7000 // 7 секунд таймаут
+                    timeout: 7000
                 }).then(async r => {
                     if (!r.ok) {
-                        if (r.status === 429) {
-                            throw new Error('API_LIMIT');
-                        }
+                        if (r.status === 429) throw new Error('API_LIMIT');
                         throw new Error(`HTTP error! status: ${r.status}`);
                     }
                     return await r.json();
@@ -358,7 +354,22 @@ async function getWeatherByCoords(lat, lon) {
                 currentCityData = weatherData;
                 currentCity = weatherData.name;
                 
+                // Сохраняем новые данные в кеш
+                if (weatherCache) {
+                    weatherCache.saveToCache(weatherData, forecastData, airQualityData, weatherData.name, { lat, lon });
+                }
+                
                 await updateWeatherData(weatherData, forecastData, airQualityData);
+
+                    console.log('%c✨ Актуалочка подъехала! ✨', 'background: #4ecdc4; color: #000; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+    console.log(`   Температура: ${Math.round(weatherData.main.temp)}°C`);
+    console.log(`   Город: ${weatherData.name}`);
+    console.log(`   Время: ${new Date().toLocaleTimeString()}`);
+                
+                // Прячем индикатор с анимацией
+                if (weatherCache) {
+                    weatherCache.hideLoadingWithAnimation();
+                }
                 
                 if (!isFirstLoad) {
                     // iosNotifications.success('Обновлено', `Погода для ${weatherData.name}`, 2000);
@@ -370,53 +381,74 @@ async function getWeatherByCoords(lat, lon) {
         } catch (fetchError) {
             clearTimeout(timeoutId);
             
-            // Проверяем, был ли это таймаут 7 секунд
-            if (fetchError.name === 'AbortError') {
-                const now = new Date();
-                const currentHour = now.getHours();
+            // В случае ошибки, если есть кеш, продолжаем показывать его
+            if (cache && cache.weather && weatherCache) {
+                console.log('⚠️ Ошибка получения данных, используем кеш');
+                weatherCache.hideLoadingWithAnimation();
                 
-                // Показываем MAINTENANCE только если таймаут случился в часы обслуживания
-                if (currentHour >= 20 && currentHour <= 23) {
-                    showError('MAINTENANCE');
-                } else {
-                    showError('SERVER_ERROR', 'Сервер не отвечает. Проверьте подключение');
-                }
-            } else if (fetchError.message === 'API_LIMIT') {
-                showError('API_LIMIT');
-            } else if (fetchError.message.includes('Failed to fetch')) {
-                showError('NO_INTERNET', 'Проблемы с подключением к серверу погоды');
+                // Показываем уведомление об использовании кеша
+                showOfflineNotification('Используются сохраненные данные');
             } else {
-                showError('SERVER_ERROR', fetchError.message);
+                // Если нет кеша, показываем ошибку
+                if (fetchError.name === 'AbortError') {
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    
+                    if (currentHour >= 20 && currentHour <= 23) {
+                        showError('MAINTENANCE');
+                    } else {
+                        showError('SERVER_ERROR', 'Сервер не отвечает. Проверьте подключение');
+                    }
+                } else if (fetchError.message === 'API_LIMIT') {
+                    showError('API_LIMIT');
+                } else if (fetchError.message.includes('Failed to fetch')) {
+                    showError('NO_INTERNET', 'Проблемы с подключением к серверу погоды');
+                } else {
+                    showError('SERVER_ERROR', fetchError.message);
+                }
+                if (weatherCache) {
+                    weatherCache.hideLoadingWithAnimation();
+                }
             }
         }
         
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
-        // Общая обработка ошибок
+        if (weatherCache) {
+            weatherCache.hideLoadingWithAnimation();
+        }
     }
 }
 
-// Аналогично модифицируйте getWeatherByCity
+// Модифицированная функция получения погоды по городу с кешем
 async function getWeatherByCity(city) {
+    // Проверяем наличие кеша
+    const cache = weatherCache ? weatherCache.loadFromCache() : null;
+    
+    // Если есть кеш для этого города, сразу показываем данные
+    if (cache && cache.weather && cache.city.toLowerCase() === city.toLowerCase() && weatherCache) {
+        console.log('📋 Показываем кешированные данные для города', city);
+        weatherCache.displayCachedData();
+    }
+
     if (!navigator.onLine) {
-        showError('NO_INTERNET');
+        if (!cache) {
+            showError('NO_INTERNET');
+        } else if (weatherCache) {
+            showOfflineNotification('Используются сохраненные данные');
+        }
         return;
     }
     
     try {
-        // УДАЛИТЬ ЭТУ ПРОВЕРКУ
-        // const now = new Date();
-        // const currentHour = now.getHours();
-        // 
-        // // Проверка на время обслуживания
-        // if (currentHour >= 20 && currentHour <= 23) {
-        //     showError('MAINTENANCE');
-        //     return;
-        // }
+        // Показываем индикатор загрузки
+        if (weatherCache) {
+            weatherCache.showLoading();
+        }
         
         const weatherResponse = await fetchWithTimeout(
             `${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`,
-            { timeout: 7000 } // 7 секунд таймаут
+            { timeout: 7000 }
         );
         
         const weatherData = await weatherResponse.json();
@@ -429,7 +461,28 @@ async function getWeatherByCity(city) {
                 getAirQuality(weatherData.coord.lat, weatherData.coord.lon)
             ]);
 
+            // Сохраняем в кеш
+            if (weatherCache) {
+                weatherCache.saveToCache(
+                    weatherData, 
+                    forecastData, 
+                    airQualityData, 
+                    weatherData.name, 
+                    { lat: weatherData.coord.lat, lon: weatherData.coord.lon }
+                );
+            }
+
             await updateWeatherData(weatherData, forecastData, airQualityData);
+
+                console.log('%c✨ Актуалочка подъехала! ✨', 'background: #4ecdc4; color: #000; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+    console.log(`   Температура: ${Math.round(weatherData.main.temp)}°C`);
+    console.log(`   Город: ${weatherData.name}`);
+    console.log(`   Время: ${new Date().toLocaleTimeString()}`);
+            
+            // Прячем индикатор с анимацией
+            if (weatherCache) {
+                weatherCache.hideLoadingWithAnimation();
+            }
             
             if (!isFirstLoad) {
                 // iosNotifications.success('Город изменен', `Теперь смотрим ${weatherData.name}`, 2000);
@@ -440,12 +493,15 @@ async function getWeatherByCity(city) {
     } catch (error) {
         console.error('Ошибка получения погоды:', error);
         
-        // Проверяем, был ли это таймаут 7 секунд
+        // Прячем индикатор
+        if (weatherCache) {
+            weatherCache.hideLoadingWithAnimation();
+        }
+        
         if (error.name === 'AbortError') {
             const now = new Date();
             const currentHour = now.getHours();
             
-            // Показываем MAINTENANCE только если таймаут случился в часы обслуживания
             if (currentHour >= 20 && currentHour <= 23) {
                 showError('MAINTENANCE');
             } else {
@@ -456,30 +512,6 @@ async function getWeatherByCity(city) {
         } else {
             showError('SERVER_ERROR', 'Город не найден или ошибка сервера');
         }
-    }
-}
-
-// Также обновите функцию getAirQuality для использования таймаута
-async function getAirQuality(lat, lon) {
-    try {
-        const response = await fetchWithTimeout(
-            `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`,
-            { 
-                timeout: 7000,
-                method: 'GET'
-            }
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data;
-        
-    } catch (error) {
-        console.log('Качество воздуха недоступно:', error.message);
-        return null;
     }
 }
 
@@ -786,10 +818,22 @@ function loadSettings() {
     }
 }
 
-// Геолокация
+// Геолокация с поддержкой кеша
 function getUserLocation() {
     if (!navigator.onLine) {
-        showError('NO_INTERNET');
+        // Если нет интернета, пытаемся загрузить из кеша
+        const cache = weatherCache ? weatherCache.loadFromCache() : null;
+        if (cache && cache.coords && weatherCache) {
+            console.log('📍 Офлайн: используем кешированные координаты');
+            // Пытаемся показать данные из кеша
+            if (weatherCache.displayCachedData()) {
+                showOfflineNotification('Вы офлайн. Показаны сохраненные данные');
+            } else {
+                showError('NO_INTERNET');
+            }
+        } else {
+            showError('NO_INTERNET');
+        }
         return;
     }
     
@@ -802,10 +846,18 @@ function getUserLocation() {
             },
             error => {
                 console.log('Ошибка геолокации:', error);
-                showError('LOCATION_ERROR');
-                const fallbackLat = 59.9343;
-                const fallbackLng = 30.3351;
-                getWeatherByCoords(fallbackLat, fallbackLng);
+                
+                // Пробуем загрузить из кеша при ошибке геолокации
+                const cache = weatherCache ? weatherCache.loadFromCache() : null;
+                if (cache && cache.coords && weatherCache) {
+                    console.log('📍 Ошибка геолокации, используем кешированные координаты');
+                    getWeatherByCoords(cache.coords.lat, cache.coords.lon);
+                } else {
+                    showError('LOCATION_ERROR');
+                    const fallbackLat = 59.9343;
+                    const fallbackLng = 30.3351;
+                    getWeatherByCoords(fallbackLat, fallbackLng);
+                }
             },
             {
                 enableHighAccuracy: true,
@@ -815,10 +867,18 @@ function getUserLocation() {
         );
     } else {
         console.log('Геолокация не поддерживается браузером');
-        showError('LOCATION_ERROR');
-        const fallbackLat = 59.9343;
-        const fallbackLng = 30.3351;
-        getWeatherByCoords(fallbackLat, fallbackLng);
+        
+        // Пробуем загрузить из кеша
+        const cache = weatherCache ? weatherCache.loadFromCache() : null;
+        if (cache && cache.coords && weatherCache) {
+            console.log('📍 Используем кешированные координаты');
+            getWeatherByCoords(cache.coords.lat, cache.coords.lon);
+        } else {
+            showError('LOCATION_ERROR');
+            const fallbackLat = 59.9343;
+            const fallbackLng = 30.3351;
+            getWeatherByCoords(fallbackLat, fallbackLng);
+        }
     }
 }
 
@@ -1164,8 +1224,31 @@ class SmartReminders {
     }
 }
 
-// Инициализация
-const smartReminders = new SmartReminders();
+// Инициализация (меняем const на let)
+let smartReminders = new SmartReminders();
+
+// Инициализация системы кеширования
+if (typeof WeatherCacheSystem !== 'undefined') {
+    // weatherCache уже создан в cache-system.js, просто проверяем что он есть
+    if (weatherCache) {
+        console.log('✅ Система кеширования доступна');
+        
+        // Пытаемся сразу показать данные из кеша
+        setTimeout(() => {
+            if (weatherCache && !currentCityData) {
+                const cache = weatherCache.loadFromCache();
+                if (cache && cache.weather) {
+                    console.log('📋 Загружаем данные из кеша при старте');
+                    weatherCache.displayCachedData();
+                }
+            }
+        }, 100);
+    } else {
+        console.warn('⚠️ Система кеширования не инициализирована');
+    }
+} else {
+    console.warn('⚠️ Система кеширования не найдена');
+}
 
 // Загрузка приложения
 document.addEventListener('DOMContentLoaded', () => {
@@ -1177,7 +1260,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Слушатели событий
     window.addEventListener('online', () => {
         hideError();
-        getUserLocation();
+        // При возвращении интернета обновляем данные
+        if (currentCityData) {
+            // Если есть текущий город, обновляем по его координатам
+            getWeatherByCoords(currentCityData.coord.lat, currentCityData.coord.lon);
+        } else {
+            // Иначе запрашиваем геолокацию
+            getUserLocation();
+        }
     });
     
     window.addEventListener('offline', () => {
@@ -1213,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // PWA
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('sw.js')
             .then(registration => console.log('SW registered'))
             .catch(error => console.log('SW registration failed'));
     }
@@ -1225,58 +1315,69 @@ function updateAllTemperatures() {
         updateMobileWeather(currentCityData);
     }
 }
-// ========== УПРАВЛЕНИЕ РЕКЛАМНЫМ БАННЕРОМ ==========
 
-// Показывать баннер раз в неделю
-function shouldShowAdBanner() {
-    const lastClosed = localStorage.getItem('adBannerLastClosed');
-    if (!lastClosed) return true;
+// Функция для показа уведомления об использовании кеша
+function showOfflineNotification(message) {
+    // Проверяем, есть ли уже такое уведомление
+    if (document.querySelector('.cache-notification')) return;
     
-    const lastClosedDate = new Date(lastClosed);
-    const now = new Date();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = 'cache-notification';
+    notification.textContent = message;
     
-    return (now - lastClosedDate) >= oneWeek;
-}
-
-// Показать баннер
-function showAdBanner() {
-    const adBanner = document.getElementById('adBanner');
-    if (adBanner && shouldShowAdBanner()) {
-        adBanner.classList.add('active');
-    }
-}
-
-// Скрыть баннер
-function hideAdBanner() {
-    const adBanner = document.getElementById('adBanner');
-    if (adBanner) {
-        adBanner.classList.remove('active');
-        // Сохраняем время закрытия
-        localStorage.setItem('adBannerLastClosed', new Date().toISOString());
-    }
-}
-
-// Инициализация баннера при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    // Показываем баннер через 3 секунды после загрузки
-    setTimeout(() => {
-        showAdBanner();
-    }, 3000);
-    
-    // Обработчик закрытия баннера
-    const closeButton = document.getElementById('closeAdBanner');
-    if (closeButton) {
-        closeButton.addEventListener('click', hideAdBanner);
-    }
-    
-    // Клик по фону баннера не закрывает его
-    const adBanner = document.getElementById('adBanner');
-    if (adBanner) {
-        adBanner.addEventListener('click', (e) => {
-            if (e.target === adBanner) {
-                e.preventDefault();
+    // Добавляем стили для уведомления, если их еще нет
+    if (!document.getElementById('cache-notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'cache-notification-styles';
+        style.textContent = `
+            .cache-notification {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(26, 26, 26, 0.9);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                color: #ffffff;
+                padding: 10px 24px;
+                border-radius: 30px;
+                font-size: 14px;
+                font-weight: 500;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                z-index: 9999;
+                animation: slideDown 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+                pointer-events: none;
             }
-        });
+            
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+            }
+            
+            @keyframes fadeOut {
+                to {
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     }
-});
+    
+    document.body.appendChild(notification);
+    
+    // Удаляем уведомление через 3 секунды
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
