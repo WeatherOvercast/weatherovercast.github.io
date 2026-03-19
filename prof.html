@@ -520,162 +520,110 @@
             <!-- Хедер профиля -->
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <div class="profile-avatar-placeholder">FW</div>
+                    <!-- Заменили на класс placeholder, как в твоем HTML -->
+                    <div id="user-initials" class="profile-avatar-placeholder">FW</div>
                 </div>
             </div>
-           <!-- Контент профиля -->
-<div class="profile-content">
-    <!-- Добавьте id к блоку с буквами (FW), если он выше в коде -->
-    <div id="user-name" class="profile-name">Загрузка...</div>
-    
-    <div class="user-info">
-        <div class="info-item">
-            <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
-                <circle cx="12" cy="7" r="4" />
-                <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
-            </svg>
-            <div class="info-content">
-                <div class="info-label">Имя пользователя</div>
-                <div id="user-username" class="info-value">@username</div>
+            
+            <!-- Контент профиля -->
+            <div class="profile-content">
+                <div id="user-name" class="profile-name">Загрузка...</div>
+                
+                <div class="user-info">
+                    <div class="info-item">
+                        <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
+                            <circle cx="12" cy="7" r="4" />
+                            <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+                        </svg>
+                        <div class="info-content">
+                            <div class="info-label">Имя пользователя</div>
+                            <div id="user-username" class="info-value">@username</div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- ПЛАВАЮЩАЯ НАВИГАЦИЯ -->
+            <nav class="floating-nav">
+                <div class="nav-container">
+                    <a href="index.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
+                            <path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                            <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                        </svg>
+                        <span class="nav-label">Погода</span>
+                    </a>
+                    <a href="index.html" class="nav-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 20V10"></path>
+                            <path d="M12 20V4"></path>
+                            <path d="M6 20v-6"></path>
+                        </svg>
+                        <span class="nav-label">Прогноз</span>
+                    </a>
+                    <a href="solar.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
+                            <path d="M7.027 11.477a5 5 0 1 0 5.496 -4.45a4.951 4.951 0 0 0 -3.088 .681" />
+                            <path d="M5.636 5.636a9 9 0 1 0 3.555 -2.188" />
+                            <path d="M18 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                            <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                            <path d="M9 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                        </svg>
+                        <span class="nav-label">Условия</span>
+                    </a>
+                    <a href="prof.html" class="nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
+                            <path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                            <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+                            <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+                            <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+                            <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+                            <path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" />
+                        </svg>
+                        <span class="nav-label">Профиль</span>
+                    </a>
+                </div>
+            </nav>
         </div>
     </div>
-</div>
-                <!-- Блок Настройки (открывает settings.html) -->
-                <a href="settings.html" class="action-button">
-                    <div class="button-content">
-                        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
-                            <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        <span class="button-label">Настройки</span>
-                    </div>
-                    <svg class="button-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M9 6l6 6l-6 6" />
-                    </svg>
-                </a>
 
-                <!-- Блок Регистрация/Вход (вместо Алергии) -->
-                <a href="register.html" class="action-button">
-                    <div class="button-content">
-                        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-                            <path d="M20 12h-13l3 -3m0 6l-3 -3" />
-                        </svg>
-                        <span class="button-label">Регистрация/Вход</span>
-                    </div>
-                    <svg class="button-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M9 6l6 6l-6 6" />
-                    </svg>
-                </a>
-
-                <!-- Блок Сообщить о Баге (ссылка на Telegram, открывается в новой вкладке) -->
-                <a href="https://t.me/wptf80x" target="_blank" rel="noopener noreferrer" class="action-button">
-                    <div class="button-content">
-                        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
-                        </svg>
-                        <span class="button-label">Сообщить о Баге</span>
-                    </div>
-                    <svg class="button-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M9 6l6 6l-6 6" />
-                    </svg>
-                </a>
-            </div>
-        </div>
-
-        <!-- ПЛАВАЮЩАЯ НАВИГАЦИЯ С ВЫДЕЛЕНИЕМ НА 4-Й ИКОНКЕ (ПРОФИЛЬ) -->
-        <nav class="floating-nav">
-            <div class="nav-container">
-                <!-- Погода (без выделения) -->
-                <a href="index.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
-                        <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
-                    </svg>
-                    <span class="nav-label">Погода</span>
-                </a>
-                
-                <!-- Прогноз (без выделения) -->
-                <a href="index.html" class="nav-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 20V10"></path>
-                        <path d="M12 20V4"></path>
-                        <path d="M6 20v-6"></path>
-                    </svg>
-                    <span class="nav-label">Прогноз</span>
-                </a>
-                
-                <!-- Условия (без выделения) -->
-                <a href="solar.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M7.027 11.477a5 5 0 1 0 5.496 -4.45a4.951 4.951 0 0 0 -3.088 .681" />
-                        <path d="M5.636 5.636a9 9 0 1 0 3.555 -2.188" />
-                        <path d="M18 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-                        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-                        <path d="M9 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-                    </svg>
-                    <span class="nav-label">Условия</span>
-                </a>
-                <!-- Профиль -->
-                <a href="prof.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
-                        <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-                        <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-                        <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                        <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-                        <path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" />
-                    </svg>
-                    <span class="nav-label">Профиль</span>
-                </a>
-            </div>
-        </nav>
-    </div>
-    <script>
-        // Убираем синие квадратики при фокусе
-        document.querySelectorAll('a, button').forEach(el => {
-            el.addEventListener('focus', function() {
-                this.blur();
-            });
-            el.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-            });
-        });
-    </script>
+    <!-- ВАЖНО: Подключаем скрипт Telegram -->
     <script src="https://telegram.org"></script>
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.ready(); // Сообщаем Telegram, что приложение готово
 
-    // Получаем объект пользователя
-    const user = tg.initDataUnsafe?.user;
+    <script>
+        // Инициализация WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
 
-    if (user) {
-        // 1. Устанавливаем Имя (и Фамилию, если есть)
-        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-        document.getElementById('user-name').innerText = fullName;
+        // Убираем фокус с кнопок (твой код)
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('focus', function() { this.blur(); });
+            el.addEventListener('mousedown', function(e) { e.preventDefault(); });
+        });
 
-        // 2. Устанавливаем @username или ID, если ника нет
-        const usernameDisplay = user.username ? `@${user.username}` : `ID: ${user.id}`;
-        document.getElementById('user-username').innerText = usernameDisplay;
+        // Получаем данные
+        const user = tg.initDataUnsafe?.user;
 
-        // 3. Бонус: Меняем FW на первую букву имени (если есть блок аватара с классом)
-        const avatarBlock = document.querySelector('.profile-avatar-text'); // Проверьте имя класса в CSS
-        if (avatarBlock) {
-            avatarBlock.innerText = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
+        if (user) {
+            // 1. Имя
+            document.getElementById('user-name').innerText = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+
+            // 2. Юзернейм
+            document.getElementById('user-username').innerText = user.username ? `@${user.username}` : `ID: ${user.id}`;
+
+            // 3. Инициалы в аватаре (FW)
+            const avatarPlaceholder = document.getElementById('user-initials');
+            if (avatarPlaceholder && user.first_name) {
+                avatarPlaceholder.innerText = user.first_name.charAt(0).toUpperCase();
+            }
+        } else {
+            // Для тестов в обычном браузере
+            document.getElementById('user-name').innerText = "Имя Фамилия";
+            document.getElementById('user-username').innerText = "@username";
         }
-    }
-</script>
+    </script>
 </body>
-</html>
