@@ -9,6 +9,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="https://telegram.org"></script>
     <style>
         /* ========== LIQUID ICE GLASS (iOS 26.4 ULTRA) ========== */
         .floating-nav {
@@ -522,36 +523,25 @@
                     <div class="profile-avatar-placeholder">FW</div>
                 </div>
             </div>
-            <!-- Контент профиля -->
-            <div class="profile-content">
-                <div class="profile-name">Name</div>
-                
-                <div class="user-info">
-                    <div class="info-item">
-                        <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <circle cx="12" cy="7" r="4" />
-                            <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
-                        </svg>
-                        <div class="info-content">
-                            <div class="info-label">Имя пользователя</div>
-                            <div class="info-value">@username</div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <rect x="3" y="5" width="18" height="14" rx="2" />
-                            <polyline points="3 7 12 13 21 7" />
-                        </svg>
-                        <div class="info-content">
-                            <div class="info-label">Электронная почта</div>
-                            <div class="info-value">@yourmail***.com</div>
-                        </div>
-                    </div>
-                </div>
-
+           <!-- Контент профиля -->
+<div class="profile-content">
+    <!-- Добавьте id к блоку с буквами (FW), если он выше в коде -->
+    <div id="user-name" class="profile-name">Загрузка...</div>
+    
+    <div class="user-info">
+        <div class="info-item">
+            <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none""")/>>
+                <circle cx="12" cy="7" r="4" />
+                <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+            </svg>
+            <div class="info-content">
+                <div class="info-label">Имя пользователя</div>
+                <div id="user-username" class="info-value">@username</div>
+            </div>
+        </div>
+    </div>
+</div>
                 <!-- Блок Настройки (открывает settings.html) -->
                 <a href="settings.html" class="action-button">
                     <div class="button-content">
@@ -663,5 +653,29 @@
             });
         });
     </script>
+    <script src="https://telegram.org"></script>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready(); // Сообщаем Telegram, что приложение готово
+
+    // Получаем объект пользователя
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+        // 1. Устанавливаем Имя (и Фамилию, если есть)
+        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        document.getElementById('user-name').innerText = fullName;
+
+        // 2. Устанавливаем @username или ID, если ника нет
+        const usernameDisplay = user.username ? `@${user.username}` : `ID: ${user.id}`;
+        document.getElementById('user-username').innerText = usernameDisplay;
+
+        // 3. Бонус: Меняем FW на первую букву имени (если есть блок аватара с классом)
+        const avatarBlock = document.querySelector('.profile-avatar-text'); // Проверьте имя класса в CSS
+        if (avatarBlock) {
+            avatarBlock.innerText = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
+        }
+    }
+</script>
 </body>
 </html>
