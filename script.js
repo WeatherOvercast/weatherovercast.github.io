@@ -1,5 +1,5 @@
 // Конфигурация API
-const API_KEY = 'b5f3fc6e8095ecb49056466acb6c59da';
+const API_KEY = '9b20db828ed34621c416eb444ec5cc3f';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
 
@@ -1381,3 +1381,405 @@ function showOfflineNotification(message) {
     }, 3000);
 }
 
+// ========== ЭФФЕКТЫ ЗАБРОШЕННОСТИ ==========
+
+// Случайные сбои данных
+function randomDataCorruption() {
+    const elements = {
+        temperature: document.getElementById('mobile-temperature'),
+        humidity: document.getElementById('mobile-humidity'),
+        wind: document.getElementById('mobile-wind'),
+        pressure: document.getElementById('mobile-pressure'),
+        feels: document.getElementById('mobile-feels-like'),
+        city: document.getElementById('mobile-city'),
+        description: document.getElementById('mobile-description'),
+        date: document.getElementById('mobile-date')
+    };
+    
+    // Сохраняем оригинальные значения
+    if (!window.originalValues) {
+        window.originalValues = {};
+        for (let [key, el] of Object.entries(elements)) {
+            if (el) window.originalValues[key] = el.textContent;
+        }
+    }
+    
+    setInterval(() => {
+        // 15% шанс сбоя каждые 5 секунд
+        if (Math.random() < 0.15) {
+            const glitchElements = ['temperature', 'humidity', 'wind', 'pressure'];
+            const randomElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
+            const el = elements[randomElement];
+            
+            if (el) {
+                const originalText = window.originalValues[randomElement];
+                
+                // Показываем битые данные
+                const corruptData = [
+                    'ERR',
+                    '---',
+                    'NaN',
+                    '∞',
+                    '000',
+                    '???',
+                    originalText ? originalText.replace(/\d/g, () => Math.floor(Math.random() * 10)) : 'ERR'
+                ];
+                
+                el.textContent = corruptData[Math.floor(Math.random() * corruptData.length)];
+                el.style.color = '#ff3333';
+                el.style.textShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+                
+                // Восстанавливаем через 1-2 секунды
+                setTimeout(() => {
+                    if (originalText) {
+                        el.textContent = originalText;
+                        el.style.color = '';
+                        el.style.textShadow = '';
+                    }
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+    }, 5000);
+}
+
+// Случайные сбои прогресс-баров
+function glitchProgressBars() {
+    setInterval(() => {
+        if (Math.random() < 0.2) {
+            const bars = document.querySelectorAll('.mobile-progress-fill');
+            bars.forEach(bar => {
+                const originalWidth = bar.style.width;
+                bar.style.width = (Math.random() * 100) + '%';
+                bar.style.opacity = '0.3';
+                
+                setTimeout(() => {
+                    bar.style.width = originalWidth;
+                    bar.style.opacity = '1';
+                }, 800 + Math.random() * 1500);
+            });
+        }
+    }, 4000);
+}
+
+// Случайное отключение карточек
+function corruptCards() {
+    setInterval(() => {
+        const cards = document.querySelectorAll('.mobile-detail-card, .mobile-additional-card');
+        
+        if (Math.random() < 0.1) {
+            const randomCard = cards[Math.floor(Math.random() * cards.length)];
+            
+            if (randomCard) {
+                randomCard.style.transform = `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px)`;
+                randomCard.style.filter = 'brightness(1.5) contrast(0.8)';
+                randomCard.style.transition = 'all 0.1s ease';
+                
+                setTimeout(() => {
+                    randomCard.style.transform = '';
+                    randomCard.style.filter = '';
+                    randomCard.style.transition = 'all 0.3s ease';
+                }, 200);
+            }
+        }
+    }, 3000);
+}
+
+// Текст "последнее обновление: никогда"
+function showLastUpdateNever() {
+    const dateElement = document.getElementById('mobile-date');
+    if (dateElement && Math.random() < 0.05) {
+        const originalDate = dateElement.textContent;
+        dateElement.textContent = 'Обновлено: никогда';
+        dateElement.style.color = '#ff4444';
+        dateElement.style.fontSize = '0.8rem';
+        
+        setTimeout(() => {
+            dateElement.textContent = originalDate;
+            dateElement.style.color = '';
+            dateElement.style.fontSize = '';
+        }, 2000);
+    }
+}
+
+// Инициализация эффектов заброшенности
+function initAbandonedEffects() {
+    console.log('%c⚠️ СИСТЕМА НЕСТАБИЛЬНА ⚠️', 'color: red; font-size: 20px;');
+    console.log('%cПоследнее обслуживание: 6 месяцев назад', 'color: orange;');
+    console.log('%cРекомендуется отключение сервера...', 'color: #ff4444;');
+    
+    randomDataCorruption();
+    glitchProgressBars();
+    corruptCards();
+    
+    setInterval(showLastUpdateNever, 10000);
+    
+    // Случайный сбой всей страницы
+    setInterval(() => {
+        if (Math.random() < 0.03) {
+            document.body.style.transform = `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px)`;
+            document.body.style.filter = 'hue-rotate(180deg) brightness(2)';
+            
+            setTimeout(() => {
+                document.body.style.transform = '';
+                document.body.style.filter = '';
+            }, 100);
+        }
+    }, 15000);
+}
+
+// Запуск после загрузки
+document.addEventListener('DOMContentLoaded', () => {
+    // Задержка для инициализации основных данных
+    setTimeout(initAbandonedEffects, 3000);
+});
+
+// Переопределяем console.log для эффекта "глючности"
+const originalLog = console.log;
+console.log = function(...args) {
+    if (Math.random() < 0.1) {
+        args = args.map(arg => 
+            typeof arg === 'string' ? arg.replace(/[а-яё]/gi, c => 
+                Math.random() < 0.2 ? '?' : c
+            ) : arg
+        );
+    }
+    originalLog.apply(console, args);
+};
+
+// ========== ЭКСТРЕМАЛЬНЫЕ ГЛЮКИ ==========
+
+// Случайные черные буквы в названии города
+function corruptCityName() {
+    const cityElement = document.getElementById('mobile-city');
+    if (!cityElement) return;
+    
+    if (!window.originalCityName) {
+        window.originalCityName = cityElement.textContent;
+    }
+    
+    setInterval(() => {
+        if (Math.random() < 0.3) {
+            const originalName = window.originalCityName;
+            let corruptedName = '';
+            
+            for (let i = 0; i < originalName.length; i++) {
+                if (Math.random() < 0.15) {
+                    corruptedName += '█'; // Черный квадрат вместо буквы
+                } else if (Math.random() < 0.1) {
+                    corruptedName += ''; // Пропущенная буква
+                } else if (Math.random() < 0.05) {
+                    corruptedName += '?'; // Вопросительный знак
+                } else {
+                    corruptedName += originalName[i];
+                }
+            }
+            
+            cityElement.textContent = corruptedName;
+            
+            setTimeout(() => {
+                if (window.originalCityName) {
+                    cityElement.textContent = window.originalCityName;
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+    }, 4000);
+}
+
+// Случайные исчезающие заголовки
+function vanishingTitles() {
+    const titles = document.querySelectorAll('.mobile-card-title');
+    
+    setInterval(() => {
+        titles.forEach((title, index) => {
+            if (Math.random() < 0.2) {
+                // Сохраняем оригинальный текст
+                if (!title.dataset.original) {
+                    title.dataset.original = title.textContent;
+                }
+                
+                const effects = [
+                    () => { title.style.opacity = '0'; },
+                    () => { 
+                        title.style.opacity = '1';
+                        title.style.color = '#ff0000';
+                        title.style.textShadow = '0 0 20px rgba(255,0,0,0.8)';
+                    },
+                    () => { 
+                        title.textContent = 'ERR_' + Math.random().toString(36).substring(7).toUpperCase();
+                        title.style.color = '#ff4444';
+                    },
+                    () => { title.style.letterSpacing = '10px'; }
+                ];
+                
+                effects[Math.floor(Math.random() * effects.length)]();
+                
+                setTimeout(() => {
+                    title.style.opacity = '';
+                    title.style.color = '';
+                    title.style.textShadow = '';
+                    title.style.letterSpacing = '';
+                    if (title.dataset.original) {
+                        title.textContent = title.dataset.original;
+                    }
+                }, 1500);
+            }
+        });
+    }, 5000);
+}
+
+// Случайные дыры с анимацией "затягивания"
+function createRandomHoles() {
+    setInterval(() => {
+        if (Math.random() < 0.15) {
+            const cards = document.querySelectorAll('.mobile-detail-card, .mobile-additional-card');
+            const randomCard = cards[Math.floor(Math.random() * cards.length)];
+            
+            if (randomCard && !randomCard.querySelector('.random-hole')) {
+                const hole = document.createElement('div');
+                hole.className = 'random-hole';
+                hole.style.cssText = `
+                    position: absolute;
+                    width: ${10 + Math.random() * 30}px;
+                    height: ${10 + Math.random() * 30}px;
+                    background: radial-gradient(circle, #000000 50%, transparent 70%);
+                    border-radius: 50%;
+                    top: ${Math.random() * 80}%;
+                    left: ${Math.random() * 80}%;
+                    box-shadow: 0 0 20px rgba(0,0,0,0.9);
+                    animation: holeAppear 2s ease-out forwards;
+                    z-index: 100;
+                    pointer-events: none;
+                `;
+                
+                randomCard.appendChild(hole);
+                
+                setTimeout(() => {
+                    if (hole.parentNode) {
+                        hole.remove();
+                    }
+                }, 2000);
+            }
+        }
+    }, 3000);
+}
+
+// Добавляем анимацию появления дыр
+const holeStyle = document.createElement('style');
+holeStyle.textContent = `
+    @keyframes holeAppear {
+        0% { 
+            transform: scale(0); 
+            opacity: 0;
+        }
+        50% { 
+            transform: scale(1.5); 
+            opacity: 1;
+        }
+        100% { 
+            transform: scale(1); 
+            opacity: 0.7;
+        }
+    }
+`;
+document.head.appendChild(holeStyle);
+
+// Поломка скролла в почасовом прогнозе
+function breakHourlyScroll() {
+    const hourlyScroll = document.querySelector('.mobile-hourly-scroll');
+    if (hourlyScroll) {
+        // Полностью блокируем скролл
+        hourlyScroll.style.overflowX = 'hidden';
+        hourlyScroll.style.overflowY = 'hidden';
+        hourlyScroll.style.touchAction = 'none';
+        hourlyScroll.style.pointerEvents = 'none';
+        
+        // Случайные сдвиги элементов
+        const items = hourlyScroll.querySelectorAll('.mobile-hourly-item');
+        setInterval(() => {
+            items.forEach((item, index) => {
+                if (Math.random() < 0.3) {
+                    item.style.transform = `translateX(${(Math.random() - 0.5) * 20}px)`;
+                    item.style.opacity = Math.random() < 0.5 ? '0.2' : '1';
+                    
+                    setTimeout(() => {
+                        item.style.transform = '';
+                        item.style.opacity = '';
+                    }, 1000 + Math.random() * 2000);
+                }
+            });
+        }, 2000);
+    }
+}
+
+// Мигание навигации с уходом по диагонали
+function breakNavigation() {
+    const nav = document.querySelector('.floating-nav');
+    if (nav) {
+        // Случайные рывки навигации
+        setInterval(() => {
+            if (Math.random() < 0.2) {
+                const offsetX = (Math.random() - 0.5) * 30;
+                const offsetY = Math.random() * 40;
+                const rotation = (Math.random() - 0.5) * 15;
+                
+                nav.style.transition = 'all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+                nav.style.transform = `translateX(calc(-50% + ${offsetX}px)) translateY(${offsetY}px) rotate(${rotation}deg)`;
+                nav.style.opacity = '0.6';
+                
+                setTimeout(() => {
+                    nav.style.transition = 'all 1s ease';
+                    nav.style.transform = 'translateX(-50%)';
+                    nav.style.opacity = '1';
+                }, 500);
+            }
+        }, 4000);
+    }
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        corruptCityName();
+        vanishingTitles();
+        createRandomHoles();
+        breakHourlyScroll();
+        breakNavigation();
+        
+        console.log('%c💀 СИСТЕМА НА ГРАНИ ОТКАЗА 💀', 'color: red; font-size: 16px;');
+        console.log('%cОбнаружены критические повреждения интерфейса', 'color: orange;');
+        console.log('%cВосстановление невозможно', 'color: #ff0000;');
+    }, 2000);
+});
+
+// Добавляем глобальные глюки
+setInterval(() => {
+    // Случайное "зависание" всего интерфейса
+    if (Math.random() < 0.05) {
+        document.body.style.pointerEvents = 'none';
+        document.body.style.filter = 'grayscale(0.8) brightness(0.5)';
+        
+        setTimeout(() => {
+            document.body.style.pointerEvents = '';
+            document.body.style.filter = '';
+        }, 300);
+    }
+    
+    // Случайные красные вспышки
+    if (Math.random() < 0.03) {
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 0, 0, 0.1);
+            z-index: 9999;
+            pointer-events: none;
+            animation: redFlash 0.5s ease-out forwards;
+        `;
+        document.body.appendChild(flash);
+        
+        setTimeout(() => flash.remove(), 500);
+    }
+}, 2000);
